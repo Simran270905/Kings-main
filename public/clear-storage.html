@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clear Storage - KKings Jewellery</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+    }
+    
+    .logo {
+      width: 80px;
+      height: 80px;
+      background: #ae0b0b;
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 32px;
+      font-weight: bold;
+    }
+    
+    h1 {
+      color: #1a202c;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+    
+    .subtitle {
+      color: #718096;
+      margin-bottom: 30px;
+      font-size: 16px;
+    }
+    
+    .info-box {
+      background: #f7fafc;
+      border-left: 4px solid #4299e1;
+      padding: 20px;
+      margin: 20px 0;
+      text-align: left;
+      border-radius: 8px;
+    }
+    
+    .info-box h3 {
+      color: #2d3748;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    
+    .info-box ul {
+      color: #4a5568;
+      padding-left: 20px;
+      line-height: 1.8;
+    }
+    
+    button {
+      background: #ae0b0b;
+      color: white;
+      border: none;
+      padding: 16px 40px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 10px;
+    }
+    
+    button:hover {
+      background: #8f0a0a;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(174, 11, 11, 0.3);
+    }
+    
+    button.secondary {
+      background: #4a5568;
+    }
+    
+    button.secondary:hover {
+      background: #2d3748;
+    }
+    
+    .status {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      font-weight: 600;
+      display: none;
+    }
+    
+    .status.success {
+      background: #c6f6d5;
+      color: #22543d;
+      border: 2px solid #38a169;
+    }
+    
+    .status.error {
+      background: #fed7d7;
+      color: #742a2a;
+      border: 2px solid #e53e3e;
+    }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin: 20px 0;
+    }
+    
+    .stat-box {
+      background: #edf2f7;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    
+    .stat-label {
+      color: #718096;
+      font-size: 12px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    
+    .stat-value {
+      color: #1a202c;
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">KK</div>
+    <h1>Storage Management</h1>
+    <p class="subtitle">Clear cached data to reset the system</p>
+    
+    <div class="stats">
+      <div class="stat-box">
+        <div class="stat-label">Products Cached</div>
+        <div class="stat-value" id="productCount">--</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Categories</div>
+        <div class="stat-value" id="categoryCount">--</div>
+      </div>
+    </div>
+    
+    <div class="info-box">
+      <h3>⚠️ What will be cleared:</h3>
+      <ul>
+        <li>All cached products (kk_products)</li>
+        <li>Category data (kk_categories)</li>
+        <li>Home page content (HOME_PAGE)</li>
+        <li>Footer content (FOOTER)</li>
+        <li>Our Story content (OUR_STORY)</li>
+        <li>Admin authentication token</li>
+      </ul>
+    </div>
+    
+    <div class="info-box" style="border-left-color: #48bb78;">
+      <h3>✅ After clearing:</h3>
+      <ul>
+        <li>Products will be fetched fresh from the database</li>
+        <li>Content will load from the API</li>
+        <li>You may need to login to Admin Panel again</li>
+        <li>Page will automatically refresh</li>
+      </ul>
+    </div>
+    
+    <div>
+      <button onclick="clearStorage()">🗑️ Clear All Storage</button>
+      <button class="secondary" onclick="window.location.href='/'">← Back to Home</button>
+    </div>
+    
+    <div id="status" class="status"></div>
+  </div>
+  
+  <script>
+    // Display current storage stats
+    function updateStats() {
+      try {
+        const products = JSON.parse(localStorage.getItem('kk_products') || '[]');
+        const categories = JSON.parse(localStorage.getItem('kk_categories') || '[]');
+        
+        document.getElementById('productCount').textContent = products.length;
+        document.getElementById('categoryCount').textContent = categories.length;
+      } catch (e) {
+        document.getElementById('productCount').textContent = '0';
+        document.getElementById('categoryCount').textContent = '0';
+      }
+    }
+    
+    function clearStorage() {
+      const statusEl = document.getElementById('status');
+      
+      try {
+        // Get all localStorage keys
+        const keys = Object.keys(localStorage);
+        const itemsCleared = keys.length;
+        
+        // Clear everything
+        localStorage.clear();
+        
+        // Show success message
+        statusEl.className = 'status success';
+        statusEl.style.display = 'block';
+        statusEl.innerHTML = `
+          ✅ <strong>Success!</strong><br>
+          Cleared ${itemsCleared} items from storage.<br>
+          Redirecting to homepage in 2 seconds...
+        `;
+        
+        // Update stats to show 0
+        document.getElementById('productCount').textContent = '0';
+        document.getElementById('categoryCount').textContent = '0';
+        
+        // Redirect after 2 seconds
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 2000);
+        
+      } catch (error) {
+        statusEl.className = 'status error';
+        statusEl.style.display = 'block';
+        statusEl.innerHTML = `
+          ❌ <strong>Error!</strong><br>
+          ${error.message}
+        `;
+      }
+    }
+    
+    // Update stats on load
+    updateStats();
+  </script>
+</body>
+</html>
