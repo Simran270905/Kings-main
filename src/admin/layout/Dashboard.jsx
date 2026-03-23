@@ -3,7 +3,7 @@
 import { useAdminProduct } from '../context/AdminProductContext'
 import { useCart } from '../../customer/context/useCart'
 import { useOrder } from '../context/OrderContext'
-import useRealAnalytics from '../hooks/useRealAnalytics'
+import { useAnalytics } from '../hooks/useRealAnalytics'
 import { useMemo, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -29,7 +29,25 @@ export default function Dashboard() {
   const { orders } = useOrder()
   
   // ✅ NEW: Use real backend analytics
-  const analytics = useRealAnalytics()
+  const analytics = useAnalytics()
+  
+  // Fallback data in case analytics fails
+  const fallbackData = {
+    revenue: 0,
+    totalOrders: 0,
+    totalUsers: 0,
+    pendingOrders: 0,
+    processingOrders: 0,
+    shippedOrders: 0,
+    deliveredOrders: 0,
+    cancelledOrders: 0,
+    loading: false,
+    error: null,
+    refresh: () => {}
+  }
+  
+  // Use analytics data or fallback
+  const safeAnalytics = analytics || fallbackData
 
   // Memoize calculations to prevent flickering
   const totalProducts = useMemo(() => getTotalProductsCount(), [getTotalProductsCount])
@@ -48,13 +66,13 @@ export default function Dashboard() {
   }
 
   // ✅ FIXED: Use real backend revenue and calculations
-  const totalRevenue = analytics.data.revenue || 0
-  const pendingOrders = analytics.data.pendingOrders || 0
-  const processingOrders = analytics.data.processingOrders || 0
-  const shippedOrders = analytics.data.shippedOrders || 0
-  const deliveredOrders = analytics.data.deliveredOrders || 0
-  const totalUsers = analytics.data.totalUsers || 0
-  const cancelledOrders = analytics.data.cancelledOrders || 0
+  const totalRevenue = safeAnalytics.data.revenue || 0
+  const pendingOrders = safeAnalytics.data.pendingOrders || 0
+  const processingOrders = safeAnalytics.data.processingOrders || 0
+  const shippedOrders = safeAnalytics.data.shippedOrders || 0
+  const deliveredOrders = safeAnalytics.data.deliveredOrders || 0
+  const totalUsers = safeAnalytics.data.totalUsers || 0
+  const cancelledOrders = safeAnalytics.data.cancelledOrders || 0
 
   const recentProducts = products.slice(-5).reverse()
 
@@ -73,12 +91,12 @@ export default function Dashboard() {
           
           {/* Refresh Button */}
           <button
-            onClick={analytics.refresh}
-            disabled={analytics.loading}
+            onClick={safeAnalytics.refresh}
+            disabled={safeAnalytics.loading}
             className="px-4 py-2 bg-[#ae0b0b] text-white rounded-lg hover:bg-[#8f0a0a] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             <ArrowTrendingUpIcon className="h-4 w-4" />
-            {analytics.loading ? 'Refreshing...' : 'Refresh'}
+            {safeAnalytics.loading ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>
         
@@ -86,12 +104,12 @@ export default function Dashboard() {
         {process.env.NODE_ENV === 'development' && (
           <div className="mt-2 p-2 bg-gray-100 rounded text-sm">
             <div>Backend Revenue: ₹{totalRevenue}</div>
-            <div>Total Orders: {analytics.data.totalOrders}</div>
+            <div>Total Orders: {safeAnalytics.data.totalOrders}</div>
             <div>Total Users: {totalUsers}</div>
             <div>Delivered Orders: {deliveredOrders}</div>
             <div>Pending Orders: {pendingOrders}</div>
-            <div>Loading: {analytics.loading ? 'Yes' : 'No'}</div>
-            {analytics.error && <div className="text-red-600">Error: {analytics.error}</div>}
+            <div>Loading: {safeAnalytics.loading ? 'Yes' : 'No'}</div>
+            {safeAnalytics.error && <div className="text-red-600">Error: {safeAnalytics.error}</div>}
           </div>
         )}
       </div>
