@@ -23,8 +23,7 @@ import AdminButton from './AdminButton'
 import StatCard from '../components/StatCard'
 
 export default function Dashboard() {
-  const { products } = useAdminProduct()
-  const { getLowStockCount, getTotalProductsCount, refreshProducts } = useAdminProduct()
+  const { products, getTotalStock, getLowStockCount, getTotalProductsCount, refreshProducts } = useAdminProduct()
   const { cartItems } = useCart()
   const { orders } = useOrder()
   
@@ -50,8 +49,8 @@ export default function Dashboard() {
   const safeAnalytics = analytics || fallbackData
 
   // Memoize calculations to prevent flickering
-  const totalProducts = useMemo(() => getTotalProductsCount(), [getTotalProductsCount])
-  const lowStockProducts = useMemo(() => getLowStockCount(), [getLowStockCount])
+  const totalProducts = useMemo(() => getTotalProductsCount, [getTotalProductsCount])
+  const lowStockProducts = useMemo(() => getLowStockCount, [getLowStockCount])
 
   // Refresh products when dashboard mounts (only once)
   useEffect(() => {
