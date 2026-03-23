@@ -1,112 +1,195 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { API_BASE_URL } from '../../../config/api'
+import { useEffect, useState } from 'react'
+import { getContent } from '../../../utils/contentStorage'
 
-const DEFAULT = {
-  hero: { title: 'Our Story', subtitle: 'Jewellery crafted for strength, identity, and legacy.', bg: '#7a1c1c' },
-  intro: { title: '', description: '' },
-  sections: [],
-  timeline: { title: 'Our Journey', items: [] },
+const DEFAULT_OUR_STORY = {
+  hero: {
+    title: 'OUR STORY',
+    subtitle: 'Jewellery crafted for strength, identity, and legacy.',
+    image: '/images/story-hero.jpg',
+  },
+  sections: [
+    {
+      id: 'section1',
+      type: 'text_image',
+      title: 'Born From Power',
+      image: '/images/story-1.jpg',
+      content:
+        'KKings Jewellery was built for men who carry confidence in everything they wear. Our designs are bold, heavy, and timeless — created to express presence, not decoration.',
+      imagePosition: 'right',
+    },
+    {
+      id: 'feature',
+      type: 'feature',
+      title: 'Wear Your Power',
+      content:
+        'Every KKings piece is crafted to be worn daily, aged beautifully, and passed forward as legacy.',
+    },
+    {
+      id: 'section2',
+      type: 'text_image',
+      title: 'Crafted With Precision',
+      image: '/images/story-2.jpg',
+      content:
+        'Each piece is shaped by skilled artisans combining tradition with modern engineering. Weight, polish, and durability are tested rigorously. We create jewellery that outlasts trends.',
+      imagePosition: 'left',
+    },
+    {
+      id: 'timeline',
+      type: 'timeline',
+      title: 'Our Journey',
+      items: [
+        { year: '2019', text: 'First handcrafted gold chain created.' },
+        { year: '2021', text: 'Brand officially launched.' },
+        { year: '2023', text: 'Expanded premium collections.' },
+        { year: 'Today', text: 'Trusted by thousands nationwide.' },
+      ],
+    },
+    {
+      id: 'quote',
+      type: 'quote',
+      quote: 'Jewellery is not about shine — it\'s about presence.',
+      author: '— Founder, KKings Jewellery',
+    },
+  ],
 }
 
 export default function OurStory() {
-  const [content, setContent] = useState(DEFAULT)
+  const [content, setContent] = useState(DEFAULT_OUR_STORY)
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/content/our-story`)
-      .then(r => r.json())
-      .then(json => {
-        const saved = json?.data?.data
-        if (saved && typeof saved === 'object') setContent({ ...DEFAULT, ...saved })
-      })
-      .catch(() => {})
+    try {
+      const storyContent = getContent('OUR_STORY')
+      if (storyContent && storyContent.hero) {
+        setContent(storyContent)
+      }
+    } catch (error) {
+      console.warn('Failed to load OurStory content, using defaults')
+    }
   }, [])
-
-  const { hero, intro, sections = [], timeline } = content
 
   return (
     <div className="bg-white text-gray-900">
+      {/* HERO */}
+      <section className="relative h-[75vh] flex items-center justify-center">
+        <img
+          src={content.hero.image}
+          alt="KKings Story"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/60" />
 
-      {/* HERO BANNER */}
-      <section
-        className="py-24 text-center text-white"
-        style={{ backgroundColor: hero?.bg || '#7a1c1c' }}
-      >
-        <div className="max-w-3xl mx-auto px-6">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">{hero?.title || 'Our Story'}</h1>
-          {hero?.subtitle && <p className="text-lg opacity-90">{hero.subtitle}</p>}
+        <div className="relative text-center max-w-3xl px-6 text-white">
+          <h1 className="text-5xl md:text-6xl font-bold mb-6">
+            {content.hero.title}
+          </h1>
+          <p className="text-lg opacity-90">
+            {content.hero.subtitle}
+          </p>
         </div>
       </section>
 
-      {/* INTRO BLOCK */}
-      {(intro?.title || intro?.description) && (
-        <section className="max-w-4xl mx-auto px-6 py-16 text-center">
-          {intro.title && <h2 className="text-3xl font-bold text-[#7a1c1c] mb-6">{intro.title}</h2>}
-          {intro.description && <p className="text-lg leading-relaxed text-gray-700">{intro.description}</p>}
-        </section>
-      )}
+      {/* CONTENT */}
+      {content.sections.map((section) => {
+        if (section.type === 'text_image') {
+          const isImageRight = section.imagePosition === 'right'
 
-      {/* DYNAMIC SECTIONS */}
-      {sections.map((section, idx) => (
-        <section
-          key={section.id || idx}
-          className="max-w-6xl mx-auto px-6 py-16"
-        >
-          <div className={`grid md:grid-cols-2 gap-12 items-center ${
-            section.layout === 'image-right' ? '' : 'md:[&>*:first-child]:order-2'
-          }`}>
-            {/* Text */}
-            <div>
-              {section.title && (
-                <h2 className="text-3xl font-bold text-[#7a1c1c] mb-5">{section.title}</h2>
+          return (
+            <section
+              key={section.id}
+              className="max-w-6xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-16 items-center"
+            >
+              {isImageRight ? (
+                <>
+                  <div>
+                    <h2 className="text-4xl font-bold text-[#7a1c1c] mb-6">
+                      {section.title}
+                    </h2>
+                    <p className="text-lg leading-relaxed text-gray-700">
+                      {section.content}
+                    </p>
+                  </div>
+                  <img
+                    src={section.image}
+                    alt={section.title}
+                    className="rounded-lg shadow-xl"
+                  />
+                </>
+              ) : (
+                <>
+                  <img
+                    src={section.image}
+                    alt={section.title}
+                    className="rounded-lg shadow-xl"
+                  />
+                  <div>
+                    <h2 className="text-4xl font-bold text-[#7a1c1c] mb-6">
+                      {section.title}
+                    </h2>
+                    <p className="text-lg leading-relaxed text-gray-700">
+                      {section.content}
+                    </p>
+                  </div>
+                </>
               )}
-              {section.description && (
-                <p className="text-lg leading-relaxed text-gray-700">{section.description}</p>
-              )}
-            </div>
-            {/* Image */}
-            {section.image ? (
-              <img
-                src={section.image}
-                alt={section.imageAlt || section.title || 'Section image'}
-                className="rounded-xl shadow-lg w-full object-cover aspect-[4/3]"
-              />
-            ) : (
-              <div className="rounded-xl bg-gray-100 aspect-[4/3] flex items-center justify-center">
-                <span className="text-gray-300 text-sm">No image</span>
-              </div>
-            )}
-          </div>
-        </section>
-      ))}
+            </section>
+          )
+        }
 
-      {/* TIMELINE */}
-      {(timeline?.items?.length > 0) && (
-        <section className="bg-gray-50 py-20">
-          <div className="max-w-4xl mx-auto px-6">
-            {timeline.title && (
-              <h2 className="text-3xl font-bold text-center text-[#7a1c1c] mb-12">{timeline.title}</h2>
-            )}
-            <div className="space-y-8">
-              {timeline.items.map((item, i) => (
-                <div key={i} className="flex gap-8 items-start">
-                  <span className="text-lg font-bold text-[#7a1c1c] w-20 flex-shrink-0">{item.year}</span>
-                  <p className="text-gray-700">{item.event}</p>
+        if (section.type === 'feature') {
+          return (
+            <section
+              key={section.id}
+              className="bg-[#7a1c1c] text-white py-20 text-center"
+            >
+              <h2 className="text-4xl font-bold mb-6">{section.title}</h2>
+              <p className="max-w-2xl mx-auto text-lg opacity-90">
+                {section.content}
+              </p>
+            </section>
+          )
+        }
+
+        if (section.type === 'timeline') {
+          return (
+            <section key={section.id} className="bg-gray-50 py-24">
+              <div className="max-w-5xl mx-auto px-6">
+                <h2 className="text-4xl font-bold text-center text-[#7a1c1c] mb-16">
+                  {section.title}
+                </h2>
+
+                <div className="space-y-12">
+                  {section.items.map((item, i) => (
+                    <div key={i} className="flex gap-8 items-start">
+                      <span className="text-xl font-bold text-[#7a1c1c] w-24">
+                        {item.year}
+                      </span>
+                      <p className="text-gray-700 text-lg">{item.text}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+              </div>
+            </section>
+          )
+        }
 
-      {/* Empty state when no CMS content */}
-      {sections.length === 0 && !intro?.title && (
-        <section className="max-w-4xl mx-auto px-6 py-20 text-center">
-          <p className="text-gray-400 text-lg">Story content coming soon.</p>
-          <p className="text-gray-300 text-sm mt-2">Admin can add content via Admin Panel → Content (CMS) → Our Story</p>
-        </section>
-      )}
+        if (section.type === 'quote') {
+          return (
+            <section key={section.id} className="max-w-4xl mx-auto px-6 py-24 text-center">
+              <blockquote className="text-2xl md:text-3xl font-semibold leading-relaxed">
+                "{section.quote}"
+              </blockquote>
+
+              <p className="mt-6 text-[#7a1c1c] font-medium">
+                {section.author}
+              </p>
+            </section>
+          )
+        }
+
+        return null
+      })}
     </div>
   )
 }

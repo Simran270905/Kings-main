@@ -1,9 +1,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { AdminAuthContext } from './AdminAuthContextObject'
-import { API_BASE_URL } from '../../config/api'
-
-const API_URL = `${API_BASE_URL}/admin`
+import adminApi from '../utils/adminApiService'
 
 export function AdminAuthProvider({ children }) {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false)
@@ -14,24 +12,10 @@ export function AdminAuthProvider({ children }) {
   useEffect(() => {
     const verifyToken = async () => {
       setAdminLoading(true);
-      const token = localStorage.getItem('kk_admin_token');
-      if (!token || token === "undefined") {
-        setIsAdminAuthenticated(false);
-        setAdminLoading(false);
-        return;
-      }
       try {
-        const res = await fetch(`${API_URL}/verify`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) {
-          setIsAdminAuthenticated(true);
-        } else {
-          localStorage.removeItem('kk_admin_token');
-          setIsAdminAuthenticated(false);
-        }
+        const isValid = await adminApi.verifyToken();
+        setIsAdminAuthenticated(isValid);
       } catch {
-        localStorage.removeItem('kk_admin_token');
         setIsAdminAuthenticated(false);
       } finally {
         setAdminLoading(false);
@@ -48,23 +32,8 @@ export function AdminAuthProvider({ children }) {
   // ✅ LOGIN (FIXED)
   const loginAdmin = async (password) => {
     try {
-      const res = await fetch(`${API_URL}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
-
-      // Save correct token
-      const token = data.data.token;
-      localStorage.setItem('kk_admin_token', token);
+      const result = await adminApi.login(password);
+      
       // Force re-verify in all tabs/contexts
       window.dispatchEvent(new Event('storage'));
       setIsAdminAuthenticated(true);
@@ -84,30 +53,20 @@ export function AdminAuthProvider({ children }) {
   };
 
   // ✅ LOGOUT
-  const logoutAdmin = () => {
-    localStorage.removeItem('kk_admin_token')
-    setIsAdminAuthenticated(false)
+  const logoutAdmin = async () => {
+    try {
+      await adminApi.logout()
+    } catch (error) {
+      console.error('Logout error:', error)
+    } finally {
+      setIsAdminAuthenticated(false)
+    }
   }
 
   // ✅ VERIFY TOKEN MANUALLY
   const verifyAdminToken = async () => {
     try {
-      const token = localStorage.getItem('kk_admin_token')
-      if (!token || token === "undefined") return false
-
-      const res = await fetch(`${API_URL}/verify`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      if (!res.ok) {
-        localStorage.removeItem('kk_admin_token')
-        setIsAdminAuthenticated(false)
-        return false
-      }
-
-      return true
+      return await adminApi.verifyToken()
     } catch {
       return false
     }

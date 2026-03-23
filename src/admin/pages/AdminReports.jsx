@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { API_BASE_URL } from '../../config/api'
+import useRealAnalytics from '../hooks/useRealAnalytics'
 import { useProduct } from '../../customer/context/ProductContext'
 import AdminCard from '../layout/AdminCard'
 import AdminButton from '../layout/AdminButton'
@@ -26,73 +26,46 @@ import {
   CurrencyDollarIcon,
   UsersIcon,
   CalendarIcon,
+  ArrowTrendingUpIcon
 } from '@heroicons/react/24/outline'
 
 export default function AdminReports() {
   const { products } = useProduct()
+  const analytics = useRealAnalytics()
 
-  const [analytics, setAnalytics] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
   const [timeRange, setTimeRange] = useState('30days')
   const [selectedPeriod, setSelectedPeriod] = useState('revenue')
+  const [chartData, setChartData] = useState([])
 
-  // 🔥 FETCH ANALYTICS FROM BACKEND
+  // Fetch chart data when component mounts or time range changes
   useEffect(() => {
-    fetchAnalytics()
-  }, [timeRange])
-
-  const fetchAnalytics = async () => {
-    try {
-      setLoading(true)
-      setError('')
-
-      const token = localStorage.getItem('kk_admin_token')
-
-      if (!token) {
-        throw new Error('Admin not authenticated')
+    const fetchChartData = async () => {
+      try {
+        const data = await analytics.getChartData('daily', 30)
+        setChartData(data)
+      } catch (error) {
+        console.error('Failed to fetch chart data:', error)
       }
-
-      const res = await fetch(
-        `${API_BASE_URL}/analytics?range=${timeRange}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-
-      if (!res.ok) {
-        throw new Error('Failed to fetch analytics')
-      }
-
-      const data = await res.json()
-
-      setAnalytics(data)
-    } catch (err) {
-      console.error('❌ Analytics error:', err)
-      setError(err.message || 'Something went wrong')
-    } finally {
-      setLoading(false)
     }
-  }
 
-  // 📊 Line Chart Data
+    fetchChartData()
+  }, [timeRange, analytics.getChartData])
+
+  // � Line Chart Data
   const lineChartData = useMemo(() => {
-    if (!analytics?.monthlyData) return []
+    if (!chartData.length) return []
 
-    return analytics.monthlyData.map((m) => ({
-      month: m.month,
-      revenue: m.revenue || 0,
-      orders: m.orders || 0,
+    return chartData.map((d) => ({
+      month: new Date(d.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      revenue: d.revenue || 0,
+      orders: d.orders || 0,
     }))
-  }, [analytics])
+  }, [chartData])
 
   // 📊 Bar Chart Data
   const barChartData = useMemo(() => {
-    if (!analytics?.monthlyData) return []
-    return analytics.monthlyData.slice(-6)
-  }, [analytics])
+    return chartData.slice(-6)
+  }, [chartData])
 
   // 📊 Category Distribution
   const categoryData = useMemo(() => {
@@ -114,25 +87,6 @@ export default function AdminReports() {
 
   const formatCurrency = (amount) =>
     `₹${(amount || 0).toLocaleString('en-IN')}`
-
-  // 🔄 Loading State
-  if (loading) {
-    return (
-      <div className="text-center py-12 text-gray-500">
-        Loading analytics...
-      </div>
-    )
-  }
-
-  // ❌ Error State
-  if (error) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-red-600 mb-4">{error}</p>
-        <AdminButton onClick={fetchAnalytics}>Retry</AdminButton>
-      </div>
-    )
-  }
 
   return (
     <div className="space-y-6">
@@ -159,6 +113,15 @@ export default function AdminReports() {
             <option value="90days">Last 90 days</option>
           </select>
 
+          <AdminButton 
+            variant="secondary"
+            onClick={analytics.refresh}
+            disabled={analytics.loading}
+          >
+            <ArrowTrendingUpIcon className="h-4 w-4 mr-2" />
+            {analytics.loading ? 'Refreshing...' : 'Refresh'}
+          </AdminButton>
+
           <AdminButton variant="secondary">
             <CalendarIcon className="h-4 w-4 mr-2" />
             Export
@@ -166,27 +129,44 @@ export default function AdminReports() {
         </div>
       </div>
 
+      {/* Debug Info */}
+      {process.env.NODE_ENV === 'development' && (
+        <AdminCard>
+          <h3 className="text-sm font-medium text-gray-800 mb-2">Debug Information (Real API)</h3>
+          <div className="text-sm text-gray-700 space-y-1">
+            <div>Revenue (Backend): ₹{analytics.data.revenue || 0}</div>
+            <div>Total Orders: {analytics.data.totalOrders || 0}</div>
+            <div>Average Order Value: ₹{analytics.data.avgOrderValue || 0}</div>
+            <div>Delivered Orders: {analytics.data.deliveredOrders || 0}</div>
+            <div>Total Users: {analytics.data.totalUsers || 0}</div>
+            <div>Data Source: Backend Admin API</div>
+            <div>Loading: {analytics.loading ? 'Yes' : 'No'}</div>
+            {analytics.error && <div className="text-red-600">Error: {analytics.error}</div>}
+          </div>
+        </AdminCard>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
           {
             title: 'Revenue',
-            value: formatCurrency(analytics?.totalRevenue),
+            value: formatCurrency(analytics.data.revenue),
             icon: CurrencyDollarIcon,
           },
           {
             title: 'Orders',
-            value: analytics?.totalOrders || 0,
+            value: analytics.data.totalOrders || 0,
             icon: ShoppingBagIcon,
           },
           {
             title: 'Avg Order',
-            value: formatCurrency(analytics?.averageOrderValue),
+            value: formatCurrency(analytics.data.avgOrderValue),
             icon: ChartBarIcon,
           },
           {
-            title: 'Products Sold',
-            value: analytics?.totalProductsSold || 0,
+            title: 'Users',
+            value: analytics.data.totalUsers || 0,
             icon: UsersIcon,
           },
         ].map((stat, i) => {

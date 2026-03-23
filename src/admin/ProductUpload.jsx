@@ -45,7 +45,10 @@ const ProductUpload = () => {
     material: 'Gold',
     purity: '',
     weight: '',
-    sku: ''
+    sku: '',
+    isBestSeller: false,
+    isOnSale: false,
+    discountPercentage: ''
   })
 
   const [sizeInput, setSizeInput] = useState({ size: '', stock: '' })
@@ -56,8 +59,11 @@ const ProductUpload = () => {
   const [success, setSuccess] = useState('')
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    const { name, value, type, checked } = e.target
+    setFormData(prev => ({ 
+      ...prev, 
+      [name]: type === 'checkbox' ? checked : value 
+    }))
     setError('')
     setSuccess('')
   }
@@ -163,7 +169,10 @@ const ProductUpload = () => {
         material: formData.material || 'Gold',
         purity: formData.purity || null,
         weight: formData.weight ? Number(formData.weight) : null,
-        sku: formData.sku || undefined
+        sku: formData.sku || undefined,
+        isBestSeller: formData.isBestSeller || false,
+        isOnSale: formData.isOnSale || false,
+        discountPercentage: formData.discountPercentage ? Number(formData.discountPercentage) : 0
       }
 
       const res = await fetch(`${API_BASE_URL}/products`, {
@@ -197,11 +206,17 @@ const ProductUpload = () => {
         material: 'Gold',
         purity: '',
         weight: '',
-        sku: ''
+        sku: '',
+        isBestSeller: false,
+        isOnSale: false,
+        discountPercentage: ''
       })
 
       setSuccess('✅ Product added successfully! It will now appear in the Products list and on the website.')
       setTimeout(() => setSuccess(''), 5000)
+
+      // Trigger global refresh across admin components
+      window.dispatchEvent(new Event('adminProductUpdated'))
 
     } catch (err) {
       console.error('❌ Error adding product:', err)
@@ -454,6 +469,78 @@ const ProductUpload = () => {
                 )}
               </div>
             )}
+          </div>
+
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Product Tags & Sale Settings</h2>
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="isBestSeller"
+                    checked={formData.isBestSeller}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 text-[#ae0b0b] border-gray-300 rounded focus:ring-[#ae0b0b]"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Mark as Best Seller 🔥</span>
+                </label>
+
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="isOnSale"
+                    checked={formData.isOnSale}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 text-[#ae0b0b] border-gray-300 rounded focus:ring-[#ae0b0b]"
+                  />
+                  <span className="text-sm font-medium text-gray-700">On Sale 💸</span>
+                </label>
+              </div>
+
+              {formData.isOnSale && (
+                <div className="grid md:grid-cols-2 gap-6 p-4 bg-red-50 rounded-lg border border-red-200">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Discount Percentage (%)
+                    </label>
+                    <input
+                      type="number"
+                      name="discountPercentage"
+                      value={formData.discountPercentage}
+                      onChange={handleInputChange}
+                      min="0"
+                      max="100"
+                      step="1"
+                      placeholder="e.g., 20 for 20% off"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ae0b0b] focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      This will automatically calculate the selling price
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-end">
+                    <div className="text-sm text-gray-600">
+                      <p className="font-medium mb-2">Discount Preview:</p>
+                      {formData.discountPercentage && formData.price ? (
+                        <div className="space-y-1">
+                          <p>Original: ₹{Number(formData.price).toLocaleString('en-IN')}</p>
+                          <p className="text-red-600 font-semibold">
+                            Discount: {formData.discountPercentage}% off
+                          </p>
+                          <p className="text-green-600 font-semibold">
+                            Final: ₹{(formData.price * (1 - formData.discountPercentage / 100)).toLocaleString('en-IN')}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-gray-400">Enter discount to see preview</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div>

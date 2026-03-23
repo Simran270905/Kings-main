@@ -7,6 +7,8 @@ import { CustomerOrderProvider } from './customer/context/CustomerOrderContext'
 import { AuthProvider } from './customer/context/AuthContext'
 import { AdminAuthProvider } from './admin/context/AdminAuthContext'
 import { OrderProvider } from './admin/context/OrderContext'
+import { EnhancedOrderProvider } from './admin/context/EnhancedOrderContext'
+import { AdminProductProvider } from './admin/context/AdminProductContext'
 
 import Navbar from './customer/components/navigation/Navbar'
 import Footer from './customer/components/Footer/Footer'
@@ -20,6 +22,7 @@ import SignIn from './customer/components/Account/SignIn'
 import Account from './customer/components/Account/Account'
 import Payment from './customer/components/Payment/Payment'
 import OrderSuccess from './customer/pages/OrderSuccess/OrderSuccess'
+import Orders from './customer/pages/Orders/Orders'
 
 import AdminLogin from './admin/AdminLogin'
 import { AdminRoute } from './admin/AdminRoute'
@@ -49,6 +52,7 @@ const OurStoryEditor = lazy(() => import('./admin/layout/OurStoryEditor'))
 const Pages = lazy(() => import('./admin/layout/Pages'))
 const BrandsManagement = lazy(() => import('./admin/layout/BrandsManagement'))
 const CategoriesManagement = lazy(() => import('./admin/layout/CategoriesManagement'))
+const PaymentTracking = lazy(() => import('./admin/pages/PaymentTracking'))
 
 // Customer Layout
 const CustomerLayout = ({ children }) => (
@@ -64,12 +68,14 @@ const App = () => {
     <Router>
       <AdminAuthProvider>
         <OrderProvider>
-          <AuthProvider>
-            <CustomerOrderProvider>
-              <ProductProvider>
-                <CartProvider>
+          <EnhancedOrderProvider>
+            <AdminProductProvider>
+              <AuthProvider>
+                <CustomerOrderProvider>
+                  <ProductProvider>
+                    <CartProvider>
 
-                <Suspense fallback={<div className="p-6">Loading...</div>}>
+                      <Suspense fallback={<div className="p-6">Loading...</div>}>
 
                   <Routes>
 
@@ -91,6 +97,7 @@ const App = () => {
                     <Route path="/signup" element={<SignIn />} />
 
                     <Route path="/account" element={<CustomerLayout><ProtectedRoute><Account /></ProtectedRoute></CustomerLayout>} />
+                    <Route path="/orders" element={<CustomerLayout><ProtectedRoute><Orders /></ProtectedRoute></CustomerLayout>} />
                     <Route path="/order-success" element={<CustomerLayout><OrderSuccess /></CustomerLayout>} />
 
                     {/* ================= ADMIN LOGIN ================= */}
@@ -127,6 +134,14 @@ const App = () => {
                       path="/admin/orders"
                       element={
                         <AdminRoute><OrdersWrapper /></AdminRoute>
+                      }
+                    />
+
+                    {/* Payment Tracking */}
+                    <Route
+                      path="/admin/payment-tracking"
+                      element={
+                        <AdminRoute><PaymentTrackingWrapper /></AdminRoute>
                       }
                     />
 
@@ -217,9 +232,11 @@ const App = () => {
             </ProductProvider>
           </CustomerOrderProvider>
         </AuthProvider>
-        </OrderProvider>
-      </AdminAuthProvider>
-    </Router>
+      </AdminProductProvider>
+    </EnhancedOrderProvider>
+  </OrderProvider>
+</AdminAuthProvider>
+</Router>
   )
 }
 
@@ -248,6 +265,12 @@ const ProductEditWrapper = () => (
 const OrdersWrapper = () => (
   <AdminOnlyLayout>
     <AdminOrders />
+  </AdminOnlyLayout>
+)
+
+const PaymentTrackingWrapper = () => (
+  <AdminOnlyLayout>
+    <PaymentTracking />
   </AdminOnlyLayout>
 )
 

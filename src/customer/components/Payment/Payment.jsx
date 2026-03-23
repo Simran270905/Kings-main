@@ -1,7 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useCart } from '../../context/useCart'
 import { useCustomerOrder } from '../../context/CustomerOrderContext'
+import { useContext } from 'react'
+import { AuthContext } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
 import { CreditCardIcon, BanknotesIcon, DevicePhoneMobileIcon, TicketIcon } from '@heroicons/react/24/outline'
 import { API_BASE_URL } from '../../../config/api'
@@ -9,11 +11,23 @@ import { couponApi } from '../../../services/apiService'
 
 const API_URL = API_BASE_URL
 
-export default function Payment({ deliveryAddress: propDeliveryAddress }) {
+// Load Razorpay script
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    const script = document.createElement('script')
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    script.onload = () => resolve(true)
+    script.onerror = () => resolve(false)
+    document.body.appendChild(script)
+  })
+}
+
+export default function Payment({ deliveryAddress: propDeliveryAddress, clearCart: propClearCart }) {
   const navigate = useNavigate()
   const location = useLocation()
   const { cartItems, totalPrice, clearCart } = useCart()
-  const { fetchUserOrders } = useCustomerOrder()
+  const { user } = useContext(AuthContext)
+  const { fetchUserOrders, createOrder } = useCustomerOrder()
   
   // Get delivery address from props or checkout state
   const [deliveryAddress] = useState(propDeliveryAddress || location.state?.deliveryAddress || {})
@@ -24,6 +38,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress }) {
   const [appliedCoupon, setAppliedCoupon] = useState(null)
   const [discount, setDiscount] = useState(0)
   const [validatingCoupon, setValidatingCoupon] = useState(false)
+  const [error, setError] = useState(null)
   const [paymentDetails, setPaymentDetails] = useState({
     upiId: '',
     cardNumber: '',
@@ -32,18 +47,19 @@ export default function Payment({ deliveryAddress: propDeliveryAddress }) {
     cvv: ''
   })
 
+  // Reset coupon when cart changes
+  useEffect(() => {
+    setCouponCode('')
+    setAppliedCoupon(null)
+    setDiscount(0)
+  }, [cartItems, totalPrice])
+
   const paymentMethods = [
     {
-      id: 'upi',
-      name: 'UPI',
-      icon: DevicePhoneMobileIcon,
-      description: 'Pay using UPI apps'
-    },
-    {
-      id: 'card',
-      name: 'Credit/Debit Card',
+      id: 'razorpay',
+      name: 'Online Payment',
       icon: CreditCardIcon,
-      description: 'Visa, Mastercard, Rupay'
+      description: 'Credit Card, Debit Card, UPI, NetBanking'
     },
     {
       id: 'cod',
@@ -59,10 +75,16 @@ export default function Payment({ deliveryAddress: propDeliveryAddress }) {
       return
     }
 
+    if (appliedCoupon) {
+      toast.error('A coupon is already applied. Remove it first to apply a different one.')
+      return
+    }
+
     setValidatingCoupon(true)
     try {
       const response = await couponApi.validate({
         code: couponCode.toUpperCase(),
+        userId: user?._id,
         orderAmount: totalPrice
       })
 
@@ -90,26 +112,55 @@ export default function Payment({ deliveryAddress: propDeliveryAddress }) {
   const finalAmount = totalPrice - discount
 
   const handlePayment = async () => {
+    setError(null)
+
     if (!selectedMethod) {
+      setError('Please select a payment method')
       toast.error('Please select a payment method')
       return
     }
 
+    // Validate delivery address
+    if (!deliveryAddress.firstName || !deliveryAddress.lastName || !deliveryAddress.mobile || 
+        !deliveryAddress.streetAddress || !deliveryAddress.city || !deliveryAddress.state || !deliveryAddress.zipCode) {
+      setError('Please complete your delivery address')
+      toast.error('Please complete your delivery address')
+      return
+    }
+
     setLoading(true)
-    
+    setError(null)
+
     try {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        throw new Error('Please login to continue')
+      }
+
       // Create order data
       const orderData = {
         items: cartItems.map(item => ({
           productId: item.id || item._id,
           name: item.title || item.name,
-          price: item.selling_price || item.price,
+          price: item.price || 0, // This should already be the correct price from cart
+          originalPrice: item.originalPrice || item.price || 0,
+          discountPercentage: item.discountPercentage || 0,
+          isOnSale: item.isOnSale || false,
           quantity: item.quantity,
           selectedSize: item.selectedSize,
-          image: item.images?.[0] || '',
-          subtotal: (item.selling_price || item.price) * item.quantity
+          image: item.image || item.images?.[0] || '',
+          subtotal: (item.price || 0) * item.quantity
         })),
-        shippingAddress: deliveryAddress,
+        shippingAddress: {
+          firstName: deliveryAddress.firstName,
+          lastName: deliveryAddress.lastName,
+          email: deliveryAddress.email || user?.email || '',
+          mobile: deliveryAddress.mobile,
+          streetAddress: deliveryAddress.streetAddress,
+          city: deliveryAddress.city,
+          state: deliveryAddress.state,
+          zipCode: deliveryAddress.zipCode
+        },
         subtotal: totalPrice,
         discount: discount,
         couponCode: appliedCoupon ? appliedCoupon.code : null,
@@ -119,103 +170,136 @@ export default function Payment({ deliveryAddress: propDeliveryAddress }) {
 
       if (selectedMethod === 'cod') {
         // For COD, directly create order
-        const headers = {
-          'Content-Type': 'application/json',
-        }
-        
-        const token = localStorage.getItem('token')
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`
-        }
-
-        const orderResponse = await fetch(`${API_URL}/orders`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(orderData)
-        })
-
-        if (orderResponse.ok) {
-          const order = await orderResponse.json()
+        const result = await createOrder(orderData, propClearCart || clearCart)
+        if (result.success) {
           toast.success('Order placed successfully! You will pay on delivery.')
-          clearCart()
-          // Refresh user orders
-          if (localStorage.getItem('token')) {
-            fetchUserOrders()
-          }
-          navigate('/order-success', { state: { orderId: order.data._id, paymentMethod: selectedMethod } })
+          navigate('/order-success', { state: { orderId: result.order._id || result.order.id, paymentMethod: selectedMethod } })
         } else {
-          toast.error('Failed to create order. Please try again.')
+          setError(result.error || 'Failed to create order. Please try again.')
         }
-      } else {
-        // For UPI/Card, create Razorpay order first
-        const razorpayResponse = await fetch(`${API_URL}/payments/create-order`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            amount: totalPrice,
-            orderId: `order-${Date.now()}`
-          })
-        })
-
-        if (razorpayResponse.ok) {
-          const razorpayOrder = await razorpayResponse.json()
-          
-          // Initialize Razorpay
-          const options = {
-            key: razorpayOrder.data.key_id,
-            amount: totalPrice * 100, // Convert to paise
-            currency: "INR",
-            name: "KKings Jewellery",
-            description: "Purchase",
-            order_id: razorpayOrder.data.razorpayOrderId,
-            handler: async function (response) {
-              // Verify payment and create order
-              const verifyResponse = await fetch(`${API_URL}/payments/verify`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  razorpayOrderId: response.razorpay_order_id,
-                  razorpayPaymentId: response.razorpay_payment_id,
-                  razorpaySignature: response.razorpay_signature,
-                  cartItems: orderData.items,
-                  customer: orderData.customer,
-                  totalAmount: totalPrice
-                })
-              })
-
-              if (verifyResponse.ok) {
-                const result = await verifyResponse.json()
-                toast.success('Payment successful! Order placed.')
-                clearCart()
-                navigate('/order-success', { state: { orderId: result.data.order._id, paymentMethod: selectedMethod } })
-              } else {
-                toast.error('Payment verification failed. Please contact support.')
-              }
-            },
-            prefill: {
-              name: deliveryAddress.firstName + ' ' + deliveryAddress.lastName,
-              contact: deliveryAddress.mobile
-            },
-            theme: {
-              color: "#ae0b0b"
-            }
-          }
-
-          const rzp = new window.Razorpay(options)
-          rzp.open()
-        } else {
-          toast.error('Failed to initialize payment. Please try again.')
-        }
+      } else if (selectedMethod === 'razorpay') {
+        // Process Razorpay payment
+        await processRazorpayPayment(orderData, token)
       }
     } catch (error) {
       console.error('Payment error:', error)
-      toast.error('Payment failed. Please try again.')
+      setError(error.message || 'Payment failed. Please try again.')
+      toast.error(error.message || 'Payment failed. Please try again.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const processRazorpayPayment = async (orderData, token) => {
+    try {
+      // Step 1: Create Razorpay order
+      const orderResponse = await fetch(`${API_URL}/payments/create-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          amount: orderData.totalAmount,
+          currency: 'INR',
+          receipt: `order-${Date.now()}`
+        })
+      })
+
+      if (!orderResponse.ok) {
+        const errorData = await orderResponse.json()
+        throw new Error(errorData.message || 'Failed to create payment order')
+      }
+
+      const orderResult = await orderResponse.json()
+      const { razorpayOrderId, paymentId } = orderResult.data
+
+      // Step 2: Load Razorpay script
+      const scriptLoaded = await loadRazorpayScript()
+      if (!scriptLoaded) {
+        throw new Error('Failed to load payment gateway. Please try again.')
+      }
+
+      // Step 3: Open Razorpay checkout
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || orderResult.data.key_id,
+        amount: orderData.totalAmount * 100, // Convert to paise
+        currency: 'INR',
+        name: 'KKings Jewellery',
+        description: `Order for ${orderData.items.length} items`,
+        order_id: razorpayOrderId,
+        handler: async function (response) {
+          try {
+            // Step 4: Verify payment and create order
+            const verifyResponse = await fetch(`${API_URL}/payments/verify`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature,
+                cartItems: orderData.items,
+                customer: orderData.shippingAddress,
+                totalAmount: orderData.totalAmount
+              })
+            })
+
+            if (!verifyResponse.ok) {
+              const errorData = await verifyResponse.json()
+              throw new Error(errorData.message || 'Payment verification failed')
+            }
+
+            const verifyResult = await verifyResponse.json()
+            
+            // Clear cart and navigate to success
+            if (propClearCart) {
+              propClearCart()
+            } else {
+              clearCart()
+            }
+
+            toast.success('Payment successful! Your order has been placed.')
+            navigate('/order-success', { 
+              state: { 
+                orderId: verifyResult.data.order._id, 
+                paymentMethod: 'razorpay',
+                paymentId: verifyResult.data.paymentId
+              } 
+            })
+          } catch (error) {
+            console.error('Payment verification error:', error)
+            setError('Payment verification failed. Please contact support.')
+            toast.error('Payment verification failed. Please contact support.')
+          }
+        },
+        prefill: {
+          name: `${orderData.shippingAddress.firstName} ${orderData.shippingAddress.lastName}`,
+          email: orderData.shippingAddress.email,
+          contact: orderData.shippingAddress.mobile
+        },
+        notes: {
+          address: `${orderData.shippingAddress.streetAddress}, ${orderData.shippingAddress.city}, ${orderData.shippingAddress.state} - ${orderData.shippingAddress.zipCode}`,
+          order_type: 'Jewellery Purchase'
+        },
+        theme: {
+          color: '#ae0b0b'
+        },
+        modal: {
+          ondismiss: function() {
+            setLoading(false)
+            toast.error('Payment cancelled. You can try again.')
+          }
+        }
+      }
+
+      const razorpay = new window.Razorpay(options)
+      razorpay.open()
+    } catch (error) {
+      console.error('Razorpay processing error:', error)
+      throw error
     }
   }
 
@@ -245,9 +329,16 @@ export default function Payment({ deliveryAddress: propDeliveryAddress }) {
           <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
           <div className="space-y-2">
             {cartItems.map((item, index) => (
-              <div key={index} className="flex justify-between text-sm">
-                <span>{item.title || item.name} x {item.quantity}</span>
-                <span>₹{(item.selling_price || item.price) * item.quantity}</span>
+              <div key={index} className="flex flex-col gap-1 text-sm">
+                <div className="flex justify-between">
+                  <span>{item.title || item.name} x {item.quantity}</span>
+                  <span>₹{(item.selling_price || item.price) * item.quantity}</span>
+                </div>
+                {item.selectedSize && (
+                  <div className="text-xs text-gray-500">
+                    Size: {item.selectedSize}
+                  </div>
+                )}
               </div>
             ))}
             <div className="border-t pt-2 mt-2 space-y-2">
@@ -265,6 +356,11 @@ export default function Payment({ deliveryAddress: propDeliveryAddress }) {
                 <span>Total Amount:</span>
                 <span className="text-[#ae0b0b]">₹{finalAmount}</span>
               </div>
+              {error && (
+                <div className="mt-2 text-red-600 font-medium">
+                  {error}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -331,104 +427,33 @@ export default function Payment({ deliveryAddress: propDeliveryAddress }) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {paymentMethods.map((method) => {
               const Icon = method.icon
+              const selected = selectedMethod === method.id
               return (
                 <button
                   key={method.id}
                   onClick={() => setSelectedMethod(method.id)}
-                  className={`p-4 border-2 rounded-lg text-left transition-all ${
-                    selectedMethod === method.id
-                      ? 'border-[#ae0b0b] bg-red-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                  className={`p-4 border-2 rounded-lg text-left transition-all shadow-sm ${
+                    selected
+                      ? 'border-[#ae0b0b] bg-[#ffe9e9] text-[#950000]' 
+                      : 'border-gray-200 bg-white text-gray-900 hover:border-[#ae0b0b] hover:text-[#ae0b0b]'
                   }`}
                 >
-                  <Icon className="h-8 w-8 mb-2 text-[#ae0b0b]" />
-                  <h3 className="font-semibold">{method.name}</h3>
-                  <p className="text-sm text-gray-600">{method.description}</p>
+                  <Icon className={`h-8 w-8 mb-2 ${selected ? 'text-[#ae0b0b]' : 'text-[#ae0b0b]'}`} />
+                  <h3 className="font-bold text-lg">{method.name}</h3>
+                  <p className="text-sm font-medium">{method.description}</p>
                 </button>
               )
             })}
           </div>
         </div>
 
-        {/* Payment Details Form */}
-        {selectedMethod && selectedMethod !== 'cod' && (
-          <div className="bg-gray-50 p-6 rounded-lg mb-8">
-            <h2 className="text-xl font-semibold mb-4">
-              {selectedMethod === 'upi' ? 'UPI Details' : 'Card Details'}
-            </h2>
-            
-            {selectedMethod === 'upi' && (
-              <div>
-                <label className="block text-sm font-medium mb-2">UPI ID</label>
-                <input
-                  type="text"
-                  value={paymentDetails.upiId}
-                  onChange={(e) => setPaymentDetails(prev => ({ ...prev, upiId: e.target.value }))}
-                  placeholder="yourupi@upi"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#ae0b0b]"
-                />
-              </div>
-            )}
-
-            {selectedMethod === 'card' && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Card Number</label>
-                  <input
-                    type="text"
-                    value={paymentDetails.cardNumber}
-                    onChange={(e) => setPaymentDetails(prev => ({ ...prev, cardNumber: e.target.value }))}
-                    placeholder="1234 5678 9012 3456"
-                    maxLength="19"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#ae0b0b]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Cardholder Name</label>
-                  <input
-                    type="text"
-                    value={paymentDetails.cardName}
-                    onChange={(e) => setPaymentDetails(prev => ({ ...prev, cardName: e.target.value }))}
-                    placeholder="John Doe"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#ae0b0b]"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Expiry Date</label>
-                    <input
-                      type="text"
-                      value={paymentDetails.expiryDate}
-                      onChange={(e) => setPaymentDetails(prev => ({ ...prev, expiryDate: e.target.value }))}
-                      placeholder="MM/YY"
-                      maxLength="5"
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#ae0b0b]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">CVV</label>
-                    <input
-                      type="text"
-                      value={paymentDetails.cvv}
-                      onChange={(e) => setPaymentDetails(prev => ({ ...prev, cvv: e.target.value }))}
-                      placeholder="123"
-                      maxLength="3"
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#ae0b0b]"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
         {/* Action Buttons */}
         <div className="flex gap-4">
           <button
-            onClick={() => navigate('/checkout?step=2')}
-            className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-md hover:bg-gray-50"
+            onClick={() => navigate('/checkout?step=1')}
+            className="flex-1 border border-[#ae0b0b] text-[#ae0b0b] py-3 rounded-md font-semibold hover:bg-[#ffeaeb] transition-colors"
           >
-            Back to Checkout
+            ← Back to Checkout
           </button>
           <button
             onClick={handlePayment}

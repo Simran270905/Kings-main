@@ -1,4 +1,4 @@
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5003/api'
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://kingsbackend-y3fu.onrender.com/api'
 
 export const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY || ''
 

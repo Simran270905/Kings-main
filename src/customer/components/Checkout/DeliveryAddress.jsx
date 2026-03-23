@@ -308,13 +308,20 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
                                 </Grid>
                                 <Grid size={{ xs: 12 }}>
                                     <Button
-                                        sx={{ py: 1.5, mt: 2, bgcolor: "RGB(145 85 253)" }}
+                                        sx={{ 
+                                            py: 1.5, 
+                                            mt: 2, 
+                                            bgcolor: "#b30000",   // strong red
+                                            "&:hover": {
+                                            bgcolor: "#990000"  // darker red on hover
+                                            }
+                                        }}
                                         size="large"
                                         variant="contained"
                                         type="submit"
-                                    >
+                                        >
                                         Deliver Here
-                                    </Button>
+                                        </Button>
                                 </Grid>
                             </Grid>
                         </form>

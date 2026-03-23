@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import { useAdminProduct } from '../context/AdminProductContext'
 import AdminCard from './AdminCard'
 import AdminButton from './AdminButton'
 import StatusBadge from '../components/StatusBadge'
@@ -13,49 +14,23 @@ import {
   FunnelIcon,
   ShoppingBagIcon
 } from '@heroicons/react/24/outline'
-import { API_BASE_URL } from '../../config/api'
+import adminApi from '../utils/adminApiService'
 import toast from 'react-hot-toast'
 
-const API_BASE = `${API_BASE_URL}/products`
-
 export default function ProductsManagement() {
-  const [products, setProducts] = useState([])
+  const { products, loading, refreshProducts, getStockStatus, getTotalStock, triggerGlobalRefresh } = useAdminProduct()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [sortBy, setSortBy] = useState('createdAt')
   const [sortOrder, setSortOrder] = useState('desc')
-  const [loading, setLoading] = useState(true)
 
-  // 🔥 Fetch products
+  // Refresh products when component mounts (only once to prevent flickering)
   useEffect(() => {
-    fetchProducts()
-  }, [])
-
-  const fetchProducts = async () => {
-    try {
-      const res = await fetch(API_BASE)
-      const data = await res.json()
-      
-      // Extract products array from response
-      let productsArray = []
-      if (data.success && data.data && data.data.products) {
-        productsArray = data.data.products
-      } else if (data.data && Array.isArray(data.data)) {
-        productsArray = data.data
-      } else if (data.products) {
-        productsArray = data.products
-      } else if (Array.isArray(data)) {
-        productsArray = data
-      }
-      
-      setProducts(productsArray)
-    } catch (err) {
-      console.error('❌ Error fetching products:', err)
-      setProducts([])
-    } finally {
-      setLoading(false)
-    }
-  }
+    const timer = setTimeout(() => {
+      refreshProducts()
+    }, 500) // Increased delay to prevent 429 errors
+    return () => clearTimeout(timer)
+  }, []) // Empty dependency array - only run once
 
   // 🔥 Unique categories
   const categories = useMemo(() => {
@@ -101,39 +76,13 @@ export default function ProductsManagement() {
     if (!window.confirm(`Delete "${name}"?`)) return
 
     try {
-      const token = localStorage.getItem('kk_admin_token')
-
-      const res = await fetch(`${API_BASE}/${id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-
-      if (res.ok) {
-        toast.success('Product deleted successfully')
-        fetchProducts()
-      } else {
-        toast.error('Delete failed')
-      }
+      await adminApi.deleteProduct(id)
+      toast.success('Product deleted successfully')
+      triggerGlobalRefresh() // Trigger global refresh across all components
     } catch (err) {
       console.error(err)
+      toast.error('Failed to delete product')
     }
-  }
-
-  // 🔥 Stock helpers
-  const getTotalStock = (product) => {
-    if (product.sizes?.length) {
-      return product.sizes.reduce((sum, s) => sum + (s.stock || 0), 0)
-    }
-    return product.stock || 0
-  }
-
-  const getStockStatus = (product) => {
-    const total = getTotalStock(product)
-    if (total <= 0) return 'out'
-    if (total <= 5) return 'low'
-    return 'ok'
   }
 
   // 🔥 Get image (Cloudinary support)
@@ -166,7 +115,7 @@ export default function ProductsManagement() {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={fetchProducts}
+            onClick={refreshProducts}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

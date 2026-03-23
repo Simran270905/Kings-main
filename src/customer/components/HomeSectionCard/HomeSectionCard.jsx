@@ -113,12 +113,17 @@ const HomeSectionCard = ({ product }) => {
           <span className="text-[#b91c1c] font-semibold text-base">
             {safeSellingPrice}
           </span>
-          {safePrice !== safeSellingPrice && (
-            <span className="text-[#9c7c4a] line-through text-sm">
-              {safePrice}
-            </span>
-          )}
         </div>
+
+        {(product.material || product.purity || product.weight) && (
+          <p className="text-xs text-[#5c3a2e] mt-1">
+            {[product.material && `Material: ${product.material}`, product.purity && `Purity: ${product.purity}`, product.weight && `Weight: ${product.weight}g`].filter(Boolean).join(' · ')}
+          </p>
+        )}
+
+        <p className={`text-xs font-semibold mt-1 ${product.inStock ? 'text-emerald-700' : 'text-red-600'}`}>
+          {product.inStock ? 'In Stock' : 'Out of Stock'}
+        </p>
 
         {safeDiscount > 0 && (
           <p className="text-green-700 text-xs font-medium">

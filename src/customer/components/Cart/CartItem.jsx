@@ -9,10 +9,11 @@ export default function CartItem({
   onDecrease,
   onRemove,
 }) {
-  // FIXED: Use consistent pricing - selling_price takes priority over price
-  const price = item.selling_price || item.price || 0
-  const originalPrice = item.originalPrice || item.price || 0
-  const discount = item.discount || 0
+  // Use the new pricing structure with proper discount display
+  const price = item.price || 0
+  const originalPrice = item.originalPrice || 0
+  const discountPercentage = item.discountPercentage || 0
+  const isOnSale = item.isOnSale || false
   const itemTotal = price * item.quantity
 
   return (
@@ -48,14 +49,20 @@ export default function CartItem({
           </p>
         )}
 
+        {item.selectedSize && (
+          <p className="text-xs text-gray-500 mt-1">Size: {item.selectedSize}</p>
+        )}
+
         {/* PRICE */}
         <div className="mt-2 flex items-center gap-2 flex-wrap">
           <span className="text-base font-bold text-[#ae0b0b]">₹{price.toLocaleString()}</span>
           {originalPrice > price && (
             <span className="text-xs text-gray-400 line-through">₹{originalPrice.toLocaleString()}</span>
           )}
-          {discount > 0 && (
-            <span className="text-xs bg-green-100 text-green-700 font-semibold px-1.5 py-0.5 rounded">{discount}% off</span>
+          {isOnSale && discountPercentage > 0 && (
+            <span className="text-xs bg-red-100 text-red-700 font-semibold px-1.5 py-0.5 rounded">
+              💸 -{discountPercentage}%
+            </span>
           )}
         </div>
 

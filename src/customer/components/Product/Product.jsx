@@ -42,6 +42,8 @@ export default function Product() {
   const [inStock, setInStock] = useState(false)
   const [selectedCategories, setSelectedCategories] = useState([])
   const [selectedMaterials, setSelectedMaterials] = useState([])
+  const [showBestSellers, setShowBestSellers] = useState(false)
+  const [showOnSale, setShowOnSale] = useState(false)
   const [sort, setSort] = useState(null)
   const [filtersApplied, setFiltersApplied] = useState(false)
 
@@ -52,6 +54,14 @@ export default function Product() {
     category: selectedCategories,
     material: selectedMaterials,
   })
+
+  // Apply best seller and on sale filters
+  if (showBestSellers) {
+    filteredProducts = filteredProducts.filter(product => product.isBestSeller)
+  }
+  if (showOnSale) {
+    filteredProducts = filteredProducts.filter(product => product.isOnSale)
+  }
 
   // SORT
   if (sort === 'low') {
@@ -69,6 +79,8 @@ export default function Product() {
     setInStock(false)
     setSelectedCategories([])
     setSelectedMaterials([])
+    setShowBestSellers(false)
+    setShowOnSale(false)
     setSort(null)
     setFiltersApplied(false)
   }
@@ -100,6 +112,10 @@ export default function Product() {
               setSelectedCategories,
               selectedMaterials,
               setSelectedMaterials,
+              showBestSellers,
+              setShowBestSellers,
+              showOnSale,
+              setShowOnSale,
               resetFilters,
               setFiltersApplied,
             }}
@@ -175,6 +191,10 @@ export default function Product() {
                     setSelectedCategories,
                     selectedMaterials,
                     setSelectedMaterials,
+                    showBestSellers,
+                    setShowBestSellers,
+                    showOnSale,
+                    setShowOnSale,
                     resetFilters,
                     setFiltersApplied,
                   }}
@@ -227,6 +247,10 @@ function FilterContent({
   setSelectedCategories,
   selectedMaterials,
   setSelectedMaterials,
+  showBestSellers,
+  setShowBestSellers,
+  showOnSale,
+  setShowOnSale,
   resetFilters,
   setFiltersApplied,
 }) {
@@ -265,6 +289,32 @@ function FilterContent({
         />
         In Stock Only
       </label>
+
+      <div>
+        <h3 className="font-medium mb-2">Special Offers</h3>
+        <label className="flex gap-2 items-center mb-2">
+          <input
+            type="checkbox"
+            checked={showBestSellers}
+            onChange={() => {
+              setShowBestSellers(!showBestSellers)
+              setFiltersApplied(true)
+            }}
+          />
+          🔥 Best Sellers
+        </label>
+        <label className="flex gap-2 items-center">
+          <input
+            type="checkbox"
+            checked={showOnSale}
+            onChange={() => {
+              setShowOnSale(!showOnSale)
+              setFiltersApplied(true)
+            }}
+          />
+          💸 On Sale
+        </label>
+      </div>
 
       <div>
         <h3 className="font-medium mb-2">Category</h3>

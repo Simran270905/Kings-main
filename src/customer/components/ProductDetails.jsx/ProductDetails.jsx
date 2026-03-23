@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { StarIcon } from '@heroicons/react/20/solid'
+import toast from 'react-hot-toast'
 
 import { getAvailableSizes } from '../../utils/productSchemaNormalizer'
 import HomeSectionCard from '../HomeSectionCard/HomeSectionCard'
@@ -43,6 +44,12 @@ function normalize(raw) {
         }))
       : []
 
+  const normalizedStock = raw.stock != null ? Number(raw.stock) : 0
+  const sizeStock = Array.isArray(raw.sizes)
+    ? raw.sizes.reduce((sum, s) => sum + (Number(s.stock) || 0), 0)
+    : 0
+  const inStock = raw.hasSizes ? sizeStock > 0 : normalizedStock > 0
+
   return {
     ...raw,
     id: raw._id || raw.id,
@@ -58,6 +65,8 @@ function normalize(raw) {
     weight: raw.weight || null,
     sizes: raw.sizes || [],
     hasSizes: raw.hasSizes || false,
+    stock: normalizedStock,
+    inStock,
     reviews: raw.reviews || [],
     averageRating: raw.averageRating || 0,
     totalReviews: raw.totalReviews || 0,
@@ -209,17 +218,44 @@ export default function ProductDetails() {
           <div className="mt-8">
             <h1 className="text-3xl font-bold text-gray-900">{currentProduct.name}</h1>
             <div className="mt-4 flex items-center gap-3">
-              {currentProduct.selling_price && currentProduct.selling_price < currentProduct.price ? (
-                <>
-                  <p className="text-2xl font-semibold text-[#ae0b0b]">₹{currentProduct.selling_price}</p>
-                  <p className="text-lg text-gray-500 line-through">₹{currentProduct.price}</p>
-                  <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded">
-                    {Math.round(((currentProduct.price - currentProduct.selling_price) / currentProduct.price) * 100)}% OFF
-                  </span>
-                </>
-              ) : (
-                <p className="text-2xl font-semibold text-[#ae0b0b]">₹{currentProduct.price}</p>
+              <p className="text-2xl font-semibold text-[#ae0b0b]">₹{currentProduct.selling_price || currentProduct.price}</p>
+              {currentProduct.price && currentProduct.selling_price && currentProduct.selling_price < currentProduct.price && (
+                <p className="text-sm text-gray-500 line-through">₹{currentProduct.price}</p>
               )}
+            </div>
+
+            <div className="mt-4 text-sm text-gray-700 space-y-1">
+              {currentProduct.material && <p><span className="font-semibold">Material:</span> {currentProduct.material}</p>}
+              {currentProduct.purity && <p><span className="font-semibold">Purity:</span> {currentProduct.purity}</p>}
+              {currentProduct.weight != null && <p><span className="font-semibold">Weight:</span> {currentProduct.weight} g</p>}
+              {currentProduct.category && <p><span className="font-semibold">Category:</span> {currentProduct.category}</p>}
+              {currentProduct.brand && <p><span className="font-semibold">Brand:</span> {currentProduct.brand}</p>}
+              {currentProduct.sku && <p><span className="font-semibold">SKU:</span> {currentProduct.sku}</p>}
+
+              {currentProduct.hasSizes && currentProduct.sizes && currentProduct.sizes.length > 0 ? (
+                <div>
+                  <p className="font-semibold">Available Sizes:</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {currentProduct.sizes.map((sizeItem) => (
+                      <button
+                        key={sizeItem.size}
+                        type="button"
+                        onClick={() => setSelectedSize(sizeItem.size)}
+                        className={`px-3 py-1 text-xs font-semibold border rounded ${selectedSize === sizeItem.size ? 'bg-[#ae0b0b] text-white border-[#ae0b0b]' : 'bg-white text-gray-700 border-gray-300 hover:border-[#ae0b0b]'}`}
+                        disabled={!sizeItem.stock}
+                      >
+                        {sizeItem.size} {sizeItem.stock != null && `(${sizeItem.stock})`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">Size chart not available for this item.</p>
+              )}
+
+              <p className={`font-semibold ${currentProduct.inStock ? 'text-emerald-600' : 'text-red-600'}`}>
+                {currentProduct.inStock ? 'In Stock' : 'Out of Stock'}
+              </p>
             </div>
 
             <div className="mt-4 flex items-center">
@@ -244,13 +280,18 @@ export default function ProductDetails() {
             </p>
 
             <button
-              onClick={() =>
+              onClick={() => {
+                if (currentProduct.hasSizes && !selectedSize) {
+                  toast.error('Please select a size before adding to cart.')
+                  return
+                }
+
                 addToCart({
                   ...currentProduct,
                   selectedSize,
                   quantity: 1,
                 })
-              }
+              }}
               className="mt-8 w-full rounded-md bg-[#ae0b0b] py-3 text-white"
             >
               Add to Cart

@@ -1,9 +1,10 @@
 'use client'
 
-import { useProduct } from '../../customer/context/ProductContext'
+import { useAdminProduct } from '../context/AdminProductContext'
 import { useCart } from '../../customer/context/useCart'
 import { useOrder } from '../context/OrderContext'
-import { useMemo } from 'react'
+import useRealAnalytics from '../hooks/useRealAnalytics'
+import { useMemo, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
 import {
@@ -21,48 +22,78 @@ import AdminCard from './AdminCard'
 import AdminButton from './AdminButton'
 import StatCard from '../components/StatCard'
 
-import {
-  calculateTotalStats,
-  getRevenueStats,
-} from '../utils/analyticsUtils'
-
 export default function Dashboard() {
-  const { products } = useProduct()
+  const { products } = useAdminProduct()
+  const { getLowStockCount, getTotalProductsCount, refreshProducts } = useAdminProduct()
   const { cartItems } = useCart()
   const { orders } = useOrder()
+  
+  // ✅ NEW: Use real backend analytics
+  const analytics = useRealAnalytics()
 
-  const orderStats = useMemo(() => calculateTotalStats(orders), [orders])
-  const revenueStats = useMemo(() => getRevenueStats(orders), [orders])
+  // Memoize calculations to prevent flickering
+  const totalProducts = useMemo(() => getTotalProductsCount(), [getTotalProductsCount])
+  const lowStockProducts = useMemo(() => getLowStockCount(), [getLowStockCount])
 
-  const totalProducts = products.length
-
-  // ✅ FIXED: use backend order revenue
-  const totalRevenue = revenueStats.totalRevenue || 0
-
-  const pendingOrders = orderStats.pendingOrders || 0
-
-  // ✅ FIXED: stock from sizes
-  const lowStockProducts = useMemo(() => {
-    return products.filter(p =>
-      p.sizes?.some(s => s.stock <= 5)
-    ).length
-  }, [products])
+  // Refresh products when dashboard mounts (only once)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      refreshProducts()
+    }, 500) // Increased delay to prevent 429 errors
+    return () => clearTimeout(timer)
+  }, []) // Empty dependency array - only run once
 
   const formatCurrency = (amount) => {
     return `₹${(amount || 0).toLocaleString('en-IN')}`
   }
 
+  // ✅ FIXED: Use real backend revenue and calculations
+  const totalRevenue = analytics.data.revenue || 0
+  const pendingOrders = analytics.data.pendingOrders || 0
+  const processingOrders = analytics.data.processingOrders || 0
+  const shippedOrders = analytics.data.shippedOrders || 0
+  const deliveredOrders = analytics.data.deliveredOrders || 0
+  const totalUsers = analytics.data.totalUsers || 0
+  const cancelledOrders = analytics.data.cancelledOrders || 0
+
   const recentProducts = products.slice(-5).reverse()
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="space-y-6">
 
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500 mt-2">
-          Welcome back! Here's what's happening with your store.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+            <p className="text-gray-500 mt-2">
+              Welcome back! Here's what's happening with your store.
+            </p>
+          </div>
+          
+          {/* Refresh Button */}
+          <button
+            onClick={analytics.refresh}
+            disabled={analytics.loading}
+            className="px-4 py-2 bg-[#ae0b0b] text-white rounded-lg hover:bg-[#8f0a0a] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <ArrowTrendingUpIcon className="h-4 w-4" />
+            {analytics.loading ? 'Refreshing...' : 'Refresh'}
+          </button>
+        </div>
+        
+        {/* Debug Info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-2 p-2 bg-gray-100 rounded text-sm">
+            <div>Backend Revenue: ₹{totalRevenue}</div>
+            <div>Total Orders: {analytics.data.totalOrders}</div>
+            <div>Total Users: {totalUsers}</div>
+            <div>Delivered Orders: {deliveredOrders}</div>
+            <div>Pending Orders: {pendingOrders}</div>
+            <div>Loading: {analytics.loading ? 'Yes' : 'No'}</div>
+            {analytics.error && <div className="text-red-600">Error: {analytics.error}</div>}
+          </div>
+        )}
       </div>
 
       {/* Stats */}
@@ -83,8 +114,8 @@ export default function Dashboard() {
           <StatCard
             title="Total Revenue"
             value={formatCurrency(totalRevenue)}
-            change={`${revenueStats.revenueGrowth > 0 ? '+' : ''}${revenueStats.revenueGrowth || 0}%`}
-            changeType={revenueStats.revenueGrowth > 0 ? 'increase' : 'decrease'}
+            change="From paid orders"
+            changeType="increase"
             icon={CurrencyDollarIcon}
             iconColor="text-[#ae0b0b]"
             iconBg="bg-red-50"
@@ -103,15 +134,15 @@ export default function Dashboard() {
           />
         </Link>
 
-        <Link to="/admin/products">
+        <Link to="/admin/customers">
           <StatCard
-            title="Low Stock Alert"
-            value={lowStockProducts}
-            change={lowStockProducts > 0 ? 'Action required' : 'All good'}
-            changeType={lowStockProducts > 0 ? 'decrease' : 'increase'}
-            icon={ExclamationTriangleIcon}
-            iconColor="text-orange-600"
-            iconBg="bg-orange-50"
+            title="Total Users"
+            value={totalUsers}
+            change="Registered customers"
+            changeType="increase"
+            icon={UsersIcon}
+            iconColor="text-green-600"
+            iconBg="bg-green-50"
           />
         </Link>
       </div>

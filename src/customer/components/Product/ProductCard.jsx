@@ -17,6 +17,10 @@ const ProductCard = ({ product, onAddToCart }) => {
   const discount = price > sellingPrice
     ? Math.round(((price - sellingPrice) / price) * 100)
     : 0;
+  
+  const isBestSeller = product.isBestSeller || false;
+  const isOnSale = product.isOnSale || false;
+  const discountPercentage = product.discountPercentage || discount;
 
   const formatPrice = (p) =>
     typeof p === "number"
@@ -43,12 +47,19 @@ const ProductCard = ({ product, onAddToCart }) => {
           : <HeartIcon className="h-4 w-4 text-gray-500" />}
       </button>
 
-      {/* Discount badge */}
-      {discount > 0 && (
-        <span className="absolute top-3 left-3 z-10 bg-[#ae0b0b] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-          -{discount}%
-        </span>
-      )}
+      {/* Badges - Prioritize On Sale if both are present */}
+      <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
+        {isOnSale && (
+          <span className="bg-[#ae0b0b] text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+            💸 -{discountPercentage}%
+          </span>
+        )}
+        {isBestSeller && !isOnSale && (
+          <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+            🔥 Best Seller
+          </span>
+        )}
+      </div>
 
       {/* Image */}
       <div className="relative aspect-square overflow-hidden bg-gray-50">
@@ -75,12 +86,26 @@ const ProductCard = ({ product, onAddToCart }) => {
         {brand && <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{brand}</p>}
         <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug flex-1">{title}</h3>
 
-        <div className="mt-3 flex items-center gap-2">
-          <span className="text-base font-bold text-[#ae0b0b]">{formatPrice(sellingPrice)}</span>
-          {discount > 0 && (
-            <span className="text-xs text-gray-400 line-through">{formatPrice(price)}</span>
+        <div className="mt-2">
+          {isOnSale && sellingPrice < price ? (
+            <div className="flex items-center gap-2">
+              <span className="text-base font-bold text-[#ae0b0b]">{formatPrice(sellingPrice)}</span>
+              <span className="text-sm text-gray-400 line-through">{formatPrice(price)}</span>
+            </div>
+          ) : (
+            <span className="text-base font-bold text-[#ae0b0b]">{formatPrice(sellingPrice)}</span>
           )}
         </div>
+
+        {(product.material || product.purity || product.weight) && (
+          <p className="text-xs text-gray-500 mt-1">
+            {[product.material && `Material: ${product.material}`, product.purity && `Purity: ${product.purity}`, product.weight && `Weight: ${product.weight}g`].filter(Boolean).join(' · ')}
+          </p>
+        )}
+
+        <p className={`text-sm font-semibold mt-2 ${product.inStock ? 'text-emerald-700' : 'text-red-600'}`}>
+          {product.inStock ? 'In Stock' : 'Out of Stock'}
+        </p>
 
         <button
           onClick={handleAddToCart}

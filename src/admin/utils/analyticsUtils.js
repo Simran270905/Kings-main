@@ -4,21 +4,22 @@
  */
 
 export const calculateTotalStats = (orders = []) => {
-  const delivered = orders.filter(o => o.status === 'delivered')
-  const totalRevenue = delivered.reduce((sum, o) => sum + (o.totalAmount || o.totals?.total || 0), 0)
+  // ✅ FIXED: Only count revenue from PAID delivered orders (matching backend logic)
+  const deliveredPaid = orders.filter(o => o.status === 'delivered' && o.paymentStatus === 'paid')
+  const totalRevenue = deliveredPaid.reduce((sum, o) => sum + (o.totalAmount || o.totals?.total || 0), 0)
   const now = new Date()
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-  const monthOrders = delivered.filter(o => new Date(o.createdAt) >= monthStart)
+  const monthOrders = deliveredPaid.filter(o => new Date(o.createdAt) >= monthStart)
   const monthRevenue = monthOrders.reduce((sum, o) => sum + (o.totalAmount || o.totals?.total || 0), 0)
 
   return {
     totalOrders: orders.length,
     totalRevenue,
-    averageOrderValue: delivered.length > 0 ? Math.round(totalRevenue / delivered.length) : 0,
+    averageOrderValue: deliveredPaid.length > 0 ? Math.round(totalRevenue / deliveredPaid.length) : 0,
     pendingOrders: orders.filter(o => o.status === 'pending').length,
     processingOrders: orders.filter(o => o.status === 'processing').length,
     shippedOrders: orders.filter(o => o.status === 'shipped').length,
-    deliveredOrders: delivered.length,
+    deliveredOrders: orders.filter(o => o.status === 'delivered').length,
     cancelledOrders: orders.filter(o => o.status === 'cancelled').length,
     monthOrders: monthOrders.length,
     monthRevenue,
@@ -26,18 +27,19 @@ export const calculateTotalStats = (orders = []) => {
 }
 
 export const getRevenueStats = (orders = []) => {
-  const delivered = orders.filter(o => o.status === 'delivered')
-  const totalRevenue = delivered.reduce((sum, o) => sum + (o.totalAmount || o.totals?.total || 0), 0)
+  // ✅ FIXED: Only count revenue from PAID delivered orders (matching backend logic)
+  const deliveredPaid = orders.filter(o => o.status === 'delivered' && o.paymentStatus === 'paid')
+  const totalRevenue = deliveredPaid.reduce((sum, o) => sum + (o.totalAmount || o.totals?.total || 0), 0)
 
   const now = new Date()
   const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
 
-  const thisMonthRevenue = delivered
+  const thisMonthRevenue = deliveredPaid
     .filter(o => new Date(o.createdAt) >= thisMonthStart)
     .reduce((sum, o) => sum + (o.totalAmount || o.totals?.total || 0), 0)
 
-  const lastMonthRevenue = delivered
+  const lastMonthRevenue = deliveredPaid
     .filter(o => {
       const d = new Date(o.createdAt)
       return d >= lastMonthStart && d < thisMonthStart
@@ -58,7 +60,8 @@ export const getMonthlySalesData = (orders = []) => {
     const key = d.toLocaleString('default', { month: 'short', year: 'numeric' })
     if (!months[key]) months[key] = { month: key, orders: 0, revenue: 0 }
     months[key].orders += 1
-    if (o.status === 'delivered') {
+    // ✅ FIXED: Only count revenue from PAID delivered orders
+    if (o.status === 'delivered' && o.paymentStatus === 'paid') {
       months[key].revenue += o.totalAmount || o.totals?.total || 0
     }
   })

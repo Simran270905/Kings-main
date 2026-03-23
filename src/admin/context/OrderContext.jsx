@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { API_BASE_URL } from '../../config/api'
+import adminApi from '../utils/adminApiService'
 import { useAdminAuth } from './useAdminAuth'
 
 export const OrderContext = createContext()
@@ -11,8 +11,6 @@ export const useOrder = () => {
   }
   return context
 }
-
-const API_URL = `${API_BASE_URL}/orders`
 
 export const OrderProvider = ({ children }) => {
   const [orders, setOrders] = useState([])
@@ -44,28 +42,10 @@ export const OrderProvider = ({ children }) => {
   }, [])
 
   const fetchOrders = async (silent = false) => {
-    const token = localStorage.getItem('kk_admin_token')
-
-    // Don't fetch if no token
-    if (!token || token === 'undefined') {
-      if (!silent) setLoading(false)
-      return
-    }
-
-    if (!silent) setLoading(true)
     try {
-      const res = await fetch(API_URL, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          localStorage.removeItem('kk_admin_token')
-        }
-        throw new Error(`HTTP ${res.status}`)
-      }
-
-      const data = await res.json()
+      if (!silent) setLoading(true)
+      
+      const data = await adminApi.getOrders()
       const newOrders = data.data?.orders || data.data || data || []
 
       // Only update if orders have changed (check length and IDs)
@@ -75,7 +55,7 @@ export const OrderProvider = ({ children }) => {
       if (hasChanged) {
         setOrders(newOrders)
         setLastFetch(new Date())
-        console.log(`📋 Orders updated: ${newOrders.length} orders`)
+        console.log(`📋 Orders updated: ${newOrders.length} orders (from real API)`)
       }
     } catch (error) {
       console.error('❌ Error loading orders:', error.message)
@@ -120,25 +100,10 @@ export const OrderProvider = ({ children }) => {
   // UPDATE STATUS (Admin only)
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
-      const token = localStorage.getItem('kk_admin_token')
-      if (!token) {
-        return { success: false, error: 'Admin authentication required' }
-      }
-
-      const res = await fetch(`${API_URL}/${orderId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status: newStatus }),
-      })
-
-      const updated = await res.json()
-      if (!res.ok) throw new Error(updated.message || 'Failed to update status')
+      const data = await adminApi.updateOrderStatus(orderId, newStatus)
 
       setOrders(prev =>
-        prev.map(o => (o._id === orderId ? updated : o))
+        prev.map(o => (o._id === orderId ? data.data : o))
       )
 
       console.log(`📋 Order ${orderId} status updated to ${newStatus}`)

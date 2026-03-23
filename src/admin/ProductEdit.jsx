@@ -29,7 +29,10 @@ const ProductEdit = () => {
     purity: '',
     weight: '',
     sku: '',
-    isActive: true
+    isActive: true,
+    isBestSeller: false,
+    isOnSale: false,
+    discountPercentage: ''
   })
 
   const [categories, setCategories] = useState([])
@@ -72,7 +75,10 @@ const ProductEdit = () => {
           purity: product.purity || '',
           weight: product.weight || '',
           sku: product.sku || '',
-          isActive: product.isActive !== undefined ? product.isActive : true
+          isActive: product.isActive !== undefined ? product.isActive : true,
+          isBestSeller: product.isBestSeller || false,
+          isOnSale: product.isOnSale || false,
+          discountPercentage: product.discountPercentage || ''
         })
         setCategories(catData.data?.categories || [])
         setBrands(brandData.data?.brands || [])
@@ -212,6 +218,7 @@ const ProductEdit = () => {
         selling_price: formData.selling_price ? Number(formData.selling_price) : null,
         stock: formData.hasSizes ? 0 : (Number(formData.stock) || 1),
         weight: formData.weight ? Number(formData.weight) : null,
+        discountPercentage: formData.discountPercentage ? Number(formData.discountPercentage) : 0,
         updatedAt: new Date().toISOString()
       }
 
@@ -230,6 +237,10 @@ const ProductEdit = () => {
       }
 
       setSuccess('Product updated successfully!')
+      
+      // Trigger global refresh across admin components
+      window.dispatchEvent(new Event('adminProductUpdated'))
+      
       setTimeout(() => {
         navigate('/admin/products')
       }, 1500)
@@ -428,6 +439,78 @@ const ProductEdit = () => {
                 onChange={handleInputChange}
                 placeholder="Product SKU"
               />
+            </div>
+          </div>
+
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Product Tags & Sale Settings</h2>
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="isBestSeller"
+                    checked={formData.isBestSeller}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 text-[#ae0b0b] border-gray-300 rounded focus:ring-[#ae0b0b]"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Mark as Best Seller 🔥</span>
+                </label>
+
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="isOnSale"
+                    checked={formData.isOnSale}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 text-[#ae0b0b] border-gray-300 rounded focus:ring-[#ae0b0b]"
+                  />
+                  <span className="text-sm font-medium text-gray-700">On Sale 💸</span>
+                </label>
+              </div>
+
+              {formData.isOnSale && (
+                <div className="grid md:grid-cols-2 gap-6 p-4 bg-red-50 rounded-lg border border-red-200">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Discount Percentage (%)
+                    </label>
+                    <input
+                      type="number"
+                      name="discountPercentage"
+                      value={formData.discountPercentage}
+                      onChange={handleInputChange}
+                      min="0"
+                      max="100"
+                      step="1"
+                      placeholder="e.g., 20 for 20% off"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ae0b0b] focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      This will automatically calculate the selling price
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-end">
+                    <div className="text-sm text-gray-600">
+                      <p className="font-medium mb-2">Discount Preview:</p>
+                      {formData.discountPercentage && formData.price ? (
+                        <div className="space-y-1">
+                          <p>Original: ₹{Number(formData.price).toLocaleString('en-IN')}</p>
+                          <p className="text-red-600 font-semibold">
+                            Discount: {formData.discountPercentage}% off
+                          </p>
+                          <p className="text-green-600 font-semibold">
+                            Final: ₹{(formData.price * (1 - formData.discountPercentage / 100)).toLocaleString('en-IN')}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-gray-400">Enter discount to see preview</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
