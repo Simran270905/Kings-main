@@ -8,6 +8,8 @@
  * ProductContext will work with backend without any UI changes.
  */
 
+import { API_BASE_URL } from '../../config/api'
+
 // ============================================================================
 // PRODUCT OPERATIONS
 // ============================================================================
@@ -38,7 +40,6 @@ export const loadProducts = () => {
  */
 export const fetchProductsFromAPI = async () => {
   try {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5003/api'
     const response = await fetch(`${API_BASE_URL}/products`)
     
     if (!response.ok) {
@@ -124,7 +125,6 @@ export const loadCategories = () => {
  */
 export const fetchCategoriesFromAPI = async () => {
   try {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5003/api'
     const response = await fetch(`${API_BASE_URL}/categories`)
     if (!response.ok) return []
     const data = await response.json()

@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, Fragment } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import {
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { 
   MagnifyingGlassIcon,
   UserCircleIcon,
   ShoppingBagIcon,
@@ -12,8 +12,7 @@ import {
 import { Popover, Dialog, Transition } from '@headlessui/react'
 import { useAuth } from '../../context/useAuth'
 import { useCart } from '../../context/useCart'
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5003/api'
+import { API_BASE_URL } from '../../config/api'
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
