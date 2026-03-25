@@ -12,7 +12,7 @@ import {
 import { Popover, Dialog, Transition } from '@headlessui/react'
 import { useAuth } from '../../context/useAuth'
 import { useCart } from '../../context/useCart'
-import { API_BASE_URL } from '@config/api.js'
+import { API_BASE_URL } from '@config/api.js' // Fixed import path
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
