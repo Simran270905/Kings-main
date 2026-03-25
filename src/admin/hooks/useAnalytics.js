@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { API_BASE_URL } from '../../config/api'
+import { API_BASE_URL } from '@config/api.js'
 
 export const useAnalytics = () => {
   const [stats, setStats] = useState({

@@ -8,7 +8,7 @@
  * ProductContext will work with backend without any UI changes.
  */
 
-import { API_BASE_URL } from '../../config/api'
+import { API_BASE_URL } from '@config/api.js'
 
 // ============================================================================
 // PRODUCT OPERATIONS
@@ -40,28 +40,20 @@ export const loadProducts = () => {
  */
 export const fetchProductsFromAPI = async () => {
   try {
+    console.log(`🌐 Fetching products from: ${API_BASE_URL}/products`)
     const response = await fetch(`${API_BASE_URL}/products`)
     
     if (!response.ok) {
       console.error(`❌ API Error: HTTP ${response.status}`)
+      console.error(`❌ Response: ${response.statusText}`)
       return []
     }
     
     const data = await response.json()
-    
-    // Handle API response structure: { success, data: { products: [...] } }
-    let products = []
-    if (data.data && data.data.products && Array.isArray(data.data.products)) {
-      products = data.data.products
-    } else if (data.data && Array.isArray(data.data)) {
-      products = data.data
-    } else if (Array.isArray(data)) {
-      products = data
-    }
-    
-    return products
+    console.log(`✅ API Response: ${data.data?.products?.length || 0} products loaded`)
+    return data.data?.products || []
   } catch (error) {
-    console.error('Error fetching products:', error.message)
+    console.error('❌ Error fetching products from API:', error.message)
     return []
   }
 }

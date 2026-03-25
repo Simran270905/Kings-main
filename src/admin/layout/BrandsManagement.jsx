@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import AdminCard from './AdminCard'
-import { API_BASE_URL } from '../../config/api'
+import { API_BASE_URL } from '@config/api.js'
 import toast from 'react-hot-toast'
 import { PlusCircleIcon, PencilIcon, TrashIcon, TagIcon } from '@heroicons/react/24/outline'
 

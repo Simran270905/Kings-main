@@ -6,7 +6,7 @@ import { useContext } from 'react'
 import { AuthContext } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
 import { CreditCardIcon, BanknotesIcon, DevicePhoneMobileIcon, TicketIcon } from '@heroicons/react/24/outline'
-import { API_BASE_URL } from '../../../config/api'
+import { API_BASE_URL } from '@config/api.js'
 import { couponApi } from '../../../services/apiService'
 
 const API_URL = API_BASE_URL

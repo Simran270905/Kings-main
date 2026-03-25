@@ -16,7 +16,14 @@ export const authService = {
 
   verifyAdminToken: () => api.get('/admin/verify'),
 
-  adminLogout: () => api.post('/admin/logout', {})
+  adminLogout: () => api.post('/admin/logout', {}),
+
+  // ✅ NEW OTP METHODS
+  sendOTP: (data) => api.post('/otp/send-otp', data),
+
+  verifyOTP: (data) => api.post('/otp/verify-otp', data),
+
+  resendOTP: (data) => api.post('/otp/resend-otp', data)
 }
 
 export default authService

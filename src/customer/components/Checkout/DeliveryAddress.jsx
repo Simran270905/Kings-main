@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Grid, TextField, Button, Box, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import toast from 'react-hot-toast';
-import { API_BASE_URL } from '../../../config/api';
+import { API_BASE_URL } from '@config/api.js';
 
 const API_URL = API_BASE_URL;
 

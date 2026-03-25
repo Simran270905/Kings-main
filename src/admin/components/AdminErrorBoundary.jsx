@@ -16,7 +16,7 @@ class AdminErrorBoundary extends React.Component {
     this.setState({ error, errorInfo })
     
     // Log error to monitoring service in production
-    if (process.env.NODE_ENV === 'production') {
+    if (import.meta.env.PROD) {
       // TODO: Add error logging service
       console.error('Production error:', { error: error.message, stack: error.stack })
     }
@@ -37,7 +37,7 @@ class AdminErrorBoundary extends React.Component {
               The admin panel encountered an unexpected error. Try refreshing the page.
             </p>
             
-            {process.env.NODE_ENV === 'development' && (
+            {import.meta.env.DEV && (
               <details className="mb-6 text-left">
                 <summary className="cursor-pointer text-sm font-medium text-gray-700 mb-2">
                   Error Details

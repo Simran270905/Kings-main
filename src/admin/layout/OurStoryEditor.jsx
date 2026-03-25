@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { API_BASE_URL } from '../../config/api'
+import { API_BASE_URL } from '@config/api.js'
 import { PhotoIcon, PlusIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline'
 
 const API_URL = `${API_BASE_URL}/content/our-story`

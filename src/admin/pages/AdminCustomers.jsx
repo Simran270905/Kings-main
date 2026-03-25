@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import AdminCard from '../layout/AdminCard'
 import StatCard from '../components/StatCard'
-import { API_BASE_URL } from '../../config/api'
+import { API_BASE_URL } from '@config/api.js'
 import { UsersIcon, MagnifyingGlassIcon, EnvelopeIcon, PhoneIcon } from '@heroicons/react/24/outline'
 
 const AdminCustomers = () => {

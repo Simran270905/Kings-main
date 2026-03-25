@@ -4,7 +4,7 @@
  * All calls go directly to the Express backend API.
  */
 
-import { API_BASE_URL } from '../../config/api'
+import { API_BASE_URL } from '@config/api.js'
 
 const API_BASE = `${API_BASE_URL}/orders`
 

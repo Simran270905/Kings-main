@@ -4,7 +4,7 @@
  * Fetches analytics from backend instead of localStorage
  */
 
-import { API_BASE_URL } from '../../config/api'
+import { API_BASE_URL } from '@config/api.js'
 
 const API_BASE = API_BASE_URL
 

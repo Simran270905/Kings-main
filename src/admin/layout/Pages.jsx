@@ -5,7 +5,7 @@ import { PencilIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 import AdminCard from './AdminCard'
 import AdminButton from './AdminButton'
-import { API_BASE_URL } from '../../config/api'
+import { API_BASE_URL } from '@config/api.js'
 
 const API_BASE = `${API_BASE_URL}/content`
 

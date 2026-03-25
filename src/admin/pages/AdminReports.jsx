@@ -130,7 +130,7 @@ export default function AdminReports() {
       </div>
 
       {/* Debug Info */}
-      {process.env.NODE_ENV === 'development' && (
+      {import.meta.env.DEV && (
         <AdminCard>
           <h3 className="text-sm font-medium text-gray-800 mb-2">Debug Information (Real API)</h3>
           <div className="text-sm text-gray-700 space-y-1">

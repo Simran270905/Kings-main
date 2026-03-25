@@ -6,7 +6,7 @@ import toast from 'react-hot-toast'
 import { getAvailableSizes } from '../../utils/productSchemaNormalizer'
 import HomeSectionCard from '../HomeSectionCard/HomeSectionCard'
 import { useCart } from '../../context/useCart'
-import { API_BASE_URL } from '../../../config/api'
+import { API_BASE_URL } from '@config/api.js'
 
 const API_URL = `${API_BASE_URL}/products`
 

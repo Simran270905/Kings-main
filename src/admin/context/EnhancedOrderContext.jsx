@@ -154,15 +154,15 @@ export const EnhancedOrderProvider = ({ children }) => {
       fetchOrders()
     }
 
-    // Poll every 30 seconds for real-time updates
-    const interval = setInterval(() => {
-      const token = localStorage.getItem('kk_admin_token')
-      if (token && token !== 'undefined') {
-        fetchOrders(true) // silent fetch
-      }
-    }, 30000)
+    // Poll every 30 seconds for real-time updates - DISABLED for development
+    // const interval = setInterval(() => {
+    //   const token = localStorage.getItem('kk_admin_token')
+    //   if (token && token !== 'undefined') {
+    //     fetchOrders(true) // silent fetch
+    //   }
+    // }, 30000)
 
-    return () => clearInterval(interval)
+    // return () => clearInterval(interval)
   }, [])
 
   // Refetch when filters change

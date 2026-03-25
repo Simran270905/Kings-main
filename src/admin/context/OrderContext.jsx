@@ -30,15 +30,15 @@ export const OrderProvider = ({ children }) => {
       setOrderRefreshCallback(() => fetchOrders)
     }
 
-    // Set up polling for real-time updates (every 30 seconds)
-    const interval = setInterval(() => {
-      const token = localStorage.getItem('kk_admin_token')
-      if (token && token !== 'undefined') {
-        fetchOrders(true) // silent fetch
-      }
-    }, 30000)
+    // Set up polling for real-time updates (every 30 seconds) - DISABLED for development
+    // const interval = setInterval(() => {
+    //   const token = localStorage.getItem('kk_admin_token')
+    //   if (token && token !== 'undefined') {
+    //     fetchOrders(true) // silent fetch
+    //   }
+    // }, 30000)
 
-    return () => clearInterval(interval)
+    // return () => clearInterval(interval)
   }, [])
 
   const fetchOrders = async (silent = false) => {

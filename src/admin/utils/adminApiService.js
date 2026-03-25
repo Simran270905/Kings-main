@@ -1,5 +1,5 @@
 // 🔐 Admin API Service - Centralized API integration with JWT authentication
-import { API_BASE_URL } from '../../config/api'
+import { API_BASE_URL } from '@config/api.js'
 
 class AdminApiService {
   constructor() {

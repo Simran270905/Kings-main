@@ -12,12 +12,15 @@ import { AdminProductProvider } from './admin/context/AdminProductContext'
 
 import Navbar from './customer/components/navigation/Navbar'
 import Footer from './customer/components/Footer/Footer'
+import DebugInfo from './components/DebugInfo'
+import APITest from './components/APITest'
 
 import HomePage from './customer/pages/HomePage/HomePage'
 import OurStory from './customer/pages/OurStory/OurStory'
 import Cart from './customer/components/Cart/Cart'
 import Checkout from './customer/components/Checkout/Checkout'
 import Login from './customer/components/Account/Login'
+import Auth from './customer/components/Account/Auth'
 import SignIn from './customer/components/Account/SignIn'
 import Account from './customer/components/Account/Account'
 import Payment from './customer/components/Payment/Payment'
@@ -93,8 +96,8 @@ const App = () => {
                     <Route path="/checkout" element={<CustomerLayout><ProtectedRoute><Checkout /></ProtectedRoute></CustomerLayout>} />
                     <Route path="/payment" element={<CustomerLayout><Payment /></CustomerLayout>} />
 
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/signup" element={<SignIn />} />
+                    <Route path="/login" element={<Auth />} />
+                    <Route path="/signup" element={<Auth />} />
 
                     <Route path="/account" element={<CustomerLayout><ProtectedRoute><Account /></ProtectedRoute></CustomerLayout>} />
                     <Route path="/orders" element={<CustomerLayout><ProtectedRoute><Orders /></ProtectedRoute></CustomerLayout>} />
@@ -236,6 +239,8 @@ const App = () => {
     </EnhancedOrderProvider>
   </OrderProvider>
 </AdminAuthProvider>
+<DebugInfo />
+<APITest />
 </Router>
   )
 }

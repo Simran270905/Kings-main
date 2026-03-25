@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import AdminCard from './AdminCard'
 import AdminButton from './AdminButton'
-import { API_BASE_URL } from '../../config/api'
+import { API_BASE_URL } from '@config/api.js'
 
 const API_URL = `${API_BASE_URL}/content/footer`
 

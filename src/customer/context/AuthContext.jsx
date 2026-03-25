@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react'
-import { API_BASE_URL } from '../../config/api'
+import { API_BASE_URL } from '@config/api.js'
 
 export const AuthContext = createContext()
 
@@ -45,7 +45,45 @@ export function AuthProvider({ children }) {
     fetchProfile()
   }, [])
 
-  // ✅ LOGIN
+  // ✅ OTP AUTHENTICATION
+  const authenticateWithOTP = async (data) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/otp/verify-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+
+      const result = await res.json()
+
+      if (!res.ok) {
+        return {
+          success: false,
+          error: result.message || 'Authentication failed'
+        }
+      }
+
+      localStorage.setItem('token', result.data.token)
+
+      setUser(result.data.user)
+      setIsAuthenticated(true)
+
+      return {
+        success: true,
+        user: result.data.user
+      }
+
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+  }
+
+  // ✅ LOGIN (kept for backward compatibility)
   const login = async (data) => {
     try {
       const res = await fetch(`${API_BASE_URL}/customers/login`, {
@@ -86,7 +124,7 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // ✅ REGISTER
+  // ✅ REGISTER (kept for backward compatibility)
   const register = async (data) => {
     try {
       const res = await fetch(`${API_BASE_URL}/customers/register`, {
@@ -173,7 +211,8 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
-        updateProfile // ✅ NEW
+        updateProfile, // ✅ Existing
+        authenticateWithOTP // ✅ NEW OTP method
       }}
     >
       {children}

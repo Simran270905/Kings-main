@@ -100,7 +100,7 @@ export default function Dashboard() {
         </div>
         
         {/* Debug Info */}
-        {process.env.NODE_ENV === 'development' && (
+        {import.meta.env.DEV && (
           <div className="mt-2 p-2 bg-gray-100 rounded text-sm">
             <div>Backend Revenue: ₹{totalRevenue}</div>
             <div>Total Orders: {safeAnalytics.data.totalOrders}</div>

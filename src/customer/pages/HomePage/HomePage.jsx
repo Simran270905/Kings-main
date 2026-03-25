@@ -4,7 +4,7 @@ import { memo, lazy, Suspense, useEffect, useState } from 'react'
 import MainCarosal from '../../components/HomeCarosal/MainCarosal'
 import HomeSectionCarosal from '../../components/HomeSectionCarosal/HomeSectionCarosal'
 import { useProduct } from '../../context/ProductContext'
-import { API_BASE_URL } from '../../../config/api'
+import { API_BASE_URL } from '@config/api.js'
 
 
 
@@ -22,13 +22,26 @@ function HomePage() {
       try {
         const res = await fetch(`${API_BASE_URL}/categories`)
         const data = await res.json()
+        console.log('📂 Categories loaded:', data.data?.categories?.length || 0)
         setCategories(data.data?.categories || [])
-      } catch {
+      } catch (error) {
+        console.error('❌ Error fetching categories:', error)
         setCategories([])
       }
     }
     fetchCategories()
   }, [])
+
+  // Debug logging
+  useEffect(() => {
+    console.log('🏠 HomePage State:', {
+      productsCount: products?.length || 0,
+      categoriesCount: categories?.length || 0,
+      isLoading: productsLoading,
+      sampleProducts: products?.slice(0, 2),
+      sampleCategories: categories?.slice(0, 2)
+    })
+  }, [products, categories, productsLoading])
 
   const getProductsByCategory = (categoryName) => {
     if (!products || products.length === 0) return []
@@ -50,23 +63,36 @@ function HomePage() {
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#ae0b0b]"></div>
             <p className="mt-4 text-gray-600">Loading products...</p>
           </div>
+        ) : !productsLoading && products.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="text-gray-500 text-lg">No products available at the moment.</div>
+            <div className="text-gray-400 text-sm mt-2">Please check back later.</div>
+          </div>
         ) : (
           <>
-            {categories.slice(0, 2).map((cat) => {
-              const catProducts = getProductsByCategory(cat.name)
-              if (catProducts.length === 0) return null
-              return (
-                <HomeSectionCarosal
-                  key={cat._id}
-                  data={catProducts}
-                  sectionName={cat.name.toUpperCase()}
-                />
-              )
-            })}
+            {categories.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-gray-500">No categories found</div>
+              </div>
+            ) : (
+              categories.slice(0, 2).map((cat) => {
+                const catProducts = getProductsByCategory(cat.name)
+                console.log(`🏷️ Category "${cat.name}": ${catProducts.length} products`)
+                if (catProducts.length === 0) return null
+                return (
+                  <HomeSectionCarosal
+                    key={cat._id}
+                    data={catProducts}
+                    sectionName={cat.name.toUpperCase()}
+                  />
+                )
+              })
+            )}
 
             <Suspense fallback={null}>
               {categories.slice(2).map((cat) => {
                 const catProducts = getProductsByCategory(cat.name)
+                console.log(`🏷️ Lazy Category "${cat.name}": ${catProducts.length} products`)
                 if (catProducts.length === 0) return null
                 return (
                   <LazyHomeSection

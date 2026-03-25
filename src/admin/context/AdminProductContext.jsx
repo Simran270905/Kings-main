@@ -152,7 +152,7 @@ export const AdminProductProvider = ({ children }) => {
     })
     
     // Only log in development and limit frequency
-    if (process.env.NODE_ENV === 'development' && lowStock.length > 0) {
+    if (import.meta.env.DEV && lowStock.length > 0) {
       console.log('🔍 Low stock calculation:', {
         totalProducts: products.length,
         lowStockProducts: lowStock.length,

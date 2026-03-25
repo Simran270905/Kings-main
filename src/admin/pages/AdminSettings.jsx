@@ -4,7 +4,7 @@ import { useState } from 'react'
 import AdminCard from '../layout/AdminCard'
 import AdminButton from '../layout/AdminButton'
 import FormInput from '../components/FormInput'
-import { API_BASE_URL } from '../../config/api'
+import { API_BASE_URL } from '@config/api.js'
 import { KeyIcon, InformationCircleIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline'
 
 const AdminSettings = () => {

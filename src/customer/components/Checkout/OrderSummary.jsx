@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useProduct } from '../../context/ProductContext'
 import { validateCartStock, processOrderAndDecrementStock } from '../../utils/checkoutValidation'
 import { useOrder } from '../../context/useOrder'
-import { API_BASE_URL } from '../../../config/api'
+import { API_BASE_URL } from '@config/api.js'
 import { recordSale } from '../../../admin/utils/analyticsStorage'
 import toast from 'react-hot-toast'
 
