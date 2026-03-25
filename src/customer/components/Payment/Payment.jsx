@@ -59,7 +59,13 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
       id: 'razorpay',
       name: 'Online Payment',
       icon: CreditCardIcon,
-      description: 'Credit Card, Debit Card, UPI, NetBanking'
+      description: 'Credit Card, Debit Card, NetBanking'
+    },
+    {
+      id: 'upi',
+      name: 'UPI Payment',
+      icon: DevicePhoneMobileIcon,
+      description: 'Direct UPI Transfer'
     },
     {
       id: 'cod',
@@ -165,17 +171,47 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
         discount: discount,
         couponCode: appliedCoupon ? appliedCoupon.code : null,
         totalAmount: finalAmount,
-        paymentMethod: selectedMethod
+        paymentMethod: selectedMethod,
+        upiId: paymentDetails.upiId || null
       }
 
       if (selectedMethod === 'cod') {
         // For COD, directly create order
-        const result = await createOrder(orderData, propClearCart || clearCart)
-        if (result.success) {
-          toast.success('Order placed successfully! You will pay on delivery.')
-          navigate('/order-success', { state: { orderId: result.order._id || result.order.id, paymentMethod: selectedMethod } })
-        } else {
-          setError(result.error || 'Failed to create order. Please try again.')
+        console.log('🚀 Creating COD order with data:', orderData)
+        try {
+          const result = await createOrder(orderData, propClearCart || clearCart)
+          console.log('📦 COD order result:', result)
+          if (result.success) {
+            toast.success('Order placed successfully! You will pay on delivery.')
+            navigate('/order-success', { state: { orderId: result.order._id || result.order.id, paymentMethod: selectedMethod } })
+          } else {
+            console.error('❌ COD order failed:', result.error)
+            setError(result.error || 'Failed to create order. Please try again.')
+            toast.error(result.error || 'Failed to create order. Please try again.')
+          }
+        } catch (error) {
+          console.error('❌ COD order error:', error)
+          setError(error.message || 'Failed to create order. Please try again.')
+          toast.error(error.message || 'Failed to create order. Please try again.')
+        }
+      } else if (selectedMethod === 'upi') {
+        // For UPI, create order directly (no payment gateway)
+        console.log('📱 Creating UPI order with data:', orderData)
+        try {
+          const result = await createOrder(orderData, propClearCart || clearCart)
+          console.log('📦 UPI order result:', result)
+          if (result.success) {
+            toast.success('Order placed successfully! Please complete UPI payment.')
+            navigate('/order-success', { state: { orderId: result.order._id || result.order.id, paymentMethod: selectedMethod, upiId: paymentDetails.upiId } })
+          } else {
+            console.error('❌ UPI order failed:', result.error)
+            setError(result.error || 'Failed to create order. Please try again.')
+            toast.error(result.error || 'Failed to create order. Please try again.')
+          }
+        } catch (error) {
+          console.error('❌ UPI order error:', error)
+          setError(error.message || 'Failed to create order. Please try again.')
+          toast.error(error.message || 'Failed to create order. Please try again.')
         }
       } else if (selectedMethod === 'razorpay') {
         // Process Razorpay payment
@@ -446,6 +482,41 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
             })}
           </div>
         </div>
+
+        {/* UPI Payment Details */}
+        {(selectedMethod === 'razorpay' || selectedMethod === 'upi') && (
+          <div className="bg-gray-50 p-6 rounded-lg mb-8">
+            <h2 className="text-xl font-semibold mb-4">UPI Payment Details</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  UPI ID (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={paymentDetails.upiId}
+                  onChange={(e) => setPaymentDetails(prev => ({ ...prev, upiId: e.target.value }))}
+                  placeholder="Enter your UPI ID (e.g., 9876543210@upi)"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#ae0b0b]"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter your UPI ID for direct UPI payment (optional)
+                </p>
+              </div>
+              {selectedMethod === 'upi' && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-800 mb-2">UPI Payment Instructions:</h4>
+                  <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
+                    <li>Enter your UPI ID above (optional)</li>
+                    <li>Click "Pay Now" to create your order</li>
+                    <li>You will receive order details with payment link</li>
+                    <li>Complete payment using any UPI app</li>
+                  </ol>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex gap-4">

@@ -65,6 +65,8 @@ export function CustomerOrderProvider({ children }) {
     if (!token) return { success: false, error: 'Please log in to place an order' }
     if (!orderData?.items?.length) return { success: false, error: 'Cart is empty' }
 
+    console.log(' Creating order with data:', orderData)
+
     setLoading(true)
     setError(null)
 
@@ -78,8 +80,12 @@ export function CustomerOrderProvider({ children }) {
         body: JSON.stringify(orderData),
       })
 
+      console.log(' Order API response status:', response.status)
       const body = await response.json()
+      console.log(' Order API response:', body)
+
       if (!response.ok) {
+        console.error(' Order creation failed:', body)
         return { success: false, error: body?.message || 'Failed to place order' }
       }
 
@@ -92,8 +98,10 @@ export function CustomerOrderProvider({ children }) {
 
       window.dispatchEvent(new Event('ordersUpdated'))
 
+      console.log(' Order created successfully:', body.data)
       return { success: true, order: body.data }
     } catch (err) {
+      console.error(' Order creation error:', err)
       return { success: false, error: 'Network error while placing order' }
     } finally {
       setLoading(false)
