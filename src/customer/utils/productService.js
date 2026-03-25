@@ -40,7 +40,15 @@ export const loadProducts = () => {
  */
 export const fetchProductsFromAPI = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/products`)
+    // Add timeout to prevent hanging
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
+    const response = await fetch(`${API_BASE_URL}/products`, {
+      signal: controller.signal
+    })
+    
+    clearTimeout(timeoutId)
     
     if (!response.ok) {
       console.error(`❌ API Error: HTTP ${response.status}`)
@@ -50,7 +58,11 @@ export const fetchProductsFromAPI = async () => {
     const data = await response.json()
     return data.data?.products || []
   } catch (error) {
-    console.error('❌ Error fetching products from API:', error.message)
+    if (error.name === 'AbortError') {
+      console.error('❌ API timeout: Request took too long')
+    } else {
+      console.error('❌ Error fetching products from API:', error.message)
+    }
     return []
   }
 }
@@ -114,8 +126,18 @@ export const loadCategories = () => {
  */
 export const fetchCategoriesFromAPI = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/categories`)
+    // Add timeout to prevent hanging
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
+    const response = await fetch(`${API_BASE_URL}/categories`, {
+      signal: controller.signal
+    })
+    
+    clearTimeout(timeoutId)
+    
     if (!response.ok) return []
+    
     const data = await response.json()
     let categories = []
     if (data.data && Array.isArray(data.data)) {
@@ -130,7 +152,11 @@ export const fetchCategoriesFromAPI = async () => {
       image: c.image,
     }))
   } catch (error) {
-    console.error('Error fetching categories:', error.message)
+    if (error.name === 'AbortError') {
+      console.error('❌ Categories API timeout: Request took too long')
+    } else {
+      console.error('❌ Error fetching categories from API:', error.message)
+    }
     return []
   }
 }

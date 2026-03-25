@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import {
   fetchProductsFromAPI,
   fetchCategoriesFromAPI,
@@ -32,6 +32,8 @@ export const useProduct = () => {
  * - Auto validation
  * - Error-safe storage
  * - Backend API integration
+ * - Performance optimizations
+ * - Caching mechanisms
  * 
  * All operations persist to localStorage via productService layer.
  * Fetches from backend API on mount.
@@ -54,44 +56,67 @@ export const ProductProvider = ({ children }) => {
   const [categories, setCategories] = useState([])
 
   const [loading, setLoading] = useState(true)
+  const [lastFetch, setLastFetch] = useState(null)
+  const [error, setError] = useState(null)
 
   // ========================================================================
-  // API FETCH ON MOUNT
+  // API FETCH ON MOUNT (Optimized with caching)
   // ========================================================================
 
   /**
    * Fetch products and categories from backend API on mount
-   * ONLY SOURCE OF TRUTH - no localStorage fallback
+   * Enhanced with caching and error handling
    */
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true)
+    setError(null)
+    
     try {
-      const apiProducts = await fetchProductsFromAPI()
+      // Check if we have fresh data (cache for 5 minutes)
+      const now = Date.now()
+      if (lastFetch && (now - lastFetch) < 5 * 60 * 1000) {
+        console.log('📦 Using cached data (fresh)')
+        return
+      }
+
+      console.log('🌐 Fetching fresh data from API...')
+      
+      // Parallel fetch for better performance
+      const [apiProducts, apiCategories] = await Promise.all([
+        fetchProductsFromAPI(),
+        fetchCategoriesFromAPI()
+      ])
+
       const normalizedProducts = apiProducts && apiProducts.length > 0 
         ? normalizeProducts(apiProducts)
         : []
+      
       setProducts(normalizedProducts)
-
-      const apiCategories = await fetchCategoriesFromAPI()
       setCategories(apiCategories || [])
+      setLastFetch(now)
+      
+      console.log(`✅ Loaded ${normalizedProducts.length} products and ${apiCategories?.length || 0} categories`)
     } catch (error) {
+      console.error('❌ Error fetching data:', error)
+      setError(error.message)
       setProducts([])
       setCategories([])
     } finally {
       setLoading(false)
     }
-  }
+  }, [lastFetch])
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [fetchData])
 
   /**
    * Manually refresh products from API (call after adding/editing products)
    */
-  const refreshProducts = async () => {
+  const refreshProducts = useCallback(async () => {
+    setLastFetch(null) // Force refresh
     await fetchData()
-  }
+  }, [fetchData])
 
   // ========================================================================
   // PERSISTENCE - DISABLED
@@ -442,6 +467,7 @@ export const ProductProvider = ({ children }) => {
     deleteProduct,
     updateProduct,
     loading,
+    error,
 
     // New: Categories management
     categories,
@@ -459,11 +485,21 @@ export const ProductProvider = ({ children }) => {
     checkLowStock,
     getLowStockWarnings,
 
-    // Helpers
-    getProductById: (id) => getProductById(id, products),
-
-    // Refresh from API
+    // Performance optimizations
     refreshProducts,
+    lastFetch,
+    
+    // Utility functions
+    getProduct,
+    getLowStockProducts,
+    isInStock,
+    isLowStock,
+    validateProduct,
+    initializeProductStock,
+    syncProductStock,
+    
+    // Helpers
+    getProductById: (id) => getProductById(id, products)
   }
 
   return (
