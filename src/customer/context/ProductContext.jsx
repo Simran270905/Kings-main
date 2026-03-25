@@ -456,6 +456,13 @@ export const ProductProvider = ({ children }) => {
     return getProductsByCategory(categoryId, products)
   }
 
+  /**
+   * Get product by ID
+   */
+  const getProduct = (productId) => {
+    return getProductById(productId, products)
+  }
+
   // ========================================================================
   // CONTEXT VALUE
   // ========================================================================
@@ -491,15 +498,13 @@ export const ProductProvider = ({ children }) => {
     
     // Utility functions
     getProduct,
+    getProductById: (id) => getProductById(id, products),
     getLowStockProducts,
     isInStock,
     isLowStock,
     validateProduct,
     initializeProductStock,
-    syncProductStock,
-    
-    // Helpers
-    getProductById: (id) => getProductById(id, products)
+    syncProductStock
   }
 
   return (
