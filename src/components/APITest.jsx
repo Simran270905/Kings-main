@@ -1,4 +1,4 @@
-// API Test Component - Add this temporarily to debug API issues
+// API Test Component - Development only
 import React, { useState, useEffect } from 'react'
 import { API_BASE_URL } from '../config/api.js'
 
@@ -6,6 +6,9 @@ const APITest = () => {
   const [testResults, setTestResults] = useState({})
 
   useEffect(() => {
+    // Only run in development
+    if (!import.meta.env.DEV) return
+
     const testAPI = async () => {
       const results = {}
 
@@ -39,31 +42,31 @@ const APITest = () => {
     testAPI()
   }, [])
 
-  // Only show in development or if there are errors
-  if (import.meta.env.DEV || Object.keys(testResults).length === 0) {
-    return (
-      <div style={{
-        position: 'fixed',
-        top: '10px',
-        left: '10px',
-        background: 'rgba(0,0,0,0.9)',
-        color: 'white',
-        padding: '15px',
-        borderRadius: '5px',
-        fontSize: '12px',
-        zIndex: 9999,
-        maxWidth: '400px',
-        maxHeight: '300px',
-        overflow: 'auto'
-      }}>
-        <h4>API Test Results:</h4>
-        <p><strong>API URL:</strong> {API_BASE_URL}</p>
-        <pre>{JSON.stringify(testResults, null, 2)}</pre>
-      </div>
-    )
+  // Only show in development
+  if (!import.meta.env.DEV) {
+    return null
   }
 
-  return null
+  return (
+    <div style={{
+      position: 'fixed',
+      top: '10px',
+      left: '10px',
+      background: 'rgba(0,0,0,0.9)',
+      color: 'white',
+      padding: '15px',
+      borderRadius: '5px',
+      fontSize: '12px',
+      zIndex: 9999,
+      maxWidth: '400px',
+      maxHeight: '300px',
+      overflow: 'auto'
+    }}>
+      <h4>API Test (Dev Only):</h4>
+      <p><strong>API URL:</strong> {API_BASE_URL}</p>
+      <pre>{JSON.stringify(testResults, null, 2)}</pre>
+    </div>
+  )
 }
 
 export default APITest

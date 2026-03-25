@@ -40,17 +40,14 @@ export const loadProducts = () => {
  */
 export const fetchProductsFromAPI = async () => {
   try {
-    console.log(`🌐 Fetching products from: ${API_BASE_URL}/products`)
     const response = await fetch(`${API_BASE_URL}/products`)
     
     if (!response.ok) {
       console.error(`❌ API Error: HTTP ${response.status}`)
-      console.error(`❌ Response: ${response.statusText}`)
       return []
     }
     
     const data = await response.json()
-    console.log(`✅ API Response: ${data.data?.products?.length || 0} products loaded`)
     return data.data?.products || []
   } catch (error) {
     console.error('❌ Error fetching products from API:', error.message)

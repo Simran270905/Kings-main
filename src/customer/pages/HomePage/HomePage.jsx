@@ -22,7 +22,6 @@ function HomePage() {
       try {
         const res = await fetch(`${API_BASE_URL}/categories`)
         const data = await res.json()
-        console.log('📂 Categories loaded:', data.data?.categories?.length || 0)
         setCategories(data.data?.categories || [])
       } catch (error) {
         console.error('❌ Error fetching categories:', error)
@@ -31,17 +30,6 @@ function HomePage() {
     }
     fetchCategories()
   }, [])
-
-  // Debug logging
-  useEffect(() => {
-    console.log('🏠 HomePage State:', {
-      productsCount: products?.length || 0,
-      categoriesCount: categories?.length || 0,
-      isLoading: productsLoading,
-      sampleProducts: products?.slice(0, 2),
-      sampleCategories: categories?.slice(0, 2)
-    })
-  }, [products, categories, productsLoading])
 
   const getProductsByCategory = (categoryName) => {
     if (!products || products.length === 0) return []
@@ -77,7 +65,6 @@ function HomePage() {
             ) : (
               categories.slice(0, 2).map((cat) => {
                 const catProducts = getProductsByCategory(cat.name)
-                console.log(`🏷️ Category "${cat.name}": ${catProducts.length} products`)
                 if (catProducts.length === 0) return null
                 return (
                   <HomeSectionCarosal
@@ -92,7 +79,6 @@ function HomePage() {
             <Suspense fallback={null}>
               {categories.slice(2).map((cat) => {
                 const catProducts = getProductsByCategory(cat.name)
-                console.log(`🏷️ Lazy Category "${cat.name}": ${catProducts.length} products`)
                 if (catProducts.length === 0) return null
                 return (
                   <LazyHomeSection
