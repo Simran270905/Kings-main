@@ -47,8 +47,11 @@ const Auth = () => {
         phone: phone.trim() || undefined
       };
 
-      const apiEndpoint = `${API_BASE_URL.replace(/\/$/, '')}/otp/send-otp`;
+      // Ensure API_BASE_URL has the correct format
+      const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+      const apiEndpoint = `${baseUrl.replace(/\/$/, '')}/otp/send-otp`;
       console.log("🔍 API_BASE_URL:", API_BASE_URL);
+      console.log("🔍 Corrected baseUrl:", baseUrl);
       console.log("🔍 Sending OTP request:", JSON.stringify(payload, null, 2));
       console.log("🔍 API URL:", apiEndpoint);
 
@@ -150,7 +153,9 @@ const Auth = () => {
 
       console.log("🔍 Verifying OTP request:", JSON.stringify(payload, null, 2));
 
-      const apiEndpoint = `${API_BASE_URL.replace(/\/$/, '')}/otp/verify-otp`;
+      // Ensure API_BASE_URL has the correct format
+      const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+      const apiEndpoint = `${baseUrl.replace(/\/$/, '')}/otp/verify-otp`;
       console.log("🔍 Verify API URL:", apiEndpoint);
 
       const response = await fetch(apiEndpoint, {
@@ -220,7 +225,9 @@ const Auth = () => {
 
       console.log("🔍 Resending OTP request:", JSON.stringify(payload, null, 2));
 
-      const apiEndpoint = `${API_BASE_URL.replace(/\/$/, '')}/otp/resend-otp`;
+      // Ensure API_BASE_URL has the correct format
+      const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+      const apiEndpoint = `${baseUrl.replace(/\/$/, '')}/otp/resend-otp`;
       console.log("🔍 Resend API URL:", apiEndpoint);
 
       const response = await fetch(apiEndpoint, {
