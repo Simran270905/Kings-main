@@ -1,4 +1,4 @@
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://kingsbackend-y3fu.onrender.com/api'
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'
 
 export const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY || 'rzp_test_SITfLVVfxHyUDe'
 
