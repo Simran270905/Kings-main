@@ -13,7 +13,6 @@ import { AdminProductProvider } from './admin/context/AdminProductContext'
 import Navbar from './customer/components/navigation/Navbar'
 import Footer from './customer/components/Footer/Footer'
 import DebugInfo from './components/DebugInfo'
-import APITest from './components/APITest'
 
 import HomePage from './customer/pages/HomePage/HomePage'
 import OurStory from './customer/pages/OurStory/OurStory'
@@ -239,8 +238,6 @@ const App = () => {
     </EnhancedOrderProvider>
   </OrderProvider>
 </AdminAuthProvider>
-<DebugInfo />
-<APITest />
 </Router>
   )
 }

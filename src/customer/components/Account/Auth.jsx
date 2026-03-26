@@ -61,8 +61,14 @@ const Auth = () => {
         throw new Error(result.message || 'Failed to send OTP');
       }
 
-      setSuccess('OTP sent successfully!');
-      setStep(2);
+      // Check if email was actually sent
+      if (result.data && result.data.emailSent) {
+        setSuccess('OTP sent successfully to your email!');
+        setStep(2);
+      } else {
+        // This should not happen with the new backend logic, but handle it just in case
+        throw new Error('OTP was not sent. Please try again.');
+      }
 
     } catch (err) {
       console.error("❌ Send OTP error:", err.message);
@@ -135,7 +141,13 @@ const Auth = () => {
         throw new Error(result.message || 'Failed to resend OTP');
       }
 
-      setSuccess('OTP resent successfully!');
+      // Check if email was actually resent
+      if (result.data && result.data.emailSent) {
+        setSuccess('OTP resent successfully to your email!');
+      } else {
+        // This should not happen with the new backend logic, but handle it just in case
+        throw new Error('OTP was not resent. Please try again.');
+      }
 
     } catch (err) {
       console.error("❌ Resend OTP error:", err.message);
