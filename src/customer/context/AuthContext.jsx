@@ -19,7 +19,7 @@ export function AuthProvider({ children }) {
           return
         }
 
-        const res = await fetch(`${API_BASE_URL}/api/customers/profile`, {
+        const res = await fetch(`${API_BASE_URL}/customers/profile`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -48,7 +48,7 @@ export function AuthProvider({ children }) {
   // ✅ OTP AUTHENTICATION
   const authenticateWithOTP = async (data) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/otp/verify-otp`, {
+      const res = await fetch(`${API_BASE_URL}/otp/verify-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -201,7 +201,7 @@ export function AuthProvider({ children }) {
     try {
       const token = localStorage.getItem('token')
 
-      const res = await fetch(`${API_BASE_URL}/api/customers/profile`, {
+      const res = await fetch(`${API_BASE_URL}/customers/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

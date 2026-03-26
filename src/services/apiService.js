@@ -4,10 +4,13 @@ import { enhancedApiService } from './apiErrorHandler.js'
 // Strip trailing /api if present so we can re-add it consistently
 const BASE = _BASE.replace(/\/api$/, '')
 
-const API = `${BASE}/api`
+// TEMPORARY FIX: Use forced localhost URL in development
+const API = import.meta.env.DEV ? 'http://localhost:5000/api' : `${BASE}/api`
 
 const getAuthHeader = (token) =>
   token ? { Authorization: `Bearer ${token}` } : {}
+
+console.log('🔧 API Service using URL:', API)
 
 // ─── Products ──────────────────────────────────────────────────────────────
 export const productApi = {
