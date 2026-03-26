@@ -47,10 +47,12 @@ const Auth = () => {
         phone: phone.trim() || undefined
       };
 
+      const apiEndpoint = `${API_BASE_URL.replace(/\/$/, '')}/otp/send-otp`;
+      console.log("🔍 API_BASE_URL:", API_BASE_URL);
       console.log("🔍 Sending OTP request:", JSON.stringify(payload, null, 2));
-      console.log("🔍 API URL:", `${API_BASE_URL}/otp/send-otp`);
+      console.log("🔍 API URL:", apiEndpoint);
 
-      const response = await fetch(`${API_BASE_URL}/otp/send-otp`, {
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -148,7 +150,10 @@ const Auth = () => {
 
       console.log("🔍 Verifying OTP request:", JSON.stringify(payload, null, 2));
 
-      const response = await fetch(`${API_BASE_URL}/otp/verify-otp`, {
+      const apiEndpoint = `${API_BASE_URL.replace(/\/$/, '')}/otp/verify-otp`;
+      console.log("🔍 Verify API URL:", apiEndpoint);
+
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -214,9 +219,11 @@ const Auth = () => {
       };
 
       console.log("🔍 Resending OTP request:", JSON.stringify(payload, null, 2));
-      console.log("🔍 API URL:", `${API_BASE_URL}/otp/resend-otp`);
 
-      const response = await fetch(`${API_BASE_URL}/otp/resend-otp`, {
+      const apiEndpoint = `${API_BASE_URL.replace(/\/$/, '')}/otp/resend-otp`;
+      console.log("🔍 Resend API URL:", apiEndpoint);
+
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
