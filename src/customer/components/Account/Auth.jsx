@@ -1,6 +1,4 @@
 
-Copy
-
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
@@ -9,7 +7,7 @@ import { API_BASE_URL } from "@config/api.js";
  
 const Auth = () => {
   const navigate = useNavigate();
-  const { authenticateWithOTP } = useAuth();
+  const { simpleLogin } = useAuth();
  
   // Form states
   const [name, setName] = useState("");
@@ -19,7 +17,7 @@ const Auth = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
  
-  // Handle direct login (no OTP)
+  // Handle login with details only
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -31,7 +29,7 @@ const Auth = () => {
       if (!name.trim()) {
         throw new Error("Name is required");
       }
- 
+
       if (!email.trim()) {
         throw new Error("Email is required");
       }
@@ -40,83 +38,45 @@ const Auth = () => {
       if (!emailRegex.test(email.trim())) {
         throw new Error("Invalid email format");
       }
- 
+
       if (!phone.trim()) {
         throw new Error("Phone number is required");
       }
- 
+
       if (!/^\d{10}$/.test(phone.trim())) {
         throw new Error("Phone number must be 10 digits");
       }
- 
+
       // Create user payload
       const payload = {
         name: name.trim(),
         email: email.trim(),
         phone: phone.trim()
       };
- 
-      console.log("🔍 Creating user account:", JSON.stringify(payload, null, 2));
- 
-      // Ensure API_BASE_URL has the correct format
-      let baseUrl = API_BASE_URL;
-      if (!baseUrl.endsWith('/api')) {
-        baseUrl = baseUrl.replace(/\/$/, '') + '/api';
-      }
-      const apiEndpoint = `${baseUrl.replace(/\/$/, '')}/auth/register-or-login`;
-      console.log("🔍 Login API URL:", apiEndpoint);
- 
-      const response = await fetch(apiEndpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
- 
-      console.log("🔍 Response status:", response.status);
-      console.log("🔍 Response headers:", Object.fromEntries(response.headers.entries()));
- 
-      const result = await response.json();
-      console.log("🔍 Full API response:", JSON.stringify(result, null, 2));
- 
-      if (!response.ok) {
-        console.error('API Error:', response.status, result);
-        
-        if (response.status === 500) {
-          setError('Server error. Please try again in a moment.');
-        } else if (response.status === 400) {
-          setError(result.message || 'Invalid request. Please check your input.');
-        } else if (response.status === 0) {
-          setError('Network error. Please check your internet connection.');
-        } else {
-          setError(result.message || `Server error (${response.status}). Please try again.`);
-        }
-        return;
-      }
- 
-      if (result.success && result.data) {
-        localStorage.setItem('token', result.data.token);
-        localStorage.setItem('user', JSON.stringify(result.data.user));
-        setSuccess('Account created successfully! Redirecting...');
+
+      console.log("🔍 Creating/login user with details:", JSON.stringify(payload, null, 2));
+
+      // Use the simpleLogin method from auth context
+      const result = await simpleLogin(payload);
+
+      if (result.success) {
+        setSuccess('Login successful! Redirecting to account...');
         
         setTimeout(() => {
           navigate("/account");
         }, 1500);
       } else {
-        console.error('Unexpected response structure:', result);
-        throw new Error('Login failed. Please try again.');
+        setError(result.error || "Login failed");
       }
- 
+
     } catch (err) {
-      console.error("❌ Login error:", JSON.stringify(err, null, 2));
-      console.error("❌ Error stack:", err.stack);
+      console.error("❌ Login error:", err.message);
       setError(err.message);
     } finally {
       setIsLoading(false);
     }
   };
- 
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
@@ -126,7 +86,7 @@ const Auth = () => {
             Welcome to KKings Jewellery
           </h1>
           <p className="text-gray-600">
-            Create your account to get started
+            Enter your details to continue
           </p>
         </div>
  
@@ -214,10 +174,10 @@ const Auth = () => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Creating Account...
+                Logging in...
               </span>
             ) : (
-              'Create Account & Login'
+              'Login'
             )}
           </button>
         </form>

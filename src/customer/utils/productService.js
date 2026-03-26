@@ -44,7 +44,7 @@ export const fetchProductsFromAPI = async () => {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
 
-    const response = await fetch(`${API_BASE_URL}/products`, {
+    const response = await fetch(`${API_BASE_URL}/api/products`, {
       signal: controller.signal
     })
     

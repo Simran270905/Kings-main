@@ -83,6 +83,45 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // ✅ SIMPLE LOGIN (name, email, phone only)
+  const simpleLogin = async (data) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/customers/register-or-login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+
+      const result = await res.json()
+
+      if (!res.ok) {
+        return {
+          success: false,
+          error: result.message || 'Login failed'
+        }
+      }
+
+      localStorage.setItem('token', result.data.token)
+      localStorage.setItem('user', JSON.stringify(result.data.user))
+
+      setUser(result.data.user)
+      setIsAuthenticated(true)
+
+      return {
+        success: true,
+        user: result.data.user
+      }
+
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+  }
+
   // ✅ LOGIN (kept for backward compatibility)
   const login = async (data) => {
     try {
@@ -212,7 +251,8 @@ export function AuthProvider({ children }) {
         register,
         logout,
         updateProfile, // ✅ Existing
-        authenticateWithOTP // ✅ NEW OTP method
+        authenticateWithOTP, // ✅ Existing OTP method
+        simpleLogin // ✅ NEW simple login method
       }}
     >
       {children}
