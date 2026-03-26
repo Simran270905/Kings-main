@@ -1,4 +1,5 @@
-import { API_BASE_URL as _BASE } from '../config/api'
+import { API_BASE_URL as _BASE } from '../config/api.js'
+import { enhancedApiService } from './apiErrorHandler.js'
 
 // Strip trailing /api if present so we can re-add it consistently
 const BASE = _BASE.replace(/\/api$/, '')
@@ -8,57 +9,47 @@ const API = `${BASE}/api`
 const getAuthHeader = (token) =>
   token ? { Authorization: `Bearer ${token}` } : {}
 
-const handleResponse = async (res) => {
-  const data = await res.json()
-  if (!res.ok) {
-    throw new Error(data.message || `HTTP ${res.status}`)
-  }
-  return data
-}
-
 // ─── Products ──────────────────────────────────────────────────────────────
 export const productApi = {
   getAll: (params = {}) => {
     const query = new URLSearchParams(params).toString()
-    return fetch(`${API}/products${query ? `?${query}` : ''}`).then(handleResponse)
+    return enhancedApiService.request(`${API}/products${query ? `?${query}` : ''}`)
   },
 
   getById: (id) =>
-    fetch(`${API}/products/${id}`).then(handleResponse),
+    enhancedApiService.request(`${API}/products/${id}`),
 
   getByCategory: (category, limit = 10) =>
-    fetch(`${API}/products/category/${category}?limit=${limit}`).then(handleResponse),
+    enhancedApiService.request(`${API}/products/category/${category}?limit=${limit}`),
 
   create: (data, token) =>
-    fetch(`${API}/products`, {
+    enhancedApiService.request(`${API}/products`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader(token) },
+      headers: { ...getAuthHeader(token) },
       body: JSON.stringify(data),
-    }).then(handleResponse),
+    }),
 
   update: (id, data, token) =>
-    fetch(`${API}/products/${id}`, {
+    enhancedApiService.request(`${API}/products/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader(token) },
+      headers: { ...getAuthHeader(token) },
       body: JSON.stringify(data),
-    }).then(handleResponse),
+    }),
 
   delete: (id, token) =>
-    fetch(`${API}/products/${id}`, {
+    enhancedApiService.request(`${API}/products/${id}`, {
       method: 'DELETE',
       headers: getAuthHeader(token),
-    }).then(handleResponse),
+    }),
 
-  getStats: (token) =>
-    fetch(`${API}/products/stats`, {
-      headers: getAuthHeader(token),
-    }).then(handleResponse),
+  getStats: () =>
+    enhancedApiService.request(`${API}/products/stats`)
 }
 
 // ─── Coupons ────────────────────────────────────────────────────────────
 export const couponApi = {
   getAll: () =>
-    fetch(`${API}/coupons`).then(handleResponse),
+    enhancedApiService.request(`${API}/coupons`),
 
   getByCode: (code) =>
     fetch(`${API}/coupons/${code}`).then(handleResponse),

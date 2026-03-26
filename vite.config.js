@@ -49,4 +49,13 @@ export default defineConfig({
   optimizeDeps: {
     include: ['react', 'react-dom'],
   },
+
+  // Prevent caching issues in development
+  server: {
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    }
+  }
 })
