@@ -171,14 +171,14 @@ export const orderApi = {
 // ─── Admin Auth ──────────────────────────────────────────────────────────────
 export const adminAuthApi = {
   login: (password) =>
-    fetch(`${API}/auth/login`, {
+    fetch(`${API}/admin/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password }),
     }).then(handleResponse),
 
   verify: (token) =>
-    fetch(`${API}/auth/verify`, {
+    fetch(`${API}/admin/verify`, {
       headers: getAuthHeader(token),
     }).then(handleResponse),
 }
