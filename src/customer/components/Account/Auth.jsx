@@ -48,7 +48,11 @@ const Auth = () => {
       };
 
       // Ensure API_BASE_URL has the correct format
-      const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+      let baseUrl = API_BASE_URL;
+      if (!baseUrl.endsWith('/api')) {
+        // Remove trailing slash if present, then add /api
+        baseUrl = baseUrl.replace(/\/$/, '') + '/api';
+      }
       const apiEndpoint = `${baseUrl.replace(/\/$/, '')}/otp/send-otp`;
       console.log("🔍 API_BASE_URL:", API_BASE_URL);
       console.log("🔍 Corrected baseUrl:", baseUrl);
@@ -154,7 +158,11 @@ const Auth = () => {
       console.log("🔍 Verifying OTP request:", JSON.stringify(payload, null, 2));
 
       // Ensure API_BASE_URL has the correct format
-      const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+      let baseUrl = API_BASE_URL;
+      if (!baseUrl.endsWith('/api')) {
+        // Remove trailing slash if present, then add /api
+        baseUrl = baseUrl.replace(/\/$/, '') + '/api';
+      }
       const apiEndpoint = `${baseUrl.replace(/\/$/, '')}/otp/verify-otp`;
       console.log("🔍 Verify API URL:", apiEndpoint);
 
@@ -226,7 +234,11 @@ const Auth = () => {
       console.log("🔍 Resending OTP request:", JSON.stringify(payload, null, 2));
 
       // Ensure API_BASE_URL has the correct format
-      const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+      let baseUrl = API_BASE_URL;
+      if (!baseUrl.endsWith('/api')) {
+        // Remove trailing slash if present, then add /api
+        baseUrl = baseUrl.replace(/\/$/, '') + '/api';
+      }
       const apiEndpoint = `${baseUrl.replace(/\/$/, '')}/otp/resend-otp`;
       console.log("🔍 Resend API URL:", apiEndpoint);
 
