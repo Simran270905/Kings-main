@@ -161,7 +161,7 @@ const Auth = () => {
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-800 focus:border-transparent transition duration-200"
               placeholder="Enter your full name"
               required
               disabled={isLoading}
@@ -178,7 +178,7 @@ const Auth = () => {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-800 focus:border-transparent transition duration-200"
               placeholder="Enter your email"
               required
               disabled={isLoading}
@@ -195,7 +195,7 @@ const Auth = () => {
               id="phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-800 focus:border-transparent transition duration-200"
               placeholder="Enter 10-digit phone number"
               maxLength="10"
               required
@@ -208,7 +208,7 @@ const Auth = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-blue-800 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-800 focus:ring-offset-2 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <span className="flex items-center justify-center">
@@ -228,11 +228,11 @@ const Auth = () => {
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-600">
             By creating an account, you agree to our{' '}
-            <Link to="/terms" className="text-red-600 hover:text-red-700 font-medium">
+            <Link to="/terms" className="text-blue-600 hover:text-blue-700 font-medium">
               Terms of Service
             </Link>{' '}
             and{' '}
-            <Link to="/privacy" className="text-red-600 hover:text-red-700 font-medium">
+            <Link to="/privacy" className="text-blue-600 hover:text-blue-700 font-medium">
               Privacy Policy
             </Link>
           </p>
