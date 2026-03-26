@@ -19,7 +19,7 @@ export function AuthProvider({ children }) {
           return
         }
 
-        const res = await fetch(`${API_BASE_URL}/customers/profile`, {
+        const res = await fetch(`${API_BASE_URL}/api/customers/profile`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -48,7 +48,7 @@ export function AuthProvider({ children }) {
   // ✅ OTP AUTHENTICATION
   const authenticateWithOTP = async (data) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/otp/verify-otp`, {
+      const res = await fetch(`${API_BASE_URL}/api/otp/verify-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -86,7 +86,7 @@ export function AuthProvider({ children }) {
   // ✅ SIMPLE LOGIN (name, email, phone only)
   const simpleLogin = async (data) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/customers/register-or-login`, {
+      const res = await fetch(`${API_BASE_URL}/api/customers/register-or-login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -125,7 +125,7 @@ export function AuthProvider({ children }) {
   // ✅ LOGIN (kept for backward compatibility)
   const login = async (data) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/customers/login`, {
+      const res = await fetch(`${API_BASE_URL}/api/customers/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -166,7 +166,7 @@ export function AuthProvider({ children }) {
   // ✅ REGISTER (kept for backward compatibility)
   const register = async (data) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/customers/register`, {
+      const res = await fetch(`${API_BASE_URL}/api/customers/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -201,7 +201,7 @@ export function AuthProvider({ children }) {
     try {
       const token = localStorage.getItem('token')
 
-      const res = await fetch(`${API_BASE_URL}/customers/profile`, {
+      const res = await fetch(`${API_BASE_URL}/api/customers/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
