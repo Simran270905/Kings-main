@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useEffect } from 'react'
 import AdminCard from '../layout/AdminCard'
 import StatCard from '../components/StatCard'

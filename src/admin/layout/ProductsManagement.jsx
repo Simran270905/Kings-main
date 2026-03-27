@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useAdminProduct } from '../context/AdminProductContext'

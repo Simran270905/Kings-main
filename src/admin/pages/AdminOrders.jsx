@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useState } from 'react'
 import { useOrder } from '../context/OrderContext'
 import AdminCard from '../layout/AdminCard'

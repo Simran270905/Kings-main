@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useEffect } from 'react'
 import AdminCard from './AdminCard'
 import { API_BASE_URL } from '@config/api.js'
