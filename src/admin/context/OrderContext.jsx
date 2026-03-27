@@ -51,14 +51,25 @@ export const OrderProvider = ({ children }) => {
       const newOrders = data.data?.data?.orders || data.data?.orders || data.orders || data.data || data || []
       console.log("OrderContext - Orders extracted:", newOrders)
 
-      // Only update if orders have changed (check length and IDs)
-      const hasChanged = orders.length !== newOrders.length || 
-        !orders.every((order, index) => order._id === newOrders[index]?._id)
-      
-      if (hasChanged) {
-        setOrders(newOrders)
-        setLastFetch(new Date())
-        console.log(`📋 Orders updated: ${newOrders.length} orders (from real API)`)
+      // ✅ TASK 1 & 3: Prevent overwriting with empty data
+      if (Array.isArray(newOrders) && newOrders.length > 0) {
+        // Only update if orders have changed (check length and IDs)
+        const hasChanged = orders.length !== newOrders.length || 
+          !orders.every((order, index) => order._id === newOrders[index]?._id)
+        
+        if (hasChanged) {
+          setOrders(newOrders)
+          setLastFetch(new Date())
+          console.log(`📋 Orders updated: ${newOrders.length} orders (from real API)`)
+        } else {
+          console.log("📋 Orders unchanged, skipping update")
+        }
+      } else {
+        console.log("📋 Skipping orders update: empty array")
+        // Don't clear existing orders on silent fetch errors to prevent UI flicker
+        if (!silent && orders.length === 0) {
+          setOrders([])
+        }
       }
     } catch (error) {
       console.error('❌ Error loading orders:', error.message)

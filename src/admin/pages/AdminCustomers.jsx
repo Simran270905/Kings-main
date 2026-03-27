@@ -42,12 +42,19 @@ const AdminCustomers = () => {
           // Fix: Extract from nested structure { success, data: { orders: [] } }
           const ordersArray = safeArray(ordersData.data?.data?.orders || ordersData.data?.orders || ordersData.orders || ordersData.data || ordersData)
           console.log("AdminCustomers - Orders extracted:", ordersArray)
-          setOrders(ordersArray)
           
-          // Extract customers from orders
-          const extractedCustomers = extractCustomersFromOrders(ordersArray)
-          setCustomers(extractedCustomers)
-          logAdminData('AdminCustomers', extractedCustomers, 'extracted')
+          // ✅ TASK 1 & 3: Prevent overwriting with empty data
+          if (Array.isArray(ordersArray) && ordersArray.length > 0) {
+            console.log("AdminCustomers - Setting orders:", ordersArray.length)
+            setOrders(ordersArray)
+            
+            // Extract customers from orders
+            const extractedCustomers = extractCustomersFromOrders(ordersArray)
+            setCustomers(extractedCustomers)
+            logAdminData('AdminCustomers', extractedCustomers, 'extracted')
+          } else {
+            console.log("AdminCustomers - Skipping orders update: empty array")
+          }
         } else {
           // Fallback: try direct customers API
           const customersResponse = await fetch(`${API_BASE_URL}/admin/customers`, {
@@ -60,8 +67,15 @@ const AdminCustomers = () => {
             // Fix: Extract from nested structure
             const customersArray = safeArray(customersData.data?.data?.customers || customersData.data?.customers || customersData.customers || customersData.data || customersData)
             console.log("AdminCustomers - Customers extracted:", customersArray)
-            setCustomers(customersArray)
-            logAdminData('AdminCustomers', customersArray, 'direct')
+            
+            // ✅ TASK 1 & 3: Prevent overwriting with empty data
+            if (Array.isArray(customersArray) && customersArray.length > 0) {
+              console.log("AdminCustomers - Setting customers:", customersArray.length)
+              setCustomers(customersArray)
+              logAdminData('AdminCustomers', customersArray, 'direct')
+            } else {
+              console.log("AdminCustomers - Skipping customers update: empty array")
+            }
           } else {
             throw new Error('Unable to fetch customer data')
           }

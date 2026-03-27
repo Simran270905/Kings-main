@@ -73,8 +73,15 @@ export default function Dashboard() {
         // Fix: Extract from nested structure { success, data: { orders: [] } }
         const ordersArray = safeArray(ordersData.data?.data?.orders || ordersData.data?.orders || ordersData.orders || ordersData.data || ordersData)
         console.log("Dashboard - Orders extracted:", ordersArray)
-        setRealTimeOrders(ordersArray)
-        logAdminData('Dashboard', ordersArray, 'orders-loaded')
+        
+        // ✅ TASK 1 & 3: Prevent overwriting with empty data
+        if (Array.isArray(ordersArray) && ordersArray.length > 0) {
+          console.log("Dashboard - Setting orders:", ordersArray.length)
+          setRealTimeOrders(ordersArray)
+          logAdminData('Dashboard', ordersArray, 'orders-loaded')
+        } else {
+          console.log("Dashboard - Skipping orders update: empty array")
+        }
       } else {
         console.error("Dashboard - Orders API Error:", ordersResponse.status)
       }
@@ -86,8 +93,15 @@ export default function Dashboard() {
         // Fix: Extract from nested structure { success, data: { products: [] } }
         const productsArray = safeArray(productsData.data?.data?.products || productsData.data?.products || productsData.products || productsData.data || productsData)
         console.log("Dashboard - Products extracted:", productsArray)
-        setRealTimeProducts(productsArray)
-        logAdminData('Dashboard', productsArray, 'products-loaded')
+        
+        // ✅ TASK 1 & 3: Prevent overwriting with empty data
+        if (Array.isArray(productsArray) && productsArray.length > 0) {
+          console.log("Dashboard - Setting products:", productsArray.length)
+          setRealTimeProducts(productsArray)
+          logAdminData('Dashboard', productsArray, 'products-loaded')
+        } else {
+          console.log("Dashboard - Skipping products update: empty array")
+        }
       } else {
         console.error("Dashboard - Products API Error:", productsResponse.status)
       }
