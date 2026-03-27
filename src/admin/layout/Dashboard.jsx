@@ -4,8 +4,9 @@ import { useAdminProduct } from '../context/AdminProductContext'
 import { useCart } from '../../customer/context/useCart'
 import { useOrder } from '../context/OrderContext'
 import { useAnalytics } from '../hooks/useRealAnalytics'
-import { useMemo, useEffect } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { API_BASE_URL } from '@config/api.js'
 
 import {
   ShoppingBagIcon,
@@ -21,14 +22,85 @@ import {
 import AdminCard from './AdminCard'
 import AdminButton from './AdminButton'
 import StatCard from '../components/StatCard'
+import {
+  safeArray,
+  safeNumber,
+  safeCurrency,
+  safeOrderAmount,
+  safeOrderStatus,
+  safeCustomerEmail,
+  logAdminData,
+  safeApiResponse
+} from '../utils/adminSafetyUtils'
 
 export default function Dashboard() {
   const { products, getTotalStock, getLowStockCount, getTotalProductsCount, refreshProducts } = useAdminProduct()
   const { cartItems } = useCart()
   const { orders } = useOrder()
   
+  // ✅ NEW: Real-time data state
+  const [realTimeOrders, setRealTimeOrders] = useState([])
+  const [realTimeProducts, setRealTimeProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  
   // ✅ NEW: Use real backend analytics
   const analytics = useAnalytics()
+  
+  // ✅ NEW: Fetch real data
+  const fetchRealTimeData = async () => {
+    try {
+      setError(null)
+      
+      // Fetch orders
+      const ordersResponse = await safeApiResponse(
+        fetch(`${API_BASE_URL}/orders`, {
+          headers: { 
+            Authorization: `Bearer ${localStorage.getItem('kk_admin_token')}` 
+          }
+        }),
+        'Dashboard-Orders'
+      )
+      
+      // Fetch products
+      const productsResponse = await safeApiResponse(
+        fetch(`${API_BASE_URL}/products`, {
+          headers: { 
+            Authorization: `Bearer ${localStorage.getItem('kk_admin_token')}` 
+          }
+        }),
+        'Dashboard-Products'
+      )
+      
+      if (ordersResponse.success) {
+        const ordersData = safeArray(ordersResponse.data.data || ordersResponse.data)
+        setRealTimeOrders(ordersData)
+        logAdminData('Dashboard', ordersData, 'orders-loaded')
+      }
+      
+      if (productsResponse.success) {
+        const productsData = safeArray(productsResponse.data.products || productsResponse.data)
+        setRealTimeProducts(productsData)
+        logAdminData('Dashboard', productsData, 'products-loaded')
+      }
+      
+    } catch (err) {
+      console.error('Dashboard fetch error:', err)
+      setError(err.message)
+      logAdminData('Dashboard', err, 'error')
+    } finally {
+      setLoading(false)
+    }
+  }
+  
+  // ✅ NEW: Real-time refresh every 10 seconds
+  useEffect(() => {
+    fetchRealTimeData() // Initial fetch
+    
+    const interval = setInterval(fetchRealTimeData, 10000) // Auto-refresh every 10 seconds
+    
+    return () => clearInterval(interval)
+  }, [])
   
   // Fallback data in case analytics fails
   const fallbackData = {
@@ -49,7 +121,10 @@ export default function Dashboard() {
   const safeAnalytics = analytics || fallbackData
 
   // Memoize calculations to prevent flickering
-  const totalProducts = useMemo(() => getTotalProductsCount, [getTotalProductsCount])
+  const totalProducts = useMemo(() => {
+    return realTimeProducts.length || getTotalProductsCount || 0
+  }, [realTimeProducts, getTotalProductsCount])
+  
   const lowStockProducts = useMemo(() => getLowStockCount, [getLowStockCount])
 
   // Refresh products when dashboard mounts (only once)
@@ -64,16 +139,61 @@ export default function Dashboard() {
     return `₹${(amount || 0).toLocaleString('en-IN')}`
   }
 
-  // ✅ FIXED: Use real backend revenue and calculations
-  const totalRevenue = safeAnalytics.data.revenue || 0
-  const pendingOrders = safeAnalytics.data.pendingOrders || 0
-  const processingOrders = safeAnalytics.data.processingOrders || 0
-  const shippedOrders = safeAnalytics.data.shippedOrders || 0
-  const deliveredOrders = safeAnalytics.data.deliveredOrders || 0
-  const totalUsers = safeAnalytics.data.totalUsers || 0
-  const cancelledOrders = safeAnalytics.data.cancelledOrders || 0
+  // ✅ REAL-TIME CALCULATIONS
+  const totalRevenue = useMemo(() => {
+    const revenue = realTimeOrders.reduce((sum, order) => {
+      return sum + safeOrderAmount(order)
+    }, 0)
+    console.log("Dashboard - Total Revenue:", revenue)
+    return revenue
+  }, [realTimeOrders])
+  
+  const pendingOrders = useMemo(() => {
+    const pending = realTimeOrders.filter(order => safeOrderStatus(order) === 'pending').length
+    console.log("Dashboard - Pending Orders:", pending)
+    return pending
+  }, [realTimeOrders])
+  
+  const totalUsers = useMemo(() => {
+    const uniqueUsers = new Map()
+    
+    realTimeOrders.forEach(order => {
+      const email = safeCustomerEmail(order)
+      if (email && email !== 'N/A') {
+        uniqueUsers.set(email, {
+          name: order.customer?.name || 'Unknown',
+          email: email,
+          phone: order.customer?.phone || 'N/A'
+        })
+      }
+    })
+    
+    const userCount = uniqueUsers.size
+    console.log("Dashboard - Total Users:", userCount)
+    return userCount
+  }, [realTimeOrders])
+  
+  const processingOrders = useMemo(() => {
+    return realTimeOrders.filter(order => safeOrderStatus(order) === 'processing').length
+  }, [realTimeOrders])
+  
+  const shippedOrders = useMemo(() => {
+    return realTimeOrders.filter(order => safeOrderStatus(order) === 'shipped').length
+  }, [realTimeOrders])
+  
+  const deliveredOrders = useMemo(() => {
+    return realTimeOrders.filter(order => safeOrderStatus(order) === 'delivered').length
+  }, [realTimeOrders])
+  
+  const cancelledOrders = useMemo(() => {
+    return realTimeOrders.filter(order => safeOrderStatus(order) === 'cancelled').length
+  }, [realTimeOrders])
 
-  const recentProducts = products.slice(-5).reverse()
+  const recentProducts = realTimeProducts.slice(-5).reverse()
+  
+  // Debug logs
+  console.log("Dashboard - Orders:", realTimeOrders.length)
+  console.log("Dashboard - Products:", realTimeProducts.length)
 
   return (
     <div className="space-y-6">
@@ -90,25 +210,32 @@ export default function Dashboard() {
           
           {/* Refresh Button */}
           <button
-            onClick={safeAnalytics.refresh}
-            disabled={safeAnalytics.loading}
+            onClick={fetchRealTimeData}
+            disabled={loading}
             className="px-4 py-2 bg-[#ae0b0b] text-white rounded-lg hover:bg-[#8f0a0a] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             <ArrowTrendingUpIcon className="h-4 w-4" />
-            {safeAnalytics.loading ? 'Refreshing...' : 'Refresh'}
+            {loading ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>
         
         {/* Debug Info */}
         {import.meta.env.DEV && (
           <div className="mt-2 p-2 bg-gray-100 rounded text-sm">
-            <div>Backend Revenue: ₹{totalRevenue}</div>
-            <div>Total Orders: {safeAnalytics.data.totalOrders}</div>
+            <div>Real-time Revenue: ₹{totalRevenue}</div>
+            <div>Total Orders: {realTimeOrders.length}</div>
             <div>Total Users: {totalUsers}</div>
             <div>Delivered Orders: {deliveredOrders}</div>
             <div>Pending Orders: {pendingOrders}</div>
-            <div>Loading: {safeAnalytics.loading ? 'Yes' : 'No'}</div>
-            {safeAnalytics.error && <div className="text-red-600">Error: {safeAnalytics.error}</div>}
+            <div>Total Products: {totalProducts}</div>
+            {error && <div className="text-red-600">Error: {error}</div>}
+          </div>
+        )}
+        
+        {/* Error Display */}
+        {error && !import.meta.env.DEV && (
+          <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-700 text-sm">Unable to fetch latest data. Showing cached information.</p>
           </div>
         )}
       </div>
