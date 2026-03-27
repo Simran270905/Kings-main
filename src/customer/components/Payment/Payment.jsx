@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 import { CreditCardIcon, BanknotesIcon, DevicePhoneMobileIcon, TicketIcon } from '@heroicons/react/24/outline'
 import { API_BASE_URL } from '@config/api.js'
 import { couponApi } from '../../../services/apiService'
+import { ensureUserLoggedIn } from '../../../utils/authHelper'
 
 const API_URL = API_BASE_URL
 
@@ -138,10 +139,10 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
     setError(null)
 
     try {
-      const token = localStorage.getItem('token')
-      if (!token) {
-        throw new Error('Please login to continue')
-      }
+      // Ensure user is logged in (emergency fallback)
+      ensureUserLoggedIn();
+      const token = localStorage.getItem('token');
+      console.log("Payment proceeding with token:", token);
 
       // Create order data
       const orderData = {
