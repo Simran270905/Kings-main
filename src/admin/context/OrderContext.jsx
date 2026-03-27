@@ -46,7 +46,10 @@ export const OrderProvider = ({ children }) => {
       if (!silent) setLoading(true)
       
       const data = await adminApi.getOrders()
-      const newOrders = data.data?.orders || data.data || data || []
+      console.log("OrderContext - API Response:", data)
+      // Fix: Extract from nested structure { success, data: { orders: [] } }
+      const newOrders = data.data?.data?.orders || data.data?.orders || data.orders || data.data || data || []
+      console.log("OrderContext - Orders extracted:", newOrders)
 
       // Only update if orders have changed (check length and IDs)
       const hasChanged = orders.length !== newOrders.length || 

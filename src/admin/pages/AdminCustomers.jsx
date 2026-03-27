@@ -38,7 +38,10 @@ const AdminCustomers = () => {
         
         if (ordersResponse.ok) {
           const ordersData = await ordersResponse.json()
-          const ordersArray = safeArray(ordersData.data || ordersData.orders || ordersData)
+          console.log("AdminCustomers - Orders API Response:", ordersData)
+          // Fix: Extract from nested structure { success, data: { orders: [] } }
+          const ordersArray = safeArray(ordersData.data?.data?.orders || ordersData.data?.orders || ordersData.orders || ordersData.data || ordersData)
+          console.log("AdminCustomers - Orders extracted:", ordersArray)
           setOrders(ordersArray)
           
           // Extract customers from orders
@@ -53,7 +56,10 @@ const AdminCustomers = () => {
           
           if (customersResponse.ok) {
             const customersData = await customersResponse.json()
-            const customersArray = safeArray(customersData.data || customersData.customers || customersData)
+            console.log("AdminCustomers - Customers API Response:", customersData)
+            // Fix: Extract from nested structure
+            const customersArray = safeArray(customersData.data?.data?.customers || customersData.data?.customers || customersData.customers || customersData.data || customersData)
+            console.log("AdminCustomers - Customers extracted:", customersArray)
             setCustomers(customersArray)
             logAdminData('AdminCustomers', customersArray, 'direct')
           } else {

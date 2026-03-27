@@ -70,7 +70,9 @@ export default function Dashboard() {
       if (ordersResponse.ok) {
         const ordersData = await ordersResponse.json()
         console.log("Dashboard - Orders API Response:", ordersData)
-        const ordersArray = safeArray(ordersData.data || ordersData.orders || ordersData)
+        // Fix: Extract from nested structure { success, data: { orders: [] } }
+        const ordersArray = safeArray(ordersData.data?.data?.orders || ordersData.data?.orders || ordersData.orders || ordersData.data || ordersData)
+        console.log("Dashboard - Orders extracted:", ordersArray)
         setRealTimeOrders(ordersArray)
         logAdminData('Dashboard', ordersArray, 'orders-loaded')
       } else {
@@ -81,7 +83,9 @@ export default function Dashboard() {
       if (productsResponse.ok) {
         const productsData = await productsResponse.json()
         console.log("Dashboard - Products API Response:", productsData)
-        const productsArray = safeArray(productsData.data || productsData.products || productsData)
+        // Fix: Extract from nested structure { success, data: { products: [] } }
+        const productsArray = safeArray(productsData.data?.data?.products || productsData.data?.products || productsData.products || productsData.data || productsData)
+        console.log("Dashboard - Products extracted:", productsArray)
         setRealTimeProducts(productsArray)
         logAdminData('Dashboard', productsArray, 'products-loaded')
       } else {
