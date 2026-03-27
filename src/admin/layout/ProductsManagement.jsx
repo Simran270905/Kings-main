@@ -16,6 +16,16 @@ import {
 } from '@heroicons/react/24/outline'
 import adminApi from '../utils/adminApiService'
 import toast from 'react-hot-toast'
+import {
+  safeArray,
+  safeString,
+  safeNumber,
+  safeCurrency,
+  safeProductName,
+  safeCategoryName,
+  logAdminData,
+  safeApiResponse
+} from '../utils/adminSafetyUtils'
 
 export default function ProductsManagement() {
   const { products, loading, refreshProducts, getStockStatus, getTotalStock, triggerGlobalRefresh } = useAdminProduct()
@@ -23,6 +33,10 @@ export default function ProductsManagement() {
   const [selectedCategory, setSelectedCategory] = useState('')
   const [sortBy, setSortBy] = useState('createdAt')
   const [sortOrder, setSortOrder] = useState('desc')
+
+  // Safe data handling
+  const safeProducts = safeArray(products)
+  logAdminData('ProductsManagement', safeProducts, 'load')
 
   // Refresh products when component mounts (only once to prevent flickering)
   useEffect(() => {
@@ -34,19 +48,18 @@ export default function ProductsManagement() {
 
   // 🔥 Unique categories
   const categories = useMemo(() => {
-    if (!Array.isArray(products)) return []
-    return [...new Set(products.map(p => p.category).filter(Boolean))]
-  }, [products])
+    const categoryList = safeProducts.map(p => safeCategoryName(p.category || p.categoryId)).filter(Boolean)
+    return [...new Set(categoryList)]
+  }, [safeProducts])
 
   // 🔥 Filter + Sort
   const filteredProducts = useMemo(() => {
-    if (!Array.isArray(products)) return []
-    let result = [...products]
+    let result = [...safeProducts]
 
     if (searchQuery) {
       result = result.filter(product =>
-        product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.category?.toLowerCase().includes(searchQuery.toLowerCase())
+        safeProductName(product).toLowerCase().includes(searchQuery.toLowerCase()) ||
+        safeCategoryName(product.category).toLowerCase().includes(searchQuery.toLowerCase())
       )
     }
 

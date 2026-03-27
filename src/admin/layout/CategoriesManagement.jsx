@@ -5,6 +5,14 @@ import AdminCard from './AdminCard'
 import { API_BASE_URL } from '@config/api.js'
 import toast from 'react-hot-toast'
 import { PlusCircleIcon, PencilIcon, TrashIcon, FolderIcon, PhotoIcon } from '@heroicons/react/24/outline'
+import {
+  safeArray,
+  safeString,
+  safeNumber,
+  safeCategoryName,
+  logAdminData,
+  safeApiResponse
+} from '../utils/adminSafetyUtils'
 
 export default function CategoriesManagement() {
   const [categories, setCategories] = useState([])
@@ -29,13 +37,25 @@ export default function CategoriesManagement() {
     setLoading(true)
     try {
       const token = localStorage.getItem('kk_admin_token')
-      const res = await fetch(`${API_BASE_URL}/categories/admin/all`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      const data = await res.json()
-      setCategories(data.data?.categories || [])
-    } catch {
+      
+      const response = await safeApiResponse(
+        fetch(`${API_BASE_URL}/categories/admin/all`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        'CategoriesManagement'
+      )
+      
+      if (response.success && response.data) {
+        const categoriesData = safeArray(response.data.data?.categories || response.data)
+        setCategories(categoriesData)
+        logAdminData('CategoriesManagement', categoriesData, 'loaded')
+      } else {
+        throw new Error('Failed to load categories')
+      }
+    } catch (error) {
+      console.error('CategoriesManagement Error:', error)
       toast.error('Failed to load categories')
+      logAdminData('CategoriesManagement', error, 'error')
     } finally {
       setLoading(false)
     }

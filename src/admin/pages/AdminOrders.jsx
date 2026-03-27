@@ -19,6 +19,16 @@ import {
   XCircleIcon,
   FunnelIcon
 } from '@heroicons/react/24/outline'
+import {
+  safeArray,
+  safeCustomerName,
+  safeCustomerEmail,
+  safeCustomerPhone,
+  safeOrderAmount,
+  safeOrderStatus,
+  safeOrderDate,
+  logAdminData
+} from '../utils/adminSafetyUtils'
 
 const AdminOrders = () => {
   const { orders, updateOrderStatus, getStats, loading, lastFetch, forceRefresh } = useOrder()
@@ -26,9 +36,13 @@ const AdminOrders = () => {
   const [selectedOrderId, setSelectedOrderId] = useState(null)
   const [error, setError] = useState('')
 
+  // Safe data handling
+  const safeOrders = safeArray(orders)
+  logAdminData('AdminOrders', safeOrders, 'load')
+
   const filteredOrders = selectedStatus === 'all'
-    ? orders
-    : orders.filter(o => o.status === selectedStatus)
+    ? safeOrders
+    : safeOrders.filter(o => safeOrderStatus(o) === selectedStatus)
 
   const stats = getStats()
 
@@ -43,7 +57,7 @@ const AdminOrders = () => {
 
   // ✅ FIXED (_id instead of orderId)
   const selectedOrder = selectedOrderId
-    ? orders.find(o => o._id === selectedOrderId)
+    ? safeOrders.find(o => o._id === selectedOrderId)
     : null
 
   return (
@@ -198,28 +212,28 @@ const AdminOrders = () => {
                     <td className="px-6 py-4">
                       <div>
                         <p className="font-semibold text-gray-900">
-                          {order.customer?.name || `${order.customer?.firstName || ''} ${order.customer?.lastName || ''}`.trim() || 'Guest User'}
+                          {safeCustomerName(order)}
                         </p>
-                        <p className="text-sm text-gray-500">{order.customer?.email}</p>
-                        <p className="text-xs text-gray-400">{order.customer?.phone || order.customer?.mobile}</p>
+                        <p className="text-sm text-gray-500">{safeCustomerEmail(order)}</p>
+                        <p className="text-xs text-gray-400">{safeCustomerPhone(order)}</p>
                       </div>
                     </td>
 
                     <td className="px-6 py-4">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{formatOrderDate(order.createdAt)}</p>
-                        <p className="text-xs text-gray-500">{formatOrderTime(order.createdAt)}</p>
+                        <p className="text-sm font-medium text-gray-900">{formatOrderDate(safeOrderDate(order))}</p>
+                        <p className="text-xs text-gray-500">{formatOrderTime(safeOrderDate(order))}</p>
                       </div>
                     </td>
 
                     <td className="px-6 py-4 text-right">
                       <span className="font-semibold text-gray-900">
-                        {formatPrice(order.totalAmount || order.totals?.total || 0)}
+                        {formatPrice(safeOrderAmount(order))}
                       </span>
                     </td>
 
                     <td className="px-6 py-4 text-center">
-                      <StatusBadge status={order.status} />
+                      <StatusBadge status={safeOrderStatus(order)} />
                     </td>
 
                     <td className="px-6 py-4 text-center">

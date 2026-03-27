@@ -5,35 +5,82 @@ import AdminCard from '../layout/AdminCard'
 import StatCard from '../components/StatCard'
 import { API_BASE_URL } from '@config/api.js'
 import { UsersIcon, MagnifyingGlassIcon, EnvelopeIcon, PhoneIcon } from '@heroicons/react/24/outline'
+import {
+  safeArray,
+  safeString,
+  safeNumber,
+  safeCurrency,
+  safeDate,
+  extractCustomersFromOrders,
+  logAdminData,
+  safeApiResponse
+} from '../utils/adminSafetyUtils'
 
 const AdminCustomers = () => {
   const [customers, setCustomers] = useState([])
+  const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
 
   useEffect(() => {
-    const fetchCustomers = async () => {
+    const fetchCustomersAndOrders = async () => {
+      setLoading(true)
+      setError('')
+      
       try {
+        // Fetch orders to extract customers
         const token = localStorage.getItem('kk_admin_token')
-        const res = await fetch(`${API_BASE_URL}/admin/customers`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        const data = await res.json()
-        setCustomers(data.data || data.customers || [])
+        
+        const ordersResponse = await safeApiResponse(
+          fetch(`${API_BASE_URL}/orders`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          'AdminCustomers-Orders'
+        )
+        
+        if (ordersResponse.success && ordersResponse.data) {
+          const ordersData = safeArray(ordersResponse.data.data || ordersResponse.data)
+          setOrders(ordersData)
+          
+          // Extract customers from orders
+          const extractedCustomers = extractCustomersFromOrders(ordersData)
+          setCustomers(extractedCustomers)
+          logAdminData('AdminCustomers', extractedCustomers, 'extracted')
+        } else {
+          // Fallback: try direct customers API
+          const customersResponse = await safeApiResponse(
+            fetch(`${API_BASE_URL}/admin/customers`, {
+              headers: { Authorization: `Bearer ${token}` }
+            }),
+            'AdminCustomers-Direct'
+          )
+          
+          if (customersResponse.success && customersResponse.data) {
+            const customersData = safeArray(customersResponse.data.data || customersResponse.data.customers || customersResponse.data)
+            setCustomers(customersData)
+            logAdminData('AdminCustomers', customersData, 'direct')
+          } else {
+            throw new Error('Unable to fetch customer data')
+          }
+        }
+        
       } catch (err) {
+        console.error('AdminCustomers Error:', err)
         setError(err.message || 'Could not load customers.')
+        logAdminData('AdminCustomers', err, 'error')
       } finally {
         setLoading(false)
       }
     }
-    fetchCustomers()
+    
+    fetchCustomersAndOrders()
   }, [])
 
-  const filtered = customers.filter(c =>
-    `${c.firstName} ${c.lastName} ${c.email}`.toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = customers.filter(c => {
+    const searchString = `${safeString(c.name)} ${safeString(c.email)} ${safeString(c.phone)}`.toLowerCase()
+    return searchString.includes(search.toLowerCase())
+  })
 
   return (
     <div className="p-6 space-y-6">
@@ -53,8 +100,9 @@ const AdminCustomers = () => {
         <StatCard
           title="Active This Month"
           value={customers.filter(c => {
-            if (!c.createdAt) return false
-            const created = new Date(c.createdAt)
+            const lastOrder = c.lastOrder || c.createdAt
+            if (!lastOrder) return false
+            const created = new Date(lastOrder)
             const monthAgo = new Date()
             monthAgo.setMonth(monthAgo.getMonth() - 1)
             return created >= monthAgo
@@ -64,9 +112,9 @@ const AdminCustomers = () => {
           iconBg="bg-green-50"
         />
         <StatCard
-          title="Verified Emails"
-          value={customers.filter(c => c.email).length}
-          icon={EnvelopeIcon}
+          title="Total Spent"
+          value={safeCurrency(customers.reduce((sum, c) => sum + safeNumber(c.totalSpent), 0))}
+          icon={UsersIcon}
           iconColor="text-purple-600"
           iconBg="bg-purple-50"
         />
@@ -121,15 +169,17 @@ const AdminCustomers = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
                   {filtered.map(c => (
-                    <tr key={c._id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={c._id || c.email || c.phone} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                            {c.firstName?.charAt(0)}{c.lastName?.charAt(0)}
+                            {safeString(c.name).charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <p className="font-semibold text-gray-900">{c.firstName} {c.lastName}</p>
-                            <p className="text-sm text-gray-500">ID: {String(c._id || 'N/A').slice(-6)}</p>
+                            <p className="font-semibold text-gray-900">{safeString(c.name)}</p>
+                            <p className="text-sm text-gray-500">
+                              {c.totalOrders || 0} order{(c.totalOrders || 0) !== 1 ? 's' : ''}
+                            </p>
                           </div>
                         </div>
                       </td>
@@ -137,31 +187,20 @@ const AdminCustomers = () => {
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 text-sm">
                             <EnvelopeIcon className="h-4 w-4 text-gray-400" />
-                            <span className="text-gray-700">{c.email}</span>
+                            <span className="text-gray-700">{safeString(c.email)}</span>
                           </div>
                           {c.phone && (
                             <div className="flex items-center gap-2 text-sm">
                               <PhoneIcon className="h-4 w-4 text-gray-400" />
-                              <span className="text-gray-700">{c.phone}</span>
+                              <span className="text-gray-700">{safeString(c.phone)}</span>
                             </div>
                           )}
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">
-                            {c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-IN', { 
-                              year: 'numeric', 
-                              month: 'short', 
-                              day: 'numeric' 
-                            }) : '—'}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {c.createdAt ? new Date(c.createdAt).toLocaleTimeString('en-IN', { 
-                              hour: '2-digit', 
-                              minute: '2-digit'
-                            }) : ''}
-                          </p>
+                        <div className="text-sm">
+                          <p className="text-gray-900">{safeDate(c.lastOrder || c.createdAt)}</p>
+                          <p className="text-gray-500">{safeCurrency(c.totalSpent)}</p>
                         </div>
                       </td>
                     </tr>
