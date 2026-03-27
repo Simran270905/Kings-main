@@ -60,10 +60,10 @@ const Auth = () => {
       const result = await simpleLogin(payload);
 
       if (result.success) {
-        setSuccess('Login successful! Redirecting to account...');
+        setSuccess('Login successful! Redirecting to homepage...');
         
         setTimeout(() => {
-          navigate("/account");
+          navigate("/");
         }, 1500);
       } else {
         setError(result.error || "Login failed");
