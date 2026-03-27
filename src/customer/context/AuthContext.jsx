@@ -8,10 +8,23 @@ export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  // ✅ Restore session + fetch profile
+  // Restore session + fetch profile
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        // Check for simple login first (no token)
+        const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true'
+        const storedUser = localStorage.getItem('user')
+        
+        if (isAuthenticated && storedUser) {
+          const user = JSON.parse(storedUser)
+          setUser(user)
+          setIsAuthenticated(true)
+          setLoading(false)
+          return
+        }
+
+        // Fallback to token-based authentication
         const token = localStorage.getItem('token')
 
         if (!token) {
@@ -35,8 +48,10 @@ export function AuthProvider({ children }) {
         }
 
       } catch (error) {
-        console.error('❌ Auto login failed:', error.message)
+        console.error(' Auto login failed:', error.message)
         localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        localStorage.removeItem('isAuthenticated')
       } finally {
         setLoading(false)
       }
@@ -45,7 +60,7 @@ export function AuthProvider({ children }) {
     fetchProfile()
   }, [])
 
-  // ✅ OTP AUTHENTICATION
+  // OTP AUTHENTICATION
   const authenticateWithOTP = async (data) => {
     try {
       const res = await fetch(`${API_BASE_URL}/otp/verify-otp`, {
@@ -83,10 +98,10 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // ✅ SIMPLE LOGIN (name, email, phone only)
+  // SIMPLE LOGIN (name, email, phone only)
   const simpleLogin = async (data) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/customers/register-or-login`, {
+      const res = await fetch(`${API_BASE_URL}/users/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -103,15 +118,16 @@ export function AuthProvider({ children }) {
         }
       }
 
-      localStorage.setItem('token', result.data.token)
-      localStorage.setItem('user', JSON.stringify(result.data.user))
+      // Store user info (no JWT token required for now)
+      localStorage.setItem('user', JSON.stringify(result.user))
+      localStorage.setItem('isAuthenticated', 'true')
 
-      setUser(result.data.user)
+      setUser(result.user)
       setIsAuthenticated(true)
 
       return {
         success: true,
-        user: result.data.user
+        user: result.user
       }
 
     } catch (error) {
@@ -237,6 +253,8 @@ export function AuthProvider({ children }) {
   // ✅ LOGOUT
   const logout = () => {
     localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    localStorage.removeItem('isAuthenticated')
     setUser(null)
     setIsAuthenticated(false)
   }

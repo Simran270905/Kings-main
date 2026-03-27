@@ -44,7 +44,10 @@ export const fetchProductsFromAPI = async () => {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
 
-    const response = await fetch(`${API_BASE_URL}/api/products`, {
+    const apiUrl = `${API_BASE_URL}/products`
+    console.log("API CALL:", apiUrl)
+
+    const response = await fetch(apiUrl, {
       signal: controller.signal
     })
     
@@ -130,7 +133,10 @@ export const fetchCategoriesFromAPI = async () => {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
 
-    const response = await fetch(`${API_BASE_URL}/categories`, {
+    const apiUrl = `${API_BASE_URL}/categories`
+    console.log("API CALL:", apiUrl)
+
+    const response = await fetch(apiUrl, {
       signal: controller.signal
     })
     
