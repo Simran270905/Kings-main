@@ -343,7 +343,7 @@ export default function EnhancedOrders() {
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2">
-                      {order.userId?.name || 'Guest'}
+                      {order.customer?.firstName} {order.customer?.lastName || 'Guest User'}
                     </Typography>
                     <Typography variant="caption" color="text.gray">
                       {order.customer?.email || 'N/A'}

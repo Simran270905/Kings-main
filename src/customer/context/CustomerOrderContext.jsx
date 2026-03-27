@@ -84,6 +84,9 @@ export function CustomerOrderProvider({ children }) {
       if (token === 'kkings_user_token') {
         console.log(' Using fake token, creating order locally...')
         
+        // Get user data from localStorage
+        const userData = JSON.parse(localStorage.getItem('user') || '{}')
+        
         // Create local order
         const localOrder = {
           _id: Date.now().toString(),
@@ -92,7 +95,15 @@ export function CustomerOrderProvider({ children }) {
           status: 'pending',
           paymentMethod: orderData.paymentMethod || 'COD',
           createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
+          
+          // STORE CUSTOMER INFO DIRECTLY
+          customer: {
+            firstName: userData.name?.split(' ')[0] || orderData.shippingAddress?.firstName || "Guest",
+            lastName: userData.name?.split(' ')[1] || orderData.shippingAddress?.lastName || "User", 
+            email: userData.email || orderData.shippingAddress?.email || "",
+            mobile: userData.phone || orderData.shippingAddress?.mobile || ""
+          }
         }
 
         // Store order in localStorage
@@ -116,13 +127,20 @@ export function CustomerOrderProvider({ children }) {
       }
 
       // Try backend API for real tokens
+      // Get user data from localStorage to send with order
+      const userData = JSON.parse(localStorage.getItem('user') || '{}')
+      const orderDataWithUser = {
+        ...orderData,
+        user: userData
+      }
+      
       const response = await fetch(`${API_URL}/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(orderData),
+        body: JSON.stringify(orderDataWithUser),
       })
 
       console.log(' Order API response status:', response.status)
