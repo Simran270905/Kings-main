@@ -32,34 +32,30 @@ const AdminCustomers = () => {
         // Fetch orders to extract customers
         const token = localStorage.getItem('kk_admin_token')
         
-        const ordersResponse = await safeApiResponse(
-          fetch(`${API_BASE_URL}/orders`, {
-            headers: { Authorization: `Bearer ${token}` }
-          }),
-          'AdminCustomers-Orders'
-        )
+        const ordersResponse = await fetch(`${API_BASE_URL}/orders`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
         
-        if (ordersResponse.success && ordersResponse.data) {
-          const ordersData = safeArray(ordersResponse.data.data || ordersResponse.data)
-          setOrders(ordersData)
+        if (ordersResponse.ok) {
+          const ordersData = await ordersResponse.json()
+          const ordersArray = safeArray(ordersData.data || ordersData.orders || ordersData)
+          setOrders(ordersArray)
           
           // Extract customers from orders
-          const extractedCustomers = extractCustomersFromOrders(ordersData)
+          const extractedCustomers = extractCustomersFromOrders(ordersArray)
           setCustomers(extractedCustomers)
           logAdminData('AdminCustomers', extractedCustomers, 'extracted')
         } else {
           // Fallback: try direct customers API
-          const customersResponse = await safeApiResponse(
-            fetch(`${API_BASE_URL}/admin/customers`, {
-              headers: { Authorization: `Bearer ${token}` }
-            }),
-            'AdminCustomers-Direct'
-          )
+          const customersResponse = await fetch(`${API_BASE_URL}/admin/customers`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
           
-          if (customersResponse.success && customersResponse.data) {
-            const customersData = safeArray(customersResponse.data.data || customersResponse.data.customers || customersResponse.data)
-            setCustomers(customersData)
-            logAdminData('AdminCustomers', customersData, 'direct')
+          if (customersResponse.ok) {
+            const customersData = await customersResponse.json()
+            const customersArray = safeArray(customersData.data || customersData.customers || customersData)
+            setCustomers(customersArray)
+            logAdminData('AdminCustomers', customersArray, 'direct')
           } else {
             throw new Error('Unable to fetch customer data')
           }

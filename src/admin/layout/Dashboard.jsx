@@ -53,35 +53,39 @@ export default function Dashboard() {
       setError(null)
       
       // Fetch orders
-      const ordersResponse = await safeApiResponse(
-        fetch(`${API_BASE_URL}/orders`, {
-          headers: { 
-            Authorization: `Bearer ${localStorage.getItem('kk_admin_token')}` 
-          }
-        }),
-        'Dashboard-Orders'
-      )
+      const ordersResponse = await fetch(`${API_BASE_URL}/orders`, {
+        headers: { 
+          Authorization: `Bearer ${localStorage.getItem('kk_admin_token')}` 
+        }
+      })
       
       // Fetch products
-      const productsResponse = await safeApiResponse(
-        fetch(`${API_BASE_URL}/products`, {
-          headers: { 
-            Authorization: `Bearer ${localStorage.getItem('kk_admin_token')}` 
-          }
-        }),
-        'Dashboard-Products'
-      )
+      const productsResponse = await fetch(`${API_BASE_URL}/products`, {
+        headers: { 
+          Authorization: `Bearer ${localStorage.getItem('kk_admin_token')}` 
+        }
+      })
       
-      if (ordersResponse.success) {
-        const ordersData = safeArray(ordersResponse.data.data || ordersResponse.data)
-        setRealTimeOrders(ordersData)
-        logAdminData('Dashboard', ordersData, 'orders-loaded')
+      // Handle orders data
+      if (ordersResponse.ok) {
+        const ordersData = await ordersResponse.json()
+        console.log("Dashboard - Orders API Response:", ordersData)
+        const ordersArray = safeArray(ordersData.data || ordersData.orders || ordersData)
+        setRealTimeOrders(ordersArray)
+        logAdminData('Dashboard', ordersArray, 'orders-loaded')
+      } else {
+        console.error("Dashboard - Orders API Error:", ordersResponse.status)
       }
       
-      if (productsResponse.success) {
-        const productsData = safeArray(productsResponse.data.products || productsResponse.data)
-        setRealTimeProducts(productsData)
-        logAdminData('Dashboard', productsData, 'products-loaded')
+      // Handle products data
+      if (productsResponse.ok) {
+        const productsData = await productsResponse.json()
+        console.log("Dashboard - Products API Response:", productsData)
+        const productsArray = safeArray(productsData.data || productsData.products || productsData)
+        setRealTimeProducts(productsArray)
+        logAdminData('Dashboard', productsArray, 'products-loaded')
+      } else {
+        console.error("Dashboard - Products API Error:", productsResponse.status)
       }
       
     } catch (err) {
