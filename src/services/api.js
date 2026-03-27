@@ -1,5 +1,10 @@
 import { API_BASE_URL } from '../config/api'
 
+const buildUrl = (endpoint) => {
+  const cleanEndpoint = endpoint.replace(/^\/+/, "");
+  return `${API_BASE_URL}/${cleanEndpoint}`;
+};
+
 const request = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token') || localStorage.getItem('kk_admin_token')
 
@@ -16,7 +21,10 @@ const request = async (endpoint, options = {}) => {
     }
   }
 
-  const res = await fetch(`${API_BASE_URL}${endpoint}`, config)
+  const url = buildUrl(endpoint);
+  console.log("🌐 API CALL:", url);
+
+  const res = await fetch(url, config)
 
   if (res.status === 429) {
     throw new Error('Too many requests. Please slow down and try again in a few minutes.')

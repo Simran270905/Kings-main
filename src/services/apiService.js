@@ -1,85 +1,79 @@
-import { API_BASE_URL as _BASE } from '../config/api.js'
+import { API_BASE_URL } from '../config/api.js'
 import { enhancedApiService } from './apiErrorHandler.js'
-
-// Strip trailing /api if present so we can re-add it consistently
-const BASE = _BASE.replace(/\/api$/, '')
-
-// TEMPORARY FIX: Use forced localhost URL in development
-const API = import.meta.env.DEV ? 'http://localhost:5000/api' : `${BASE}/api`
 
 const getAuthHeader = (token) =>
   token ? { Authorization: `Bearer ${token}` } : {}
 
-console.log('🔧 API Service using URL:', API)
+console.log('🔧 API Service using URL:', API_BASE_URL)
 
 // ─── Products ──────────────────────────────────────────────────────────────
 export const productApi = {
   getAll: (params = {}) => {
     const query = new URLSearchParams(params).toString()
-    return enhancedApiService.request(`${API}/products${query ? `?${query}` : ''}`)
+    return enhancedApiService.request(`${API_BASE_URL}/products${query ? `?${query}` : ''}`)
   },
 
   getById: (id) =>
-    enhancedApiService.request(`${API}/products/${id}`),
+    enhancedApiService.request(`${API_BASE_URL}/products/${id}`),
 
   getByCategory: (category, limit = 10) =>
-    enhancedApiService.request(`${API}/products/category/${category}?limit=${limit}`),
+    enhancedApiService.request(`${API_BASE_URL}/products/category/${category}?limit=${limit}`),
 
   create: (data, token) =>
-    enhancedApiService.request(`${API}/products`, {
+    enhancedApiService.request(`${API_BASE_URL}/products`, {
       method: 'POST',
       headers: { ...getAuthHeader(token) },
       body: JSON.stringify(data),
     }),
 
   update: (id, data, token) =>
-    enhancedApiService.request(`${API}/products/${id}`, {
+    enhancedApiService.request(`${API_BASE_URL}/products/${id}`, {
       method: 'PUT',
       headers: { ...getAuthHeader(token) },
       body: JSON.stringify(data),
     }),
 
   delete: (id, token) =>
-    enhancedApiService.request(`${API}/products/${id}`, {
+    enhancedApiService.request(`${API_BASE_URL}/products/${id}`, {
       method: 'DELETE',
       headers: getAuthHeader(token),
     }),
 
   getStats: () =>
-    enhancedApiService.request(`${API}/products/stats`)
+    enhancedApiService.request(`${API_BASE_URL}/products/stats`)
 }
 
 // ─── Coupons ────────────────────────────────────────────────────────────
 export const couponApi = {
   getAll: () =>
-    enhancedApiService.request(`${API}/coupons`),
+    enhancedApiService.request(`${API_BASE_URL}/coupons`),
 
   getByCode: (code) =>
-    fetch(`${API}/coupons/${code}`).then(handleResponse),
+    fetch(`${API_BASE_URL}/coupons/${code}`).then(handleResponse),
 
   validate: (data) =>
-    fetch(`${API}/coupons/validate`, {
+    fetch(`${API_BASE_URL}/coupons/validate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     }).then(handleResponse),
 
   create: (data, token) =>
-    fetch(`${API}/coupons`, {
+    fetch(`${API_BASE_URL}/coupons`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...getAuthHeader(token) },
       body: JSON.stringify(data),
     }).then(handleResponse),
 
   update: (id, data, token) =>
-    fetch(`${API}/coupons/${id}`, {
+    fetch(`${API_BASE_URL}/coupons/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', ...getAuthHeader(token) },
       body: JSON.stringify(data),
     }).then(handleResponse),
 
   delete: (id, token) =>
-    fetch(`${API}/coupons/${id}`, {
+    fetch(`${API_BASE_URL}/coupons/${id}`, {
       method: 'DELETE',
       headers: getAuthHeader(token),
     }).then(handleResponse),
@@ -88,17 +82,17 @@ export const couponApi = {
 // ─── Reviews ────────────────────────────────────────────────────────────
 export const reviewApi = {
   getProductReviews: (productId) =>
-    fetch(`${API}/reviews/${productId}`).then(handleResponse),
+    fetch(`${API_BASE_URL}/reviews/${productId}`).then(handleResponse),
 
   addReview: (productId, data) =>
-    fetch(`${API}/reviews/${productId}`, {
+    fetch(`${API_BASE_URL}/reviews/${productId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     }).then(handleResponse),
 
   deleteReview: (productId, reviewId) =>
-    fetch(`${API}/reviews/${productId}/${reviewId}`, {
+    fetch(`${API_BASE_URL}/reviews/${productId}/${reviewId}`, {
       method: 'DELETE',
     }).then(handleResponse),
 }
@@ -106,33 +100,33 @@ export const reviewApi = {
 // ─── Auth (Customer) ────────────────────────────────────────────────────────
 export const authApi = {
   register: (data) =>
-    fetch(`${API}/customers/register`, {
+    fetch(`${API_BASE_URL}/customers/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     }).then(handleResponse),
 
   login: (data) =>
-    fetch(`${API}/customers/login`, {
+    fetch(`${API_BASE_URL}/customers/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     }).then(handleResponse),
 
   getProfile: (token) =>
-    fetch(`${API}/customers/profile`, {
+    fetch(`${API_BASE_URL}/customers/profile`, {
       headers: getAuthHeader(token),
     }).then(handleResponse),
 
   updateProfile: (data, token) =>
-    fetch(`${API}/customers/profile`, {
+    fetch(`${API_BASE_URL}/customers/profile`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', ...getAuthHeader(token) },
       body: JSON.stringify(data),
     }).then(handleResponse),
 
   changePassword: (data, token) =>
-    fetch(`${API}/customers/change-password`, {
+    fetch(`${API_BASE_URL}/customers/change-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...getAuthHeader(token) },
       body: JSON.stringify(data),
@@ -142,31 +136,31 @@ export const authApi = {
 // ─── Orders ─────────────────────────────────────────────────────────────────
 export const orderApi = {
   create: (data, token) =>
-    fetch(`${API}/orders`, {
+    fetch(`${API_BASE_URL}/orders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...getAuthHeader(token) },
       body: JSON.stringify(data),
     }).then(handleResponse),
 
   getAll: (token) =>
-    fetch(`${API}/orders`, {
+    fetch(`${API_BASE_URL}/orders`, {
       headers: getAuthHeader(token),
     }).then(handleResponse),
 
   getById: (id, token) =>
-    fetch(`${API}/orders/${id}`, {
+    fetch(`${API_BASE_URL}/orders/${id}`, {
       headers: getAuthHeader(token),
     }).then(handleResponse),
 
   updateStatus: (id, status, token) =>
-    fetch(`${API}/orders/${id}/status`, {
+    fetch(`${API_BASE_URL}/orders/${id}/status`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', ...getAuthHeader(token) },
       body: JSON.stringify({ status }),
     }).then(handleResponse),
 
   getHistory: (token) =>
-    fetch(`${API}/customers/orders`, {
+    fetch(`${API_BASE_URL}/customers/orders`, {
       headers: getAuthHeader(token),
     }).then(handleResponse),
 }
@@ -174,14 +168,14 @@ export const orderApi = {
 // ─── Admin Auth ──────────────────────────────────────────────────────────────
 export const adminAuthApi = {
   login: (password) =>
-    fetch(`${API}/admin/login`, {
+    fetch(`${API_BASE_URL}/admin/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password }),
     }).then(handleResponse),
 
   verify: (token) =>
-    fetch(`${API}/admin/verify`, {
+    fetch(`${API_BASE_URL}/admin/verify`, {
       headers: getAuthHeader(token),
     }).then(handleResponse),
 }
@@ -189,14 +183,14 @@ export const adminAuthApi = {
 // ─── Payments ────────────────────────────────────────────────────────────────
 export const paymentApi = {
   createOrder: (data, token) =>
-    fetch(`${API}/payments/create-order`, {
+    fetch(`${API_BASE_URL}/payments/create-order`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...getAuthHeader(token) },
       body: JSON.stringify(data),
     }).then(handleResponse),
 
   verify: (data, token) =>
-    fetch(`${API}/payments/verify`, {
+    fetch(`${API_BASE_URL}/payments/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...getAuthHeader(token) },
       body: JSON.stringify(data),
@@ -206,25 +200,25 @@ export const paymentApi = {
 // ─── Wishlist ─────────────────────────────────────────────────────────────────
 export const wishlistApi = {
   get: (token) =>
-    fetch(`${API}/wishlist`, {
+    fetch(`${API_BASE_URL}/wishlist`, {
       headers: getAuthHeader(token),
     }).then(handleResponse),
 
   add: (productId, token) =>
-    fetch(`${API}/wishlist`, {
+    fetch(`${API_BASE_URL}/wishlist`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...getAuthHeader(token) },
       body: JSON.stringify({ productId }),
     }).then(handleResponse),
 
   remove: (productId, token) =>
-    fetch(`${API}/wishlist/${productId}`, {
+    fetch(`${API_BASE_URL}/wishlist/${productId}`, {
       method: 'DELETE',
       headers: getAuthHeader(token),
     }).then(handleResponse),
 
   clear: (token) =>
-    fetch(`${API}/wishlist`, {
+    fetch(`${API_BASE_URL}/wishlist`, {
       method: 'DELETE',
       headers: getAuthHeader(token),
     }).then(handleResponse),
