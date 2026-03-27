@@ -99,9 +99,14 @@ export function CustomerOrderProvider({ children }) {
           
           // STORE CUSTOMER INFO DIRECTLY
           customer: {
+            name: userData.name || (orderData.shippingAddress?.firstName && orderData.shippingAddress?.lastName ? 
+                  `${orderData.shippingAddress.firstName} ${orderData.shippingAddress.lastName}` : "Guest User"),
+            email: userData.email || orderData.shippingAddress?.email || "",
+            phone: userData.phone || orderData.shippingAddress?.mobile || "",
+            
+            // Keep backward compatibility
             firstName: userData.name?.split(' ')[0] || orderData.shippingAddress?.firstName || "Guest",
             lastName: userData.name?.split(' ')[1] || orderData.shippingAddress?.lastName || "User", 
-            email: userData.email || orderData.shippingAddress?.email || "",
             mobile: userData.phone || orderData.shippingAddress?.mobile || ""
           }
         }

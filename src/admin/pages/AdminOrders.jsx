@@ -198,10 +198,10 @@ const AdminOrders = () => {
                     <td className="px-6 py-4">
                       <div>
                         <p className="font-semibold text-gray-900">
-                          {order.customer?.firstName} {order.customer?.lastName}
+                          {order.customer?.name || `${order.customer?.firstName || ''} ${order.customer?.lastName || ''}`.trim() || 'Guest User'}
                         </p>
                         <p className="text-sm text-gray-500">{order.customer?.email}</p>
-                        <p className="text-xs text-gray-400">{order.customer?.mobile}</p>
+                        <p className="text-xs text-gray-400">{order.customer?.phone || order.customer?.mobile}</p>
                       </div>
                     </td>
 
