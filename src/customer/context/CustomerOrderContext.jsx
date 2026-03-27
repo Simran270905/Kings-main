@@ -24,6 +24,15 @@ export function CustomerOrderProvider({ children }) {
     setError(null)
 
     try {
+      // Check if using fake token - load local orders
+      if (token === 'kkings_user_token') {
+        console.log(' Using fake token, loading local orders...')
+        const localOrders = JSON.parse(localStorage.getItem('localOrders') || '[]')
+        setOrders(localOrders.reverse()) // Show newest first
+        return
+      }
+
+      // Try backend API for real tokens
       const response = await fetch(`${API_URL}/orders/my-orders`, {
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -71,6 +80,42 @@ export function CustomerOrderProvider({ children }) {
     setError(null)
 
     try {
+      // Check if using fake token - if so, create order locally
+      if (token === 'kkings_user_token') {
+        console.log(' Using fake token, creating order locally...')
+        
+        // Create local order
+        const localOrder = {
+          _id: Date.now().toString(),
+          id: Date.now().toString(),
+          ...orderData,
+          status: 'pending',
+          paymentMethod: orderData.paymentMethod || 'COD',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+
+        // Store order in localStorage
+        const existingOrders = JSON.parse(localStorage.getItem('localOrders') || '[]')
+        existingOrders.push(localOrder)
+        localStorage.setItem('localOrders', JSON.stringify(existingOrders))
+
+        // Update current order
+        setCurrentOrder(localOrder)
+        
+        // Clear cart if function provided
+        if (typeof clearCartFn === 'function') {
+          clearCartFn()
+        }
+
+        // Dispatch event for UI updates
+        window.dispatchEvent(new Event('ordersUpdated'))
+
+        console.log(' Local order created successfully:', localOrder)
+        return { success: true, order: localOrder }
+      }
+
+      // Try backend API for real tokens
       const response = await fetch(`${API_URL}/orders`, {
         method: 'POST',
         headers: {
