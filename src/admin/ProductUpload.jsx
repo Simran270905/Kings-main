@@ -184,8 +184,8 @@ const ProductUpload = () => {
     setError('')
     setSuccess('')
 
-    if (!formData.name || !formData.price || !formData.category) {
-      setError('Please fill in all required fields: Name, Price, and Category')
+    if (!formData.name || !formData.purchasePrice || !formData.category) {
+      setError('Please fill in all required fields: Name, Purchase Price, and Category')
       return
     }
 
@@ -199,15 +199,16 @@ const ProductUpload = () => {
       return
     }
 
-    const price = Number(formData.price)
+    // ✅ Check selling price if provided
+    const sellingPrice = formData.selling_price ? Number(formData.selling_price) : null
     const purchasePrice = Number(formData.purchasePrice)
     
-    if (price <= 0) {
-      setError('Price must be greater than 0')
+    if (sellingPrice !== null && sellingPrice <= 0) {
+      setError('Selling price must be greater than 0')
       return
     }
 
-    if (formData.selling_price && Number(formData.selling_price) < purchasePrice) {
+    if (sellingPrice !== null && sellingPrice < purchasePrice) {
       setError('Selling price cannot be less than purchase price')
       return
     }
@@ -227,9 +228,8 @@ const ProductUpload = () => {
         name: formData.name.trim(),
         description: formData.description.trim(),
         purchasePrice: Number(formData.purchasePrice) || 0,
-        originalPrice: Number(formData.originalPrice) || Number(formData.price) || 0,
-        price,
-        selling_price: formData.selling_price ? Number(formData.selling_price) : null,
+        originalPrice: Number(formData.originalPrice) || Number(formData.purchasePrice) || 0,
+        sellingPrice: sellingPrice, // Use the validated selling price
         category: formData.category,
         brand: formData.brand || null,
         images: validImages,
