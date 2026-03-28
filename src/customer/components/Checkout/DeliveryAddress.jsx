@@ -31,7 +31,9 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
         if (savedAddress && !address.firstName) {
             // Only use saved address if no address provided via props
             setFormData(savedAddress);
-            onAddressChange(savedAddress);
+            if (onAddressChange && typeof onAddressChange === 'function') {
+                onAddressChange(savedAddress);
+            }
         }
     }, [address.firstName]); // Only depend on address.firstName, not onAddressChange
 
@@ -87,7 +89,9 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
                     mobile: defaultAddress.mobile,
                 };
                 setFormData(addrData);
-                if (onAddressChange) onAddressChange(addrData);
+                if (onAddressChange && typeof onAddressChange === 'function') {
+                    onAddressChange(addrData);
+                }
             }
         }
     }, [savedAddresses.length, address.firstName]); // Only depend on length and firstName, not onAddressChange
@@ -104,7 +108,7 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
         saveAddressToLocalStorage(newData);
         
         // FIXED: Update parent component state in real-time
-        if (onAddressChange) {
+        if (onAddressChange && typeof onAddressChange === 'function') {
             onAddressChange(newData);
         }
     };
@@ -140,43 +144,62 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
 
         setIsLoading(true);
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                toast.error('Please login to save address');
-                return;
+            // ✅ ALWAYS SAVE TO LOCALSTORAGE FIRST
+            saveAddressToLocalStorage(formData);
+            
+            // ✅ UPDATE PARENT COMPONENT IMMEDIATELY
+            if (onAddressChange && typeof onAddressChange === 'function') {
+                onAddressChange(formData);
             }
 
-            const response = await fetch(`${API_URL}/customers/addresses`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(formData)
-            });
+            // ✅ TRY TO SAVE TO BACKEND (OPTIONAL - DON'T BLOCK FLOW)
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const response = await fetch(`${API_URL}/customers/addresses`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(formData)
+                    });
 
-            if (response.ok) {
-                toast.success('Address saved successfully');
-                
-                // ✅ SAVE TO LOCALSTORAGE FOR PERSISTENCE
-                saveAddressToLocalStorage(formData);
-                
-                // Reload addresses
-                const addrResponse = await fetch(`${API_URL}/customers/addresses`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
+                    if (response.ok) {
+                        toast.success('Address saved successfully');
+                        
+                        // Reload addresses from backend
+                        try {
+                            const addrResponse = await fetch(`${API_URL}/customers/addresses`, {
+                                headers: {
+                                    'Authorization': `Bearer ${token}`
+                                }
+                            });
+                            if (addrResponse.ok) {
+                                const addresses = await addrResponse.json();
+                                setSavedAddresses(addresses.data || []);
+                            }
+                        } catch (addrError) {
+                            console.error('Error loading addresses:', addrError);
+                        }
+                    } else {
+                        // Backend save failed, but local save worked
+                        console.warn('Backend save failed, but address saved locally');
+                        toast.success('Address saved locally');
                     }
-                });
-                if (addrResponse.ok) {
-                    const addresses = await addrResponse.json();
-                    setSavedAddresses(addresses.data || []);
+                } catch (backendError) {
+                    // Backend unavailable, but local save worked
+                    console.warn('Backend unavailable, address saved locally:', backendError);
+                    toast.success('Address saved locally');
                 }
             } else {
-                toast.error('Failed to save address');
+                // No token, but address saved locally
+                toast.success('Address saved locally');
             }
         } catch (error) {
-            console.error('Error saving address:', error);
-            toast.error('Failed to save address');
+            console.error('Error in handleSubmit:', error);
+            // Even if everything fails, we still have the local storage save
+            toast.error('Address saved locally (backend unavailable)');
         } finally {
             setIsLoading(false);
         }
@@ -201,7 +224,9 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
                                         onClick={() => {
                                             const savedAddr = getSavedAddressFromLocalStorage();
                                             setFormData(savedAddr);
-                                            if (onAddressChange) onAddressChange(savedAddr);
+                                            if (onAddressChange && typeof onAddressChange === 'function') {
+                                                onAddressChange(savedAddr);
+                                            }
                                             toast.success('Address loaded from saved data');
                                         }}
                                     >
@@ -235,7 +260,9 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
                                                 setFormData(addrData);
                                                 // ✅ SAVE TO LOCALSTORAGE WHEN SELECTING SAVED ADDRESS
                                                 saveAddressToLocalStorage(addrData);
-                                                if (onAddressChange) onAddressChange(addrData);
+                                                if (onAddressChange && typeof onAddressChange === 'function') {
+                                                    onAddressChange(addrData);
+                                                }
                                             }
                                         }}
                                     >
