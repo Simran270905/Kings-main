@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react'
-import { AdminAuthContext } from './AdminAuthContext'
+import { AdminAuthContext } from './AdminAuthContextObject'
 import adminApi from '../utils/adminApiService'
 
 export function AdminAuthProvider({ children }) {
