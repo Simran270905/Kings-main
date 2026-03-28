@@ -30,19 +30,38 @@ export default defineConfig({
 
   build: {
     outDir: 'dist',
-
-    // Faster & smaller builds
-    minify: 'esbuild',
-    sourcemap: false,
-
+    // Optimize chunk splitting for better loading
     rollupOptions: {
       output: {
-        // Better caching: vendor code separated
         manualChunks: {
+          // Separate vendor chunks
           vendor: ['react', 'react-dom'],
-        },
-      },
+          // Separate admin chunks
+          admin: [
+            './src/admin/AdminOnlyLayout.jsx',
+            './src/admin/layout/Dashboard.jsx',
+            './src/admin/context/useAdminAuth.jsx'
+          ],
+          // Separate customer chunks
+          customer: [
+            './src/customer/context/AuthContext.jsx',
+            './src/customer/context/ProductContext.jsx'
+          ]
+        }
+      }
     },
+    // Improve chunk size warning threshold
+    chunkSizeWarningLimit: 1000,
+    // Ensure proper code splitting
+    sourcemap: false,
+    // Optimize for production
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      }
+    }
   },
 
   // Speeds up dev server & rebuilds
@@ -50,12 +69,18 @@ export default defineConfig({
     include: ['react', 'react-dom'],
   },
 
-  // Prevent caching issues in development
   server: {
     headers: {
       'Cache-Control': 'no-cache, no-store, must-revalidate',
       'Pragma': 'no-cache',
       'Expires': '0'
+    },
+    fs: {
+      strict: false,
     }
+  },
+
+  preview: {
+    port: 4173,
   }
 })

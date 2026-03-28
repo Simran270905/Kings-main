@@ -30,6 +30,16 @@ import AdminLogin from './admin/AdminLogin'
 import { AdminRoute } from './admin/AdminRoute'
 import ProtectedRoute from './customer/components/ProtectedRoute'
 
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen bg-gray-50">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ae0b0b] mx-auto"></div>
+      <p className="mt-4 text-gray-600">Loading...</p>
+    </div>
+  </div>
+)
+
 // Lazy imports
 const ProductDetails = lazy(() =>
   import('./customer/components/ProductDetails.jsx/ProductDetails')
@@ -77,7 +87,7 @@ const App = () => {
                   <ProductProvider>
                     <CartProvider>
 
-                      <Suspense fallback={<div className="p-6">Loading...</div>}>
+                      <Suspense fallback={<LoadingFallback />}>
 
                   <Routes>
 
@@ -247,103 +257,137 @@ export default App
 // ================= WRAPPERS (CLEAN FIX) =================
 
 const DashboardWrapper = () => (
-  <AdminOnlyLayout>
-    <Dashboard />
-  </AdminOnlyLayout>
+  <Suspense fallback={<LoadingFallback />}>
+    <AdminOnlyLayout>
+      <Dashboard />
+    </AdminOnlyLayout>
+  </Suspense>
 )
 
 const ProductsWrapper = () => (
-  <AdminOnlyLayout>
-    <ProductsManagement />
-  </AdminOnlyLayout>
+  <Suspense fallback={<LoadingFallback />}>
+    <AdminOnlyLayout>
+      <ProductsManagement />
+    </AdminOnlyLayout>
+  </Suspense>
 )
 
 const ProductEditWrapper = () => (
-  <AdminOnlyLayout>
-    <ProductEdit />
-  </AdminOnlyLayout>
+  <Suspense fallback={<LoadingFallback />}>
+    <AdminOnlyLayout>
+      <ProductEdit />
+    </AdminOnlyLayout>
+  </Suspense>
 )
 
 const OrdersWrapper = () => (
-  <AdminOnlyLayout>
-    <AdminOrders />
-  </AdminOnlyLayout>
+  <Suspense fallback={<LoadingFallback />}>
+    <AdminOnlyLayout>
+      <AdminOrders />
+    </AdminOnlyLayout>
+  </Suspense>
 )
 
 const PaymentTrackingWrapper = () => (
-  <AdminOnlyLayout>
-    <PaymentTracking />
-  </AdminOnlyLayout>
+  <Suspense fallback={<LoadingFallback />}>
+    <AdminOnlyLayout>
+      <PaymentTracking />
+    </AdminOnlyLayout>
+  </Suspense>
 )
 
 const AnalyticsWrapper = () => (
-  <AdminOnlyLayout>
-    <Analytics />
-  </AdminOnlyLayout>
+  <Suspense fallback={<LoadingFallback />}>
+    <AdminOnlyLayout>
+      <Analytics />
+    </AdminOnlyLayout>
+  </Suspense>
 )
 
 const ReportsWrapper = () => (
-  <AdminOnlyLayout>
-    <AdminReports />
-  </AdminOnlyLayout>
+  <Suspense fallback={<LoadingFallback />}>
+    <AdminOnlyLayout>
+      <AdminReports />
+    </AdminOnlyLayout>
+  </Suspense>
 )
 
 const UploadWrapper = () => (
-  <AdminOnlyLayout>
-    <ProductUpload />
-  </AdminOnlyLayout>
+  <Suspense fallback={<LoadingFallback />}>
+    <AdminOnlyLayout>
+      <ProductUpload />
+    </AdminOnlyLayout>
+  </Suspense>
 )
 
 const HomeCMSWrapper = () => (
-  <AdminOnlyLayout>
-    <HomePageEditor />
-  </AdminOnlyLayout>
+  <Suspense fallback={<LoadingFallback />}>
+    <AdminOnlyLayout>
+      <HomePageEditor />
+    </AdminOnlyLayout>
+  </Suspense>
 )
 
 const FooterCMSWrapper = () => (
-  <AdminOnlyLayout>
-    <FooterEditor />
-  </AdminOnlyLayout>
+  <Suspense fallback={<LoadingFallback />}>
+    <AdminOnlyLayout>
+      <FooterEditor />
+    </AdminOnlyLayout>
+  </Suspense>
 )
 
 const StoryCMSWrapper = () => (
-  <AdminOnlyLayout>
-    <OurStoryEditor />
-  </AdminOnlyLayout>
+  <Suspense fallback={<LoadingFallback />}>
+    <AdminOnlyLayout>
+      <OurStoryEditor />
+    </AdminOnlyLayout>
+  </Suspense>
 )
 
 const PagesWrapper = () => (
-  <AdminOnlyLayout>
-    <Pages />
-  </AdminOnlyLayout>
+  <Suspense fallback={<LoadingFallback />}>
+    <AdminOnlyLayout>
+      <Pages />
+    </AdminOnlyLayout>
+  </Suspense>
 )
 
 const CustomersWrapper = () => (
-  <AdminOnlyLayout>
-    <AdminCustomers />
-  </AdminOnlyLayout>
+  <Suspense fallback={<LoadingFallback />}>
+    <AdminOnlyLayout>
+      <AdminCustomers />
+    </AdminOnlyLayout>
+  </Suspense>
 )
 
 const SettingsWrapper = () => (
-  <AdminOnlyLayout>
-    <AdminSettings />
-  </AdminOnlyLayout>
+  <Suspense fallback={<LoadingFallback />}>
+    <AdminOnlyLayout>
+      <AdminSettings />
+    </AdminOnlyLayout>
+  </Suspense>
 )
 
 const CouponWrapper = () => (
-  <AdminOnlyLayout>
-    <CouponManagement />
-  </AdminOnlyLayout>
+  <Suspense fallback={<LoadingFallback />}>
+    <AdminOnlyLayout>
+      <CouponManagement />
+    </AdminOnlyLayout>
+  </Suspense>
 )
 
 const BrandsWrapper = () => (
-  <AdminOnlyLayout>
-    <BrandsManagement />
-  </AdminOnlyLayout>
+  <Suspense fallback={<LoadingFallback />}>
+    <AdminOnlyLayout>
+      <BrandsManagement />
+    </AdminOnlyLayout>
+  </Suspense>
 )
 
 const CategoriesWrapper = () => (
-  <AdminOnlyLayout>
-    <CategoriesManagement />
-  </AdminOnlyLayout>
+  <Suspense fallback={<LoadingFallback />}>
+    <AdminOnlyLayout>
+      <CategoriesManagement />
+    </AdminOnlyLayout>
+  </Suspense>
 )
