@@ -86,11 +86,23 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
       return
     }
 
+    // ✅ ADDED: Check if user is logged in
+    if (!user || !user._id) {
+      toast.error('Please login to apply coupon')
+      return
+    }
+
     setValidatingCoupon(true)
     try {
+      console.log('🔍 DEBUG: Applying coupon with data:', {
+        code: couponCode.toUpperCase(),
+        userId: user._id,
+        orderAmount: totalPrice
+      })
+
       const response = await couponApi.validate({
         code: couponCode.toUpperCase(),
-        userId: user?._id,
+        userId: user._id,
         orderAmount: totalPrice
       })
 
@@ -100,7 +112,25 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
         toast.success(`Coupon applied! You saved ₹${response.data.discountAmount}`)
       }
     } catch (error) {
-      toast.error(error.message || 'Invalid coupon code')
+      console.error('❌ DEBUG: Coupon validation error:', error)
+      
+      // ✅ ENHANCED: Specific error messages
+      if (error.message.includes('Invalid coupon code')) {
+        toast.error('Invalid coupon code')
+      } else if (error.message.includes('already used')) {
+        toast.error('You have already used this coupon')
+      } else if (error.message.includes('expired')) {
+        toast.error('Coupon has expired')
+      } else if (error.message.includes('Minimum order amount')) {
+        toast.error(error.message)
+      } else if (error.message.includes('404')) {
+        toast.error('Coupon not found')
+      } else if (error.message.includes('Network') || error.message.includes('fetch')) {
+        toast.error('Network error. Please try again')
+      } else {
+        toast.error(error.message || 'Invalid coupon code')
+      }
+      
       setAppliedCoupon(null)
       setDiscount(0)
     } finally {

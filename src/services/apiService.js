@@ -91,7 +91,9 @@ export const couponApi = {
 
   validate: (data) => {
     console.log('🔍 DEBUG: Validating coupon:', data)
-    return fetch(`${API_BASE_URL}/coupons/validate`, {
+    const fullUrl = `${API_BASE_URL}/coupons/validate`
+    console.log('🔍 DEBUG: Calling URL:', fullUrl)
+    return fetch(fullUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -107,7 +109,10 @@ export const couponApi = {
       return Promise.reject(new Error('Admin authentication required'))
     }
     
-    return fetch(`${API_BASE_URL}/coupons`, {
+    const fullUrl = `${API_BASE_URL}/coupons`
+    console.log('🔍 DEBUG: Calling URL:', fullUrl)
+    
+    return fetch(fullUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...getAuthHeader(token) },
       body: JSON.stringify(data),
