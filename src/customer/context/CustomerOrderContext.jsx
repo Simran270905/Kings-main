@@ -104,23 +104,10 @@ export function CustomerOrderProvider({ children }) {
     console.log(" localStorage keys:", Object.keys(localStorage))
     console.log(" Order data items count:", orderData?.items?.length || 0)
     
-    if (!token) return { success: false, error: 'Please log in to place an order' }
     if (!orderData?.items?.length) return { success: false, error: 'Cart is empty' }
 
-    // ✅ VALIDATE TOKEN BEFORE ORDER CREATION
-    console.log(" VALIDATING TOKEN...")
-    const tokenValidation = await validateToken(token)
-    console.log(" Token validation result:", tokenValidation)
-    
-    if (!tokenValidation.valid) {
-      console.error(" TOKEN INVALID:", tokenValidation.error)
-      // Clear invalid token and user data
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      localStorage.removeItem('isAuthenticated')
-      return { success: false, error: 'Session expired. Please log in again.' }
-    }
-
+    // ✅ NOTE: /orders endpoint is PUBLIC - no token validation needed
+    // But we still send token if available for user identification
     console.log(' Creating order with data:', orderData)
 
     setLoading(true)
@@ -134,14 +121,22 @@ export function CustomerOrderProvider({ children }) {
         user: userData
       }
       
-      console.log(" Making order request with token:", token.substring(0, 20) + "...")
+      // ✅ Prepare headers - include token if available
+      const headers = {
+        'Content-Type': 'application/json',
+      }
+      
+      // Only add Authorization header if token exists
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+        console.log(" Making order request with token:", token.substring(0, 20) + "...")
+      } else {
+        console.log(" Making order request without token (guest checkout)")
+      }
       
       const response = await fetch(`${API_URL}/orders`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: headers,
         body: JSON.stringify(orderDataWithUser),
       })
 
@@ -152,8 +147,8 @@ export function CustomerOrderProvider({ children }) {
       if (!response.ok) {
         console.error(' Order creation failed:', body)
         
-        // ✅ CHECK IF TOKEN EXPIRED DURING REQUEST
-        if (body.message === 'Invalid authorization token' || body.message === 'Token expired') {
+        // ✅ CHECK IF TOKEN EXPIRED DURING REQUEST (only if token was sent)
+        if (token && (body.message === 'Invalid authorization token' || body.message === 'Token expired')) {
           console.log(" TOKEN EXPIRED DURING REQUEST - CLEARING SESSION")
           localStorage.removeItem('token')
           localStorage.removeItem('user')
