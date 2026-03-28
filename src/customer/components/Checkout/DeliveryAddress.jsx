@@ -158,7 +158,13 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
                 try {
                     // First check if backend is reachable
                     console.log('🔍 Checking backend connectivity...');
-                    const healthCheck = await fetch(`${API_URL}/health`).catch(() => null);
+                    let healthCheck = null;
+                    try {
+                        healthCheck = await fetch(`${API_URL}/health`);
+                    } catch (healthError) {
+                        console.warn('⚠️ Health check failed:', healthError);
+                        healthCheck = null;
+                    }
                     
                     if (!healthCheck || !healthCheck.ok) {
                         console.warn('⚠️ Backend not reachable, saving locally only');
@@ -200,7 +206,14 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
                         }
                     } else {
                         // Backend save failed, but local save worked
-                        const errorData = await response.json().catch(() => ({}));
+                        let errorData = {};
+                        try {
+                            errorData = await response.json();
+                        } catch (jsonError) {
+                            console.warn('⚠️ Could not parse error response:', jsonError);
+                            errorData = { message: 'Unknown error' };
+                        }
+                        
                         console.warn('⚠️ Backend save failed:', response.status, errorData);
                         
                         // Provide specific error messages based on status
