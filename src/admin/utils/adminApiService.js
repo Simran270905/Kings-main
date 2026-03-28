@@ -128,8 +128,21 @@ class AdminApiService {
         return false
       }
 
-      const data = await response.json()
-      return data.success
+      // Check if response is ok before parsing JSON
+      if (!response.ok) {
+        this.clearToken()
+        return false
+      }
+
+      const contentType = response.headers.get('content-type')
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json()
+        return data.success === true
+      } else {
+        // If not JSON, assume invalid
+        this.clearToken()
+        return false
+      }
     } catch (error) {
       console.error(`❌ Token verification error:`, error.message)
       this.clearToken()
