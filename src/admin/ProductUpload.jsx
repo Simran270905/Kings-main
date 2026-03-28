@@ -90,7 +90,6 @@ const ProductUpload = () => {
     description: '',
     purchasePrice: '',
     originalPrice: '',
-    price: '',
     selling_price: '',
     category: '',
     brand: '',
@@ -251,6 +250,7 @@ const ProductUpload = () => {
         purchasePrice: purchasePrice,
         originalPrice: originalPrice,
         sellingPrice: sellingPrice, // ✅ STEP 5: BACKEND VALIDATION FIX - USE sellingPrice
+        price: sellingPrice, // ✅ BACKEND COMPATIBILITY - Add price field for backend validation
         category: formData.category,
         brand: formData.brand || null,
         images: validImages,
@@ -288,7 +288,6 @@ const ProductUpload = () => {
         description: '',
         purchasePrice: '',
         originalPrice: '',
-        price: '',
         selling_price: '',
         category: '',
         brand: '',
