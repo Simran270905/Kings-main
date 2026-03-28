@@ -9,64 +9,117 @@ import {
   safeNumber,
   safeCurrency,
   safeDate,
-  extractCustomersFromOrders,
   logAdminData
 } from '../utils/adminSafetyUtils'
 
 const AdminCustomers = () => {
-  const { orders, loading } = useOrder()
+  const { orders, loading: ordersLoading } = useOrder()
   const [customers, setCustomers] = useState([])
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
 
-  // Safe rendering check
-  if (!orders) {
-    return (
-      <AdminCard>
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ae0b0b]"></div>
-        </div>
-      </AdminCard>
-    )
-  }
-
-  // Extract customers from orders when orders change
+  // Fetch customers directly from API
   useEffect(() => {
-    console.log("AdminCustomers - Orders received:", orders)
-    
-    if (Array.isArray(orders) && orders.length > 0) {
-      console.log("AdminCustomers - Processing orders:", orders.length)
-      
-      // Extract customers from orders
-      const extractedCustomers = extractCustomersFromOrders(orders)
-      setCustomers(extractedCustomers)
-      logAdminData('AdminCustomers', extractedCustomers, 'extracted')
-    } else {
-      console.log("AdminCustomers - No orders available")
-      setCustomers([])
+    const fetchCustomers = async () => {
+      try {
+        setLoading(true)
+        setError('')
+        
+        const token = localStorage.getItem('token')
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://api.kkingsjewellery.com/api'}/admin/customers`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch customers')
+        }
+
+        const result = await response.json()
+        
+        if (result.success) {
+          // Enhance customer data with order statistics
+          const enhancedCustomers = await enhanceCustomersWithOrderData(result.data)
+          setCustomers(enhancedCustomers)
+          logAdminData('AdminCustomers', enhancedCustomers, 'fetched from API')
+        } else {
+          throw new Error(result.message || 'Failed to fetch customers')
+        }
+      } catch (err) {
+        console.error('AdminCustomers - Error fetching customers:', err)
+        setError(err.message || 'Failed to load customers')
+        setCustomers([])
+      } finally {
+        setLoading(false)
+      }
     }
-  }, [orders])
+
+    fetchCustomers()
+  }, [])
+
+  // Enhance customers with order data
+  const enhanceCustomersWithOrderData = async (customers) => {
+    if (!Array.isArray(customers)) return []
+    
+    const ordersArray = safeArray(orders)
+    
+    return customers.map(customer => {
+      // Find orders for this customer
+      const customerOrders = ordersArray.filter(order => {
+        const orderEmail = order.customer?.email || order.shippingAddress?.email
+        const orderPhone = order.customer?.phone || order.shippingAddress?.phone
+        const customerEmail = customer.email
+        const customerPhone = customer.phone
+        
+        return (orderEmail === customerEmail) || (orderPhone === customerPhone)
+      })
+      
+      // Calculate statistics
+      const totalOrders = customerOrders.length
+      const totalSpent = customerOrders.reduce((sum, order) => {
+        return sum + safeNumber(order.totalAmount || order.amount || 0)
+      }, 0)
+      
+      const lastOrder = customerOrders.length > 0 
+        ? customerOrders.reduce((latest, order) => {
+            const orderDate = new Date(order.createdAt || order.date)
+            const latestDate = new Date(latest.createdAt || latest.date)
+            return orderDate > latestDate ? order : latest
+          })
+        : null
+
+      return {
+        ...customer,
+        totalOrders,
+        totalSpent,
+        lastOrder: lastOrder?.createdAt || lastOrder?.date || customer.createdAt,
+        orderCount: totalOrders,
+        revenue: totalSpent
+      }
+    })
+  }
 
   // Filter customers based on search
   const filteredCustomers = customers.filter(customer => {
     const searchLower = search.toLowerCase()
-    return (
-      safeString(customer.name).toLowerCase().includes(searchLower) ||
-      safeString(customer.email).toLowerCase().includes(searchLower) ||
-      safeString(customer.phone).toLowerCase().includes(searchLower)
-    )
+    const name = safeString(customer.firstName || customer.name || '').toLowerCase()
+    const email = safeString(customer.email || '').toLowerCase()
+    const phone = safeString(customer.phone || '').toLowerCase()
+    
+    return name.includes(searchLower) || 
+           email.includes(searchLower) || 
+           phone.includes(searchLower)
   })
-
-  // Calculate customer stats
-  const totalCustomers = customers.length
-  const totalOrders = orders.length
-  const avgOrdersPerCustomer = totalCustomers > 0 ? (totalOrders / totalCustomers).toFixed(1) : 0
 
   console.log("AdminCustomers - Final customers:", customers)
   console.log("AdminCustomers - Stats:", {
     totalCustomers,
+    totalRevenue,
     totalOrders,
-    avgOrdersPerCustomer
+    avgOrderValue
   })
 
   // Loading state
@@ -177,10 +230,15 @@ const AdminCustomers = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                            {safeString(c.name).charAt(0).toUpperCase()}
+                            {safeString(c.firstName || c.name).charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <p className="font-semibold text-gray-900">{safeString(c.name)}</p>
+                            <p className="font-semibold text-gray-900">
+                              {safeString(c.firstName) && safeString(c.lastName) 
+                                ? `${safeString(c.firstName)} ${safeString(c.lastName)}`
+                                : safeString(c.firstName || c.name)
+                              }
+                            </p>
                             <p className="text-sm text-gray-500">
                               {c.totalOrders || 0} order{(c.totalOrders || 0) !== 1 ? 's' : ''}
                             </p>
@@ -191,20 +249,26 @@ const AdminCustomers = () => {
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 text-sm">
                             <EnvelopeIcon className="h-4 w-4 text-gray-400" />
-                            <span className="text-gray-700">{safeString(c.email)}</span>
+                            <span className="text-gray-600">{safeString(c.email)}</span>
                           </div>
-                          {c.phone && (
+                          {c.phone && c.phone !== 'N/A' && (
                             <div className="flex items-center gap-2 text-sm">
                               <PhoneIcon className="h-4 w-4 text-gray-400" />
-                              <span className="text-gray-700">{safeString(c.phone)}</span>
+                              <span className="text-gray-600">{safeString(c.phone)}</span>
                             </div>
                           )}
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm">
-                          <p className="text-gray-900">{safeDate(c.lastOrder || c.createdAt)}</p>
-                          <p className="text-gray-500">{safeCurrency(c.totalSpent)}</p>
+                        <div className="space-y-1">
+                          <p className="text-sm text-gray-600">
+                            {safeDate(c.createdAt)}
+                          </p>
+                          {c.lastOrder && c.lastOrder !== c.createdAt && (
+                            <p className="text-xs text-gray-400">
+                              Last: {safeDate(c.lastOrder)}
+                            </p>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -212,10 +276,10 @@ const AdminCustomers = () => {
                 </tbody>
               </table>
             </div>
-          )}
-        </AdminCard>
-      )}
-    </div>
+        )}
+      </AdminCard>
+    )}
+  </div>
   )
 }
 
