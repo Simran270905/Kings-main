@@ -4,6 +4,32 @@ import { enhancedApiService } from './apiErrorHandler.js'
 const getAuthHeader = (token) =>
   token ? { Authorization: `Bearer ${token}` } : {}
 
+// Handle API response with proper error processing
+const handleResponse = async (response) => {
+  try {
+    const data = await response.json()
+    
+    if (!response.ok) {
+      console.error('❌ API Error Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        data: data
+      })
+      throw new Error(data.message || `HTTP ${response.status}: ${response.statusText}`)
+    }
+    
+    console.log('✅ API Success:', data)
+    return data
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      console.error('❌ Invalid JSON response from server')
+      throw new Error('Invalid response from server')
+    }
+    console.error('❌ HandleResponse Error:', error)
+    throw error
+  }
+}
+
 console.log('🔧 API Service using URL:', API_BASE_URL)
 
 // ─── Products ──────────────────────────────────────────────────────────────
@@ -47,8 +73,10 @@ export const productApi = {
 export const couponApi = {
   getAll: async () => {
     try {
+      console.log('🔍 DEBUG: Fetching all coupons...')
       const response = await fetch(`${API_BASE_URL}/coupons`)
       const data = await response.json()
+      console.log('✅ DEBUG: Coupons fetched:', data)
       return data
     } catch (error) {
       console.error('❌ Coupon API Error:', error.message)
@@ -56,35 +84,52 @@ export const couponApi = {
     }
   },
 
-  getByCode: (code) =>
-    fetch(`${API_BASE_URL}/coupons/${code}`).then(handleResponse),
+  getByCode: (code) => {
+    console.log('🔍 DEBUG: Fetching coupon by code:', code)
+    return fetch(`${API_BASE_URL}/coupons/${code}`).then(handleResponse)
+  },
 
-  validate: (data) =>
-    fetch(`${API_BASE_URL}/coupons/validate`, {
+  validate: (data) => {
+    console.log('🔍 DEBUG: Validating coupon:', data)
+    return fetch(`${API_BASE_URL}/coupons/validate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
-    }).then(handleResponse),
+    }).then(handleResponse)
+  },
 
-  create: (data, token) =>
-    fetch(`${API_BASE_URL}/coupons`, {
+  create: (data, token) => {
+    console.log('🔍 DEBUG: Creating coupon with data:', data)
+    console.log('🔍 DEBUG: Using token:', token ? token.substring(0, 20) + '...' : 'NO TOKEN')
+    
+    if (!token) {
+      console.error('❌ DEBUG: No admin token provided for coupon creation')
+      return Promise.reject(new Error('Admin authentication required'))
+    }
+    
+    return fetch(`${API_BASE_URL}/coupons`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...getAuthHeader(token) },
       body: JSON.stringify(data),
-    }).then(handleResponse),
+    }).then(handleResponse)
+  },
 
-  update: (id, data, token) =>
-    fetch(`${API_BASE_URL}/coupons/${id}`, {
+  update: (id, data, token) => {
+    console.log('🔍 DEBUG: Updating coupon:', id, data)
+    return fetch(`${API_BASE_URL}/coupons/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', ...getAuthHeader(token) },
       body: JSON.stringify(data),
-    }).then(handleResponse),
+    }).then(handleResponse)
+  },
 
-  delete: (id, token) =>
-    fetch(`${API_BASE_URL}/coupons/${id}`, {
+  delete: (id, token) => {
+    console.log('🔍 DEBUG: Deleting coupon:', id)
+    return fetch(`${API_BASE_URL}/coupons/${id}`, {
       method: 'DELETE',
       headers: getAuthHeader(token),
-    }).then(handleResponse),
+    }).then(handleResponse)
+  },
 }
 
 // ─── Reviews ────────────────────────────────────────────────────────────

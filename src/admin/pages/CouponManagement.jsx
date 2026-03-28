@@ -62,9 +62,15 @@ export default function CouponManagement() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
+    console.log('🔍 DEBUG: Coupon form submitted')
+    console.log('🔍 DEBUG: Form data:', formData)
+    
     const token = localStorage.getItem('adminToken')
+    console.log('🔍 DEBUG: Admin token from localStorage:', token ? token.substring(0, 20) + '...' : 'NO TOKEN')
+    
     if (!token) {
-      toast.error('Admin authentication required')
+      console.error('❌ DEBUG: No admin token found')
+      toast.error('Admin authentication required - Please login again')
       return
     }
 
@@ -77,18 +83,44 @@ export default function CouponManagement() {
         usageLimit: formData.usageLimit ? Number(formData.usageLimit) : null,
       }
 
+      console.log('🔍 DEBUG: Processed coupon data:', data)
+
       if (editingCoupon) {
-        await couponApi.update(editingCoupon._id, data, token)
+        console.log('🔍 DEBUG: Updating existing coupon:', editingCoupon._id)
+        const result = await couponApi.update(editingCoupon._id, data, token)
+        console.log('✅ DEBUG: Coupon update result:', result)
         toast.success('Coupon updated successfully')
       } else {
-        await couponApi.create(data, token)
+        console.log('🔍 DEBUG: Creating new coupon')
+        const result = await couponApi.create(data, token)
+        console.log('✅ DEBUG: Coupon creation result:', result)
         toast.success('Coupon created successfully')
       }
 
       resetForm()
       fetchCoupons()
     } catch (error) {
-      toast.error(error.message || 'Failed to save coupon')
+      console.error('❌ DEBUG: Coupon save error:', error)
+      console.error('❌ DEBUG: Error details:', {
+        message: error.message,
+        stack: error.stack,
+        token: token ? 'EXISTS' : 'MISSING'
+      })
+      
+      // Provide specific error messages
+      if (error.message.includes('Admin authentication required')) {
+        toast.error('Admin authentication required - Please login again')
+      } else if (error.message.includes('403')) {
+        toast.error('Permission denied - Admin access required')
+      } else if (error.message.includes('401')) {
+        toast.error('Session expired - Please login again')
+      } else if (error.message.includes('429')) {
+        toast.error('Too many requests - Please try again later')
+      } else if (error.message.includes('Network') || error.message.includes('fetch')) {
+        toast.error('Network error - Please check your connection')
+      } else {
+        toast.error(error.message || 'Failed to save coupon')
+      }
     }
   }
 
