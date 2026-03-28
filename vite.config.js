@@ -55,13 +55,8 @@ export default defineConfig({
     // Ensure proper code splitting
     sourcemap: false,
     // Optimize for production
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      }
-    }
+    minify: 'esbuild',
+    // Remove terserOptions since we're using esbuild
   },
 
   // Speeds up dev server & rebuilds
