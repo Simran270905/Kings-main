@@ -106,7 +106,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
         orderAmount: totalPrice
       })
 
-      if (response.success) {
+      if (response && response.success) {
         setAppliedCoupon(response.data)
         setDiscount(response.data.discountAmount)
         toast.success(`Coupon applied! You saved ₹${response.data.discountAmount}`)
@@ -222,7 +222,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
         try {
           const result = await createOrder(orderData, propClearCart || clearCart)
           console.log('📦 COD order result:', result)
-          if (result.success) {
+          if (result && result.success) {
             toast.success('Order placed successfully! You will pay on delivery.')
             navigate('/order-success', { state: { orderId: result.order._id || result.order.id, paymentMethod: selectedMethod } })
           } else {
@@ -241,7 +241,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
         try {
           const result = await createOrder(orderData, propClearCart || clearCart)
           console.log('📦 UPI order result:', result)
-          if (result.success) {
+          if (result && result.success) {
             toast.success('Order placed successfully! Please complete UPI payment.')
             navigate('/order-success', { state: { orderId: result.order._id || result.order.id, paymentMethod: selectedMethod, upiId: paymentDetails.upiId } })
           } else {

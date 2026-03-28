@@ -53,7 +53,7 @@ const Signup = () => {
         passwordConfirm: confirmPassword,
       });
 
-      if (result.success) {
+      if (result && result.success) {
         navigate("/login");
       } else {
         setError(result.error || "Sign up failed");

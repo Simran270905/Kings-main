@@ -30,7 +30,7 @@ const Account = () => {
   // ✅ Handle logout button click
   const handleLogout = () => {
     const result = logout();
-    if (result.success) {
+    if (result && result.success) {
       navigate("/login");
     }
   };

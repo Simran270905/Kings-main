@@ -95,8 +95,8 @@ const App = () => {
                     <Route path="/checkout" element={<CustomerLayout><ProtectedRoute><Checkout /></ProtectedRoute></CustomerLayout>} />
                     <Route path="/payment" element={<CustomerLayout><Payment /></CustomerLayout>} />
 
-                    <Route path="/login" element={<Auth />} />
-                    <Route path="/signup" element={<Auth />} />
+                    <Route path="/login" element={<CustomerLayout><Login /></CustomerLayout>} />
+                    <Route path="/signup" element={<CustomerLayout><Auth /></CustomerLayout>} />
 
                     <Route path="/account" element={<CustomerLayout><ProtectedRoute><Account /></ProtectedRoute></CustomerLayout>} />
                     <Route path="/orders" element={<CustomerLayout><ProtectedRoute><Orders /></ProtectedRoute></CustomerLayout>} />

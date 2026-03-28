@@ -1,14 +1,13 @@
-
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
-import { ExclamationCircleIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { API_BASE_URL } from "@config/api.js";
- 
+
 const Auth = () => {
   const navigate = useNavigate();
-  const { simpleLogin } = useAuth();
- 
+  const { login } = useAuth();
+
   // Form states
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -16,14 +15,14 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
- 
-  // Handle login with details only
-  const handleLogin = async (e) => {
+
+  // Handle simple registration
+  const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
     setIsLoading(true);
- 
+
     try {
       // Validation
       if (!name.trim()) {
@@ -33,7 +32,7 @@ const Auth = () => {
       if (!email.trim()) {
         throw new Error("Email is required");
       }
-      
+
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email.trim())) {
         throw new Error("Invalid email format");
@@ -54,23 +53,32 @@ const Auth = () => {
         phone: phone.trim()
       };
 
-      console.log("🔍 Creating/login user with details:", JSON.stringify(payload, null, 2));
+      console.log("🔍 Registering user with details:", JSON.stringify(payload, null, 2));
 
-      // Use the simpleLogin method from auth context
-      const result = await simpleLogin(payload);
+      // Direct registration API call
+      const response = await fetch(`${API_BASE_URL}/customers/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
 
-      if (result.success) {
-        setSuccess('Login successful! Redirecting to homepage...');
-        
-        setTimeout(() => {
-          navigate("/");
-        }, 1500);
-      } else {
-        setError(result.error || "Login failed");
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Registration failed');
       }
 
+      setSuccess('Registration successful! Redirecting to login...');
+
+      // After successful registration, redirect to login
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+
     } catch (err) {
-      console.error("❌ Login error:", err.message);
+      console.error("❌ Registration error:", err.message);
       setError(err.message);
     } finally {
       setIsLoading(false);
@@ -86,17 +94,17 @@ const Auth = () => {
             Welcome to KKings Jewellery
           </h1>
           <p className="text-gray-600">
-            Enter your details to continue
+            Create your account to get started
           </p>
         </div>
- 
+
         {/* Success Message */}
         {success && (
           <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-green-800 text-center">{success}</p>
           </div>
         )}
- 
+
         {/* Error Message */}
         {error && (
           <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -106,9 +114,9 @@ const Auth = () => {
             </p>
           </div>
         )}
- 
-        {/* Login Form */}
-        <form onSubmit={handleLogin} className="space-y-6">
+
+        {/* Registration Form */}
+        <form onSubmit={handleRegister} className="space-y-6">
           {/* Name Field */}
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
@@ -125,7 +133,7 @@ const Auth = () => {
               disabled={isLoading}
             />
           </div>
- 
+
           {/* Email Field */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
@@ -142,7 +150,7 @@ const Auth = () => {
               disabled={isLoading}
             />
           </div>
- 
+
           {/* Phone Field */}
           <div>
             <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
@@ -161,7 +169,7 @@ const Auth = () => {
             />
             <p className="text-xs text-gray-500 mt-1">10-digit mobile number</p>
           </div>
- 
+
           {/* Submit Button */}
           <button
             type="submit"
@@ -174,14 +182,24 @@ const Auth = () => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Logging in...
+                Creating Account...
               </span>
             ) : (
-              'Login'
+              'Create Account'
             )}
           </button>
         </form>
- 
+
+        {/* Login Link */}
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600">
+            Already have an account?{' '}
+            <Link to="/login" className="text-red-600 hover:text-red-700 font-medium">
+              Sign in here
+            </Link>
+          </p>
+        </div>
+
         {/* Footer */}
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-600">
@@ -199,5 +217,5 @@ const Auth = () => {
     </div>
   );
 };
- 
+
 export default Auth;

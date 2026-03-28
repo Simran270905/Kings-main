@@ -24,7 +24,7 @@ export const extractData = (response) => {
   // Fallback to response itself
   if (Array.isArray(response)) return response;
   
-  // Final fallback
+  // Final fallback - ensure we never return undefined
   return response.data || [];
 };
 
@@ -61,6 +61,7 @@ export const extractError = (response) => {
  * @returns {Boolean} Success status
  */
 export const isSuccess = (response) => {
+  if (!response) return false;
   return response?.success === true || response?.data?.success === true;
 };
 
@@ -87,9 +88,10 @@ export const logApiCall = (endpoint, method = 'GET', data = null) => {
 };
 
 export const logApiResponse = (endpoint, response) => {
+  const extractedData = extractData(response);
   console.log(`📦 API Response: ${endpoint}`, {
     success: isSuccess(response),
-    dataCount: Array.isArray(extractData(response)) ? extractData(response).length : 1,
-    hasData: extractData(response).length > 0
+    dataCount: Array.isArray(extractedData) ? extractedData.length : (extractedData ? 1 : 0),
+    hasData: Array.isArray(extractedData) ? extractedData.length > 0 : !!extractedData
   });
 };

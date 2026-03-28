@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
-import { EyeIcon, EyeSlashIcon, ExclamationCircleIcon, UserIcon, LockClosedIcon } from "@heroicons/react/24/outline";
+import { ExclamationCircleIcon, UserIcon, LockClosedIcon } from "@heroicons/react/24/outline";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -12,7 +12,6 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   // Handle login
   const handleLogin = async (e) => {
@@ -57,7 +56,7 @@ const Login = () => {
       // Call login function
       const result = await login(payload);
 
-      if (result.success) {
+      if (result && result.success) {
         navigate("/account");
       } else {
         setError(result.error || "Login failed");
@@ -112,6 +111,7 @@ const Login = () => {
                   placeholder="Enter email or 10-digit phone"
                   className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#ae0b0b] focus:ring-2 focus:ring-[#ae0b0b]/10 transition-all"
                   autoComplete="email"
+                  required
                 />
               </div>
             </div>
@@ -126,20 +126,14 @@ const Login = () => {
                   <LockClosedIcon className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full pl-10 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#ae0b0b] focus:ring-2 focus:ring-[#ae0b0b]/10 transition-all"
+                  className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#ae0b0b] focus:ring-2 focus:ring-[#ae0b0b]/10 transition-all"
                   autoComplete="current-password"
+                  required
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  {showPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
-                </button>
               </div>
             </div>
 
