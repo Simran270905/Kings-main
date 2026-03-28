@@ -298,12 +298,18 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
-        updateProfile, // ✅ Existing
-        authenticateWithOTP, // ✅ Existing OTP method
-        simpleLogin // ✅ NEW simple login method
+        updateProfile, // Existing
+        authenticateWithOTP, // Existing OTP method
+        simpleLogin // NEW simple login method
       }}
     >
       {children}
     </AuthContext.Provider>
   )
+}
+
+export const useAuth = () => {
+  const context = useContext(AuthContext)
+  if (!context) throw new Error('useAuth must be used within AuthProvider')
+  return context
 }
