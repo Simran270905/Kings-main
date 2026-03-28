@@ -1,9 +1,9 @@
 // Check if user is logged in
 export const isUserLoggedIn = () => {
-  const token = localStorage.getItem('token');
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  // Check for token in memory or session storage instead of localStorage
+  const token = sessionStorage.getItem('token') || (typeof window !== 'undefined' && window.token);
   
-  return !!(token && isAuthenticated);
+  return !!token;
 };
 
 // Quick login function for testing (development only)

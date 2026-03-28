@@ -1,10 +1,10 @@
 /**
  * Product Service Layer
- * Abstracts all localStorage operations for products and categories
+ * Abstracts all API operations for products and categories
  * Provides error-safe data persistence with fallback defaults
  * 
  * This layer prepares the app for easy backend API integration:
- * Simply replace localStorage calls with API endpoints and the entire
+ * Simply replace API calls with new endpoints and the entire
  * ProductContext will work with backend without any UI changes.
  */
 
@@ -15,18 +15,22 @@ import { API_BASE_URL } from '@config/api.js'
 // ============================================================================
 
 /**
- * Load all products from localStorage
- * @returns {Array} Array of products, or empty array on error
+ * Load all products from backend API
+ * @returns {Promise<Array>} Array of products from API
  */
-export const loadProducts = () => {
+export const loadProducts = async () => {
   try {
-    const data = localStorage.getItem('kk_products')
-    if (!data) {
-      console.log('📦 No products in localStorage, will fetch from API')
+    const apiUrl = `${API_BASE_URL}/products`
+    const response = await fetch(apiUrl)
+    
+    if (!response.ok) {
+      console.error(`❌ API Error: HTTP ${response.status}`)
       return []
     }
-    const products = JSON.parse(data)
-    console.log(`📦 Loaded ${products.length} products from storage`)
+    
+    const data = await response.json()
+    const products = data.data?.products || []
+    console.log(`📦 Loaded ${products.length} products from API`)
     return Array.isArray(products) ? products : []
   } catch (error) {
     console.error('❌ Error loading products:', error.message)
@@ -71,25 +75,6 @@ export const fetchProductsFromAPI = async () => {
 }
 
 /**
- * Save all products to localStorage
- * @param {Array} products - Products to save
- * @returns {boolean} Success status
- */
-export const saveProducts = (products) => {
-  try {
-    if (!Array.isArray(products)) {
-      throw new Error('Products must be an array')
-    }
-    localStorage.setItem('kk_products', JSON.stringify(products))
-    console.log(`✅ Saved ${products.length} products to storage`)
-    return true
-  } catch (error) {
-    console.error('❌ Error saving products:', error.message)
-    return false
-  }
-}
-
-/**
  * Get product by ID
  * @param {string} productId - Product ID to find
  * @param {Array} products - Products array to search
@@ -108,14 +93,30 @@ export const getProductById = (productId, products) => {
 // ============================================================================
 
 /**
- * Load all categories from localStorage
- * @returns {Array} Array of categories, or empty array on error
+ * Load all categories from backend API
+ * @returns {Promise<Array>} Array of categories from API
  */
-export const loadCategories = () => {
+export const loadCategories = async () => {
   try {
-    const data = localStorage.getItem('kk_categories')
-    if (!data) return []
-    const categories = JSON.parse(data)
+    const apiUrl = `${API_BASE_URL}/categories`
+    const response = await fetch(apiUrl)
+    
+    if (!response.ok) {
+      console.error(`❌ API Error: HTTP ${response.status}`)
+      return []
+    }
+    
+    const data = await response.json()
+    let categories = []
+    
+    // Handle both old and new response structures
+    if (Array.isArray(data?.data)) {
+      categories = data.data
+    } else if (data?.data?.categories && Array.isArray(data.data.categories)) {
+      categories = data.data.categories
+    }
+    
+    console.log(`📂 Loaded ${categories.length} categories from API`)
     return Array.isArray(categories) ? categories : []
   } catch (error) {
     console.error('❌ Error loading categories:', error.message)
@@ -125,13 +126,13 @@ export const loadCategories = () => {
 
 /**
  * Fetch categories from backend API
- * @returns {Promise<Array>} Array of categories
+ * @returns {Promise<Array>} Array of categories from API
  */
 export const fetchCategoriesFromAPI = async () => {
   try {
     // Add timeout to prevent hanging
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
 
     const apiUrl = `${API_BASE_URL}/categories`
     console.log("API CALL:", apiUrl)
@@ -142,46 +143,29 @@ export const fetchCategoriesFromAPI = async () => {
     
     clearTimeout(timeoutId)
     
-    if (!response.ok) return []
+    if (!response.ok) {
+      console.error(`❌ API Error: HTTP ${response.status}`)
+      return []
+    }
     
     const data = await response.json()
     let categories = []
-    if (data.data && Array.isArray(data.data)) {
+    
+    // Handle both old and new response structures
+    if (Array.isArray(data?.data)) {
       categories = data.data
-    } else if (Array.isArray(data)) {
-      categories = data
+    } else if (data?.data?.categories && Array.isArray(data.data.categories)) {
+      categories = data.data.categories
     }
-    return categories.map(c => ({
-      id: c._id || c.id,
-      name: c.name,
-      slug: c.slug,
-      image: c.image,
-    }))
+    
+    return categories
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.error('❌ Categories API timeout: Request took too long')
+      console.error('❌ API timeout: Request took too long')
     } else {
       console.error('❌ Error fetching categories from API:', error.message)
     }
     return []
-  }
-}
-
-/**
- * Save all categories to localStorage
- * @param {Array} categories - Categories to save
- * @returns {boolean} Success status
- */
-export const saveCategories = (categories) => {
-  try {
-    if (!Array.isArray(categories)) {
-      throw new Error('Categories must be an array')
-    }
-    localStorage.setItem('kk_categories', JSON.stringify(categories))
-    return true
-  } catch (error) {
-    console.error('❌ Error saving categories:', error.message)
-    return false
   }
 }
 

@@ -6,7 +6,8 @@ const buildUrl = (endpoint) => {
 };
 
 const request = async (endpoint, options = {}) => {
-  const token = localStorage.getItem('token') || localStorage.getItem('kk_admin_token')
+  // Get token from sessionStorage or memory instead of localStorage
+  const token = sessionStorage.getItem('token') || sessionStorage.getItem('kk_admin_token')
 
   const defaultHeaders = {
     'Content-Type': 'application/json',

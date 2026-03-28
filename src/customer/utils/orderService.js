@@ -10,7 +10,8 @@ const API_URL = `${API_BASE_URL}/users`
 // Fetch user's orders
 export const fetchUserOrders = async (status = 'all', page = 1, limit = 10) => {
   try {
-    const token = localStorage.getItem('token')
+    // Get token from sessionStorage instead of localStorage
+    const token = sessionStorage.getItem('token')
     if (!token) {
       throw new Error('Authentication required')
     }
@@ -47,7 +48,8 @@ export const fetchUserOrders = async (status = 'all', page = 1, limit = 10) => {
 // Get single order details
 export const fetchUserOrderById = async (orderId) => {
   try {
-    const token = localStorage.getItem('token')
+    // Get token from sessionStorage instead of localStorage
+    const token = sessionStorage.getItem('token')
     if (!token) {
       throw new Error('Authentication required')
     }

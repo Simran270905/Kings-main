@@ -88,13 +88,7 @@ function HomePage() {
                 const catProducts = productsByCategory[cat.name] || []
                 if (catProducts.length === 0) return null
                 return (
-                  <div key={cat._id} className="space-y-8">
-                    <div className="text-center">
-                      <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-                        {cat.name.toUpperCase()}
-                      </h2>
-                      <div className="w-24 h-1 bg-red-600 mx-auto"></div>
-                    </div>
+                  <div key={cat._id}>
                     <HomeSectionCarosal
                       data={catProducts}
                       sectionName={cat.name.toUpperCase()}
@@ -109,13 +103,7 @@ function HomePage() {
                   const catProducts = productsByCategory[cat.name] || []
                   if (catProducts.length === 0) return null
                   return (
-                    <div key={cat._id} className="space-y-8">
-                      <div className="text-center">
-                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-                          {cat.name.toUpperCase()}
-                        </h2>
-                        <div className="w-24 h-1 bg-red-600 mx-auto"></div>
-                      </div>
+                    <div key={cat._id}>
                       <LazyHomeSection
                         data={catProducts}
                         sectionName={cat.name.toUpperCase()}

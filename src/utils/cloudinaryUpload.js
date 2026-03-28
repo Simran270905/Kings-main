@@ -25,7 +25,7 @@ export const uploadToCloudinary = async (file) => {
     throw new Error(validation.error)
   }
 
-  const token = localStorage.getItem('kk_admin_token')
+  const token = sessionStorage.getItem('kk_admin_token')
   if (!token) {
     throw new Error('Authentication required. Please login.')
   }
@@ -76,7 +76,7 @@ export const uploadMultipleToCloudinary = async (files) => {
     }
   }
 
-  const token = localStorage.getItem('kk_admin_token')
+  const token = sessionStorage.getItem('kk_admin_token')
   if (!token) {
     throw new Error('Authentication required. Please login.')
   }
