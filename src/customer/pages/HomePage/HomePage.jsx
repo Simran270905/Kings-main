@@ -70,47 +70,63 @@ function HomePage() {
       <MainCarosal />
 
       {/* ================= SECTIONS ================= */}
-      <div className="space-y-10 py-20 flex flex-col justify-center px-5 lg:px-10">
-        
-        {/* Categories Loading State */}
-        {categoriesLoading ? (
-          <CategorySkeleton />
-        ) : !productsLoading && products.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="text-gray-500 text-lg">No products available at the moment.</div>
-            <div className="text-gray-400 text-sm mt-2">Please check back later.</div>
-          </div>
-        ) : (
-          <>
-            {/* First 2 Categories - Load Immediately */}
-            {categories.slice(0, 2).map((cat) => {
-              const catProducts = productsByCategory[cat.name] || []
-              if (catProducts.length === 0) return null
-              return (
-                <HomeSectionCarosal
-                  key={cat._id}
-                  data={catProducts}
-                  sectionName={cat.name.toUpperCase()}
-                />
-              )
-            })}
-
-            {/* Remaining Categories - Lazy Load */}
-            <Suspense fallback={<CategorySkeleton />}>
-              {categories.slice(2).map((cat) => {
+      <div className="bg-gray-50 py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto space-y-16">
+          
+          {/* Categories Loading State */}
+          {categoriesLoading ? (
+            <CategorySkeleton />
+          ) : !productsLoading && products.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="text-gray-500 text-lg">No products available at the moment.</div>
+              <div className="text-gray-400 text-sm mt-2">Please check back later.</div>
+            </div>
+          ) : (
+            <>
+              {/* First 2 Categories - Load Immediately */}
+              {categories.slice(0, 2).map((cat) => {
                 const catProducts = productsByCategory[cat.name] || []
                 if (catProducts.length === 0) return null
                 return (
-                  <LazyHomeSection
-                    key={cat._id}
-                    data={catProducts}
-                    sectionName={cat.name.toUpperCase()}
-                  />
+                  <div key={cat._id} className="space-y-8">
+                    <div className="text-center">
+                      <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                        {cat.name.toUpperCase()}
+                      </h2>
+                      <div className="w-24 h-1 bg-red-600 mx-auto"></div>
+                    </div>
+                    <HomeSectionCarosal
+                      data={catProducts}
+                      sectionName={cat.name.toUpperCase()}
+                    />
+                  </div>
                 )
               })}
-            </Suspense>
-          </>
-        )}
+
+              {/* Remaining Categories - Lazy Load */}
+              <Suspense fallback={<CategorySkeleton />}>
+                {categories.slice(2).map((cat) => {
+                  const catProducts = productsByCategory[cat.name] || []
+                  if (catProducts.length === 0) return null
+                  return (
+                    <div key={cat._id} className="space-y-8">
+                      <div className="text-center">
+                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                          {cat.name.toUpperCase()}
+                        </h2>
+                        <div className="w-24 h-1 bg-red-600 mx-auto"></div>
+                      </div>
+                      <LazyHomeSection
+                        data={catProducts}
+                        sectionName={cat.name.toUpperCase()}
+                      />
+                    </div>
+                  )
+                })}
+              </Suspense>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

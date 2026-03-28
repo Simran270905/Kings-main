@@ -42,10 +42,6 @@ const HomeSectionCarousel = ({ sectionName, data = [] }) => {
     return (
       <section className="relative w-full px-4 sm:px-6 lg:px-14 py-12 lg:py-16 bg-gradient-to-b from-[#ffffff] via-[#fffaf3] to-[#fdf6ec]">
         <div className="mb-8 lg:mb-12 flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl lg:text-3xl font-semibold tracking-wide text-[#ae0b0b]">{sectionName}</h2>
-            <span className="mt-3 block h-1 w-16 rounded-full bg-gradient-to-r from-[#b91c1c] to-[#d4af37]" />
-          </div>
           <Link to={`/shop/${String(sectionName).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')}`} className="text-sm font-medium text-[#ae0b0b] hidden sm:inline-flex">Explore →</Link>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 lg:gap-6">
@@ -83,28 +79,9 @@ const HomeSectionCarousel = ({ sectionName, data = [] }) => {
 
   return (
     <section
-      className="relative w-full px-4 sm:px-6 lg:px-14 py-12 lg:py-16
-                 bg-gradient-to-b from-[#ffffff] via-[#fffaf3] to-[#fdf6ec]"
+      className="relative w-full px-4 sm:px-6 lg:px-14 py-12 lg:py-16 bg-gradient-to-b from-[#ffffff] via-[#fffaf3] to-[#fdf6ec]"
     >
-      <div className="pointer-events-none absolute inset-0
-                      bg-gradient-to-r from-[#f3e6cf]/20 via-transparent to-[#f3e6cf]/20" />
-
-      {/* ================= HEADING ================= */}
-      <div className="relative mb-8 lg:mb-12 flex items-center justify-between">
-        <div>
-            <h2 className="text-2xl lg:text-3xl font-semibold tracking-wide text-[#ae0b0b]">
-              {sectionName}
-            </h2>
-            <span className="mt-3 block h-1 w-16 rounded-full bg-gradient-to-r from-[#b91c1c] to-[#d4af37]" />
-        </div>
-
-        <Link
-          to={`/shop/${String(sectionName).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')}`}
-          className="text-sm font-medium text-[#ae0b0b] hidden sm:inline-flex"
-        >
-          Explore →
-        </Link>
-      </div>
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#f3e6cf]/20 via-transparent to-[#f3e6cf]/20" />
 
       {/* ================= CAROUSEL ================= */}
       <div
