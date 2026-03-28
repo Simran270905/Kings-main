@@ -15,7 +15,7 @@ export default function Orders() {
     if (isAuthenticated) {
       fetchUserOrders()
     }
-  }, [isAuthenticated, fetchUserOrders])
+  }, [isAuthenticated])
 
   const getStatusIcon = (status) => {
     switch (status) {

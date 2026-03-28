@@ -25,6 +25,10 @@ export function CustomerOrderProvider({ children }) {
 
   const fetchUserOrders = async () => {
     const token = getToken()
+    console.log(" DEBUG: Fetching user orders")
+    console.log(" DEBUG: Token exists:", !!token)
+    console.log(" DEBUG: Token preview:", token ? token.substring(0, 20) + "..." : "null")
+    
     if (!token) {
       setOrders([])
       setError('Please log in to view orders')
@@ -41,14 +45,20 @@ export function CustomerOrderProvider({ children }) {
       })
       const body = await response.json()
       logApiResponse('/orders/my-orders', body)
+      
+      console.log(" DEBUG: API Response status:", response.status)
+      console.log(" DEBUG: API Response body:", body)
 
       if (!response.ok) {
         throw new Error(extractError(body))
       }
 
-      const ordersData = extractData(body)
+      const ordersData = body.data?.orders || body.data || []
+      console.log(" DEBUG: Extracted orders data:", ordersData)
+      console.log(" DEBUG: Orders count:", ordersData.length)
       setOrders(ordersData)
     } catch (err) {
+      console.error(" DEBUG: Error fetching orders:", err)
       setError(extractError(err) || 'Network error while loading orders')
       setOrders([]) // Clear orders on error
     } finally {
@@ -58,6 +68,10 @@ export function CustomerOrderProvider({ children }) {
 
   const fetchOrderDetails = async (orderId) => {
     const token = getToken()
+    console.log(" DEBUG: Fetching order details")
+    console.log(" DEBUG: Token exists:", !!token)
+    console.log(" DEBUG: Token preview:", token ? token.substring(0, 20) + "..." : "null")
+    
     if (!token) return { success: false, error: 'Please log in' }
     if (!orderId) return { success: false, error: 'Invalid order ID' }
 
