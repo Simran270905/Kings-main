@@ -125,10 +125,24 @@ export function CustomerOrderProvider({ children }) {
           localStorage.removeItem('token')
           localStorage.removeItem('user')
           localStorage.removeItem('isAuthenticated')
-          return { success: false, error: 'Session expired. Please log in again.' }
+          return { success: false, error: 'Your session has expired. Please log in again to continue.' }
         }
         
-        return { success: false, error: body?.message || 'Failed to place order' }
+        // ✅ PROVIDE FRIENDLY ERROR MESSAGES
+        if (response.status === 400) {
+          return { success: false, error: body.message || 'Please check your order details and try again.' }
+        }
+        
+        if (response.status === 500) {
+          return { success: false, error: 'Server is temporarily unavailable. Please try again in a few minutes.' }
+        }
+        
+        if (response.status === 429) {
+          return { success: false, error: 'Too many requests. Please wait a moment and try again.' }
+        }
+        
+        // Default error message
+        return { success: false, error: body?.message || 'Unable to place order. Please try again.' }
       }
 
       setCurrentOrder(body.data)

@@ -5,12 +5,37 @@ import { API_BASE_URL } from '@config/api.js';
 
 const API_URL = API_BASE_URL;
 
+// ✅ LOCALSTORAGE ADDRESS MANAGEMENT
+const saveAddressToLocalStorage = (address) => {
+    localStorage.setItem('savedAddress', JSON.stringify(address));
+};
+
+const getSavedAddressFromLocalStorage = () => {
+    try {
+        const saved = localStorage.getItem('savedAddress');
+        return saved ? JSON.parse(saved) : null;
+    } catch (error) {
+        console.error('Error parsing saved address:', error);
+        return null;
+    }
+};
+
 const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
     const [savedAddresses, setSavedAddresses] = useState([]);
     const [selectedAddressIndex, setSelectedAddressIndex] = useState(-1);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Load saved addresses
+    // ✅ LOAD SAVED ADDRESS FROM LOCALSTORAGE ON MOUNT
+    useEffect(() => {
+        const savedAddress = getSavedAddressFromLocalStorage();
+        if (savedAddress && !address.firstName) {
+            // Only use saved address if no address provided via props
+            setFormData(savedAddress);
+            onAddressChange(savedAddress);
+        }
+    }, [address.firstName]); // Only depend on address.firstName, not onAddressChange
+
+    // Load saved addresses from backend
     useEffect(() => {
         const loadAddresses = async () => {
             try {
@@ -65,7 +90,7 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
                 if (onAddressChange) onAddressChange(addrData);
             }
         }
-    }, [savedAddresses, address, onAddressChange]);
+    }, [savedAddresses.length, address.firstName]); // Only depend on length and firstName, not onAddressChange
 
     const [errors, setErrors] = useState({});
 
@@ -74,6 +99,10 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
         const { name, value } = e.target;
         const newData = { ...formData, [name]: value };
         setFormData(newData);
+        
+        // ✅ SAVE TO LOCALSTORAGE ON EVERY CHANGE FOR PERSISTENCE
+        saveAddressToLocalStorage(newData);
+        
         // FIXED: Update parent component state in real-time
         if (onAddressChange) {
             onAddressChange(newData);
@@ -128,6 +157,10 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
 
             if (response.ok) {
                 toast.success('Address saved successfully');
+                
+                // ✅ SAVE TO LOCALSTORAGE FOR PERSISTENCE
+                saveAddressToLocalStorage(formData);
+                
                 // Reload addresses
                 const addrResponse = await fetch(`${API_URL}/customers/addresses`, {
                     headers: {
@@ -154,6 +187,30 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
             <Grid container spacing={4}>
                 <Grid size={{ xs: 12 }}>
                     <Box className="border rounded-s-md shadow-md p-5">
+                        {/* ✅ LOCALSTORAGE SAVED ADDRESS */}
+                        {getSavedAddressFromLocalStorage() && savedAddresses.length === 0 && (
+                            <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <p className="text-sm font-medium text-blue-900">Saved Address Available</p>
+                                        <p className="text-xs text-blue-700">Use your previously entered address</p>
+                                    </div>
+                                    <Button
+                                        variant="outlined"
+                                        size="small"
+                                        onClick={() => {
+                                            const savedAddr = getSavedAddressFromLocalStorage();
+                                            setFormData(savedAddr);
+                                            if (onAddressChange) onAddressChange(savedAddr);
+                                            toast.success('Address loaded from saved data');
+                                        }}
+                                    >
+                                        Use Saved Address
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                        
                         {savedAddresses.length > 0 && (
                             <div className="mb-6">
                                 <FormControl fullWidth>
@@ -176,6 +233,8 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
                                                     mobile: addr.mobile,
                                                 };
                                                 setFormData(addrData);
+                                                // ✅ SAVE TO LOCALSTORAGE WHEN SELECTING SAVED ADDRESS
+                                                saveAddressToLocalStorage(addrData);
                                                 if (onAddressChange) onAddressChange(addrData);
                                             }
                                         }}

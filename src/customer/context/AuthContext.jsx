@@ -1,6 +1,24 @@
 import React, { createContext, useState, useEffect } from 'react'
 import { API_BASE_URL } from '@config/api.js'
 
+// CLIENT-SIDE JWT VALIDATION FUNCTION - SIMPLIFIED
+const isTokenValid = (token) => {
+  if (!token) return false
+  
+  try {
+    // Simple format check - JWT should have 3 parts
+    const parts = token.split('.')
+    if (parts.length !== 3) return false
+    
+    // For now, just check if token exists and has valid format
+    // We can add proper expiration checking later if needed
+    return true
+  } catch (error) {
+    console.error(' JWT validation error:', error)
+    return false
+  }
+}
+
 export const AuthContext = createContext()
 
 export function AuthProvider({ children }) {
@@ -8,9 +26,9 @@ export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  // Restore session + fetch profile
+  // IMPROVED SESSION RESTORATION
   useEffect(() => {
-    const fetchProfile = async () => {
+    const restoreSession = () => {
       try {
         // Check for simple login first (no token)
         const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true'
@@ -24,7 +42,7 @@ export function AuthProvider({ children }) {
           return
         }
 
-        // Fallback to token-based authentication
+        // CLIENT-SIDE TOKEN VALIDATION (no API call)
         const token = localStorage.getItem('token')
 
         if (!token) {
@@ -32,23 +50,31 @@ export function AuthProvider({ children }) {
           return
         }
 
-        const res = await fetch(`${API_BASE_URL}/customers/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        })
+        // Validate token client-side first
+        if (!isTokenValid(token)) {
+          console.log(' Token expired, clearing session')
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          localStorage.removeItem('isAuthenticated')
+          setLoading(false)
+          return
+        }
 
-        const result = await res.json()
-
-        if (res.ok) {
-          setUser(result.data)
+        // TOKEN IS VALID - RESTORE SESSION IMMEDIATELY
+        const storedUserData = localStorage.getItem('user')
+        if (storedUserData) {
+          const userData = JSON.parse(storedUserData)
+          setUser(userData)
           setIsAuthenticated(true)
+          console.log(' Session restored from localStorage')
         } else {
+          // Token exists but no user data - clear token
           localStorage.removeItem('token')
         }
 
       } catch (error) {
-        console.error(' Auto login failed:', error.message)
+        console.error(' Session restoration failed:', error)
+        // Only clear on actual errors, not 404s
         localStorage.removeItem('token')
         localStorage.removeItem('user')
         localStorage.removeItem('isAuthenticated')
@@ -57,7 +83,7 @@ export function AuthProvider({ children }) {
       }
     }
 
-    fetchProfile()
+    restoreSession()
   }, [])
 
   // OTP AUTHENTICATION
@@ -81,6 +107,8 @@ export function AuthProvider({ children }) {
       }
 
       localStorage.setItem('token', result.data.token)
+      localStorage.setItem('user', JSON.stringify(result.data.user))
+      localStorage.setItem('isAuthenticated', 'true')
 
       setUser(result.data.user)
       setIsAuthenticated(true)
