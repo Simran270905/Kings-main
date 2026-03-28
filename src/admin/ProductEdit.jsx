@@ -7,6 +7,7 @@ import AdminButton from './layout/AdminButton'
 import FormInput from './components/FormInput'
 import FormTextarea from './components/FormTextarea'
 import { PhotoIcon, XMarkIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
+import { events } from '../utils/eventSystem'
 
 const ProductEdit = () => {
   const { id } = useParams()
@@ -271,7 +272,10 @@ const ProductEdit = () => {
 
       setSuccess('Product updated successfully!')
       
-      // Trigger global refresh across admin components
+      // Trigger real-time sync event for customer side
+      events.productUpdated(data.data?.product || data.data)
+      
+      // Also trigger admin refresh
       window.dispatchEvent(new Event('adminProductUpdated'))
       
       setTimeout(() => {

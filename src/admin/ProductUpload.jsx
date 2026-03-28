@@ -6,6 +6,7 @@ import FormInput from './components/FormInput'
 import FormTextarea from './components/FormTextarea'
 import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { API_BASE_URL } from '../config/api'
+import { events } from '../utils/eventSystem'
 
 const ProductUpload = () => {
   const [categories, setCategories] = useState([])
@@ -307,7 +308,10 @@ const ProductUpload = () => {
       setSuccess('✅ Product added successfully! It will now appear in the Products list and on the website.')
       setTimeout(() => setSuccess(''), 5000)
 
-      // Trigger global refresh across admin components
+      // Trigger real-time sync event for customer side
+      events.productCreated(data.data?.product || data.data)
+      
+      // Also trigger admin refresh
       window.dispatchEvent(new Event('adminProductUpdated'))
 
     } catch (err) {
