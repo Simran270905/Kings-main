@@ -286,11 +286,16 @@ export default function ProductDetails() {
                   return
                 }
 
-                addToCart({
-                  ...currentProduct,
-                  selectedSize,
-                  quantity: 1,
-                })
+                if (typeof addToCart === 'function') {
+                  addToCart({
+                    ...currentProduct,
+                    selectedSize,
+                    quantity: 1,
+                  })
+                } else {
+                  console.error('addToCart is not a function')
+                  toast.error('Unable to add to cart. Please refresh the page.')
+                }
               }}
               className="mt-8 w-full rounded-md bg-[#ae0b0b] py-3 text-white"
             >

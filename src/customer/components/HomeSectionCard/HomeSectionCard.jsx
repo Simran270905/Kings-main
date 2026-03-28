@@ -134,7 +134,11 @@ const HomeSectionCard = ({ product }) => {
         <button
           onClick={(e) => {
             e.preventDefault()
-            addToCart(product, 1)
+            if (typeof addToCart === 'function') {
+              addToCart(product, 1)
+            } else {
+              console.error('addToCart is not a function')
+            }
           }}
           className="mt-3 w-full rounded-md bg-[#ae0b0b] py-2 text-white font-medium hover:opacity-90"
         >

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
-import { CustomerOrderContext } from "../../context/CustomerOrderContext";
+import { useCustomerOrder } from "../../context/CustomerOrderContext";
 import { UserCircleIcon, EnvelopeIcon, PhoneIcon, ShoppingBagIcon, ArrowRightOnRectangleIcon, ClockIcon, CheckCircleIcon, TruckIcon, XCircleIcon } from "@heroicons/react/24/outline";
 
 const Account = () => {
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuth();
-  const { orders: userOrders, loading: ordersLoading, fetchUserOrders } = CustomerOrderContext();
+  const { orders: userOrders, loading: ordersLoading, fetchUserOrders } = useCustomerOrder();
 
   if (!isAuthenticated || !user) {
     return (
