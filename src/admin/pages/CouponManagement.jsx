@@ -65,7 +65,8 @@ export default function CouponManagement() {
     console.log('🔍 DEBUG: Coupon form submitted')
     console.log('🔍 DEBUG: Form data:', formData)
     
-    const token = localStorage.getItem('adminToken')
+    // ✅ FIXED: Use correct token key that adminApiService uses
+    const token = localStorage.getItem('kk_admin_token')
     console.log('🔍 DEBUG: Admin token from localStorage:', token ? token.substring(0, 20) + '...' : 'NO TOKEN')
     
     if (!token) {
@@ -144,7 +145,8 @@ export default function CouponManagement() {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this coupon?')) return
 
-    const token = localStorage.getItem('adminToken')
+    // ✅ FIXED: Use correct token key
+    const token = localStorage.getItem('kk_admin_token')
     try {
       await couponApi.delete(id, token)
       toast.success('Coupon deleted successfully')
