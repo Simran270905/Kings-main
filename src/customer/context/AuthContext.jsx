@@ -176,7 +176,7 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // LOGIN (kept for backward compatibility)
+  // LOGIN (updated for no password)
   const login = async (data) => {
     try {
       const res = await fetch(`${API_BASE_URL}/customers/login`, {
@@ -185,8 +185,7 @@ export function AuthProvider({ children }) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          email: data.email,
-          password: data.password
+          email: data.email
         })
       })
 

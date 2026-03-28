@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
-import { ExclamationCircleIcon, UserIcon, LockClosedIcon } from "@heroicons/react/24/outline";
+import { ExclamationCircleIcon, UserIcon } from "@heroicons/react/24/outline";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -9,7 +9,6 @@ const Login = () => {
 
   // Form state
   const [identifier, setIdentifier] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -24,10 +23,6 @@ const Login = () => {
         throw new Error("Email or phone is required");
       }
 
-      if (!password.trim()) {
-        throw new Error("Password is required");
-      }
-
       const value = identifier.trim();
       const isEmail = value.includes("@");
 
@@ -40,7 +35,7 @@ const Login = () => {
           throw new Error("Invalid email format");
         }
 
-        payload = { email: value, password };
+        payload = { email: value };
 
       } else {
         // Phone validation
@@ -50,7 +45,7 @@ const Login = () => {
         }
 
         // For phone login, use email field with phone number
-        payload = { email: phoneDigits, password };
+        payload = { email: phoneDigits };
       }
 
       // Call login function
@@ -114,27 +109,7 @@ const Login = () => {
                   required
                 />
               </div>
-            </div>
-
-            {/* Password Input */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <LockClosedIcon className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#ae0b0b] focus:ring-2 focus:ring-[#ae0b0b]/10 transition-all"
-                  autoComplete="current-password"
-                  required
-                />
-              </div>
+              <p className="text-xs text-gray-500 mt-2">Enter your email address or 10-digit mobile number</p>
             </div>
 
             {/* Login Button */}
@@ -185,13 +160,6 @@ const Login = () => {
                 className="text-gray-500 hover:text-[#ae0b0b] transition-colors"
               >
                 Back to Home
-              </Link>
-              <span className="text-gray-300">•</span>
-              <Link 
-                to="/forgot-password" 
-                className="text-gray-500 hover:text-[#ae0b0b] transition-colors"
-              >
-                Forgot Password?
               </Link>
             </div>
           </div>
