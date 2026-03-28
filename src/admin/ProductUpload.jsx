@@ -184,13 +184,43 @@ const ProductUpload = () => {
     setError('')
     setSuccess('')
 
-    if (!formData.name || !formData.purchasePrice || !formData.category) {
-      setError('Please fill in all required fields: Name, Purchase Price, and Category')
+    // ✅ STEP 1: FIX VALIDATION FIELD NAMES
+    // ✅ STEP 2: INCLUDE ALL REQUIRED FIELDS
+    if (
+      !formData.name ||
+      !formData.category ||
+      !formData.selling_price ||
+      !formData.originalPrice ||
+      !formData.purchasePrice
+    ) {
+      setError('Please fill all required fields')
       return
     }
 
-    if (!formData.purchasePrice || Number(formData.purchasePrice) < 0) {
+    // ✅ STEP 3: FIX NUMBER CONVERSION & VALIDATION
+    const purchasePrice = Number(formData.purchasePrice)
+    const originalPrice = Number(formData.originalPrice)
+    const sellingPrice = Number(formData.selling_price)
+    const stock = Number(formData.stock)
+
+    if (purchasePrice < 0) {
       setError('Purchase price must be a positive number')
+      return
+    }
+
+    if (originalPrice < 0) {
+      setError('Original price must be a positive number')
+      return
+    }
+
+    if (sellingPrice < 0) {
+      setError('Selling price must be a positive number')
+      return
+    }
+
+    // ✅ STEP 7: LOGICAL VALIDATION
+    if (sellingPrice < purchasePrice) {
+      setError('Selling price must be higher than purchase price')
       return
     }
 
@@ -199,19 +229,9 @@ const ProductUpload = () => {
       return
     }
 
-    // ✅ Check selling price if provided
-    const sellingPrice = formData.selling_price ? Number(formData.selling_price) : null
-    const purchasePrice = Number(formData.purchasePrice)
-    
-    if (sellingPrice !== null && sellingPrice <= 0) {
-      setError('Selling price must be greater than 0')
-      return
-    }
-
-    if (sellingPrice !== null && sellingPrice < purchasePrice) {
-      setError('Selling price cannot be less than purchase price')
-      return
-    }
+    // ✅ STEP 4: ADD LOG BEFORE SUBMIT
+    console.log("Submitting:", formData)
+    console.log("Parsed values:", { purchasePrice, originalPrice, sellingPrice, stock })
 
     setIsSubmitting(true)
 
@@ -227,13 +247,14 @@ const ProductUpload = () => {
       const payload = {
         name: formData.name.trim(),
         description: formData.description.trim(),
-        purchasePrice: Number(formData.purchasePrice) || 0,
-        originalPrice: Number(formData.originalPrice) || Number(formData.purchasePrice) || 0,
-        sellingPrice: sellingPrice, // Use the validated selling price
+        // ✅ STEP 3: FIX NUMBER CONVERSION
+        purchasePrice: purchasePrice,
+        originalPrice: originalPrice,
+        sellingPrice: sellingPrice, // ✅ STEP 5: BACKEND VALIDATION FIX - USE sellingPrice
         category: formData.category,
         brand: formData.brand || null,
         images: validImages,
-        stock: formData.hasSizes ? 0 : (Number(formData.stock) || 1),
+        stock: formData.hasSizes ? 0 : stock, // ✅ STEP 3: FIX NUMBER CONVERSION
         hasSizes: formData.hasSizes,
         sizes: formData.sizes,
         material: formData.material || 'Gold',
@@ -607,14 +628,14 @@ const ProductUpload = () => {
                   <div className="flex items-end">
                     <div className="text-sm text-gray-600">
                       <p className="font-medium mb-2">Discount Preview:</p>
-                      {formData.discountPercentage && formData.price ? (
+                      {formData.discountPercentage && formData.selling_price ? (
                         <div className="space-y-1">
-                          <p>Original: ₹{Number(formData.price).toLocaleString('en-IN')}</p>
+                          <p>Original: ₹{Number(formData.selling_price).toLocaleString('en-IN')}</p>
                           <p className="text-red-600 font-semibold">
                             Discount: {formData.discountPercentage}% off
                           </p>
                           <p className="text-green-600 font-semibold">
-                            Final: ₹{(formData.price * (1 - formData.discountPercentage / 100)).toLocaleString('en-IN')}
+                            Final: ₹{(formData.selling_price * (1 - formData.discountPercentage / 100)).toLocaleString('en-IN')}
                           </p>
                         </div>
                       ) : (
