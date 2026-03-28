@@ -10,7 +10,8 @@ const validateToken = async (token) => {
   if (!token) return { valid: false, error: 'No token found' }
   
   try {
-    const response = await fetch(`${API_URL}/auth/verify-token`, {
+    // ✅ USE CORRECT ENDPOINT: /auth/verify (not /auth/verify-token)
+    const response = await fetch(`${API_URL}/auth/verify`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -19,12 +20,15 @@ const validateToken = async (token) => {
     
     if (response.ok) {
       const data = await response.json()
-      return { valid: true, user: data.user }
+      console.log("✅ Token validation successful:", data)
+      // The /auth/verify endpoint returns { valid: true } for valid tokens
+      return { valid: true, user: null } // User info not returned by this endpoint
     } else {
-      const data = await response.json()
-      return { valid: false, error: data.message || 'Token invalid' }
+      console.log("❌ Token validation failed with status:", response.status)
+      return { valid: false, error: 'Token invalid' }
     }
   } catch (error) {
+    console.error("❌ Token validation error:", error)
     return { valid: false, error: 'Token validation failed' }
   }
 }
