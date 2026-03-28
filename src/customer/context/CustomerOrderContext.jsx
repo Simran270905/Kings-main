@@ -5,34 +5,6 @@ import { extractData, extractError, isSuccess, logApiCall, logApiResponse } from
 const API_URL = API_BASE_URL
 const getToken = () => localStorage.getItem('token')
 
-// ✅ TOKEN VALIDATION FUNCTION
-const validateToken = async (token) => {
-  if (!token) return { valid: false, error: 'No token found' }
-  
-  try {
-    // ✅ USE CORRECT ENDPOINT: /auth/verify (not /auth/verify-token)
-    const response = await fetch(`${API_URL}/auth/verify`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-    
-    if (response.ok) {
-      const data = await response.json()
-      console.log("✅ Token validation successful:", data)
-      // The /auth/verify endpoint returns { valid: true } for valid tokens
-      return { valid: true, user: null } // User info not returned by this endpoint
-    } else {
-      console.log("❌ Token validation failed with status:", response.status)
-      return { valid: false, error: 'Token invalid' }
-    }
-  } catch (error) {
-    console.error("❌ Token validation error:", error)
-    return { valid: false, error: 'Token validation failed' }
-  }
-}
-
 export const CustomerOrderContext = createContext(null)
 
 export function CustomerOrderProvider({ children }) {
