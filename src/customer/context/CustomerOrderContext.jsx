@@ -5,6 +5,30 @@ import { extractData, extractError, isSuccess, logApiCall, logApiResponse } from
 const API_URL = API_BASE_URL
 const getToken = () => localStorage.getItem('token')
 
+// ✅ TOKEN VALIDATION FUNCTION
+const validateToken = async (token) => {
+  if (!token) return { valid: false, error: 'No token found' }
+  
+  try {
+    const response = await fetch(`${API_URL}/auth/verify-token`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      return { valid: true, user: data.user }
+    } else {
+      const data = await response.json()
+      return { valid: false, error: data.message || 'Token invalid' }
+    }
+  } catch (error) {
+    return { valid: false, error: 'Token validation failed' }
+  }
+}
+
 export const CustomerOrderContext = createContext(null)
 
 export function CustomerOrderProvider({ children }) {
@@ -67,8 +91,31 @@ export function CustomerOrderProvider({ children }) {
 
   const createOrder = async (orderData, clearCartFn) => {
     const token = getToken()
+    
+    // DEBUG: Check token status
+    console.log(" ORDER CREATION - TOKEN DEBUG:")
+    console.log(" Token exists:", !!token)
+    console.log(" Token length:", token?.length || 0)
+    console.log(" Token preview:", token ? token.substring(0, 20) + "..." : "null")
+    console.log(" localStorage keys:", Object.keys(localStorage))
+    console.log(" Order data items count:", orderData?.items?.length || 0)
+    
     if (!token) return { success: false, error: 'Please log in to place an order' }
     if (!orderData?.items?.length) return { success: false, error: 'Cart is empty' }
+
+    // ✅ VALIDATE TOKEN BEFORE ORDER CREATION
+    console.log(" VALIDATING TOKEN...")
+    const tokenValidation = await validateToken(token)
+    console.log(" Token validation result:", tokenValidation)
+    
+    if (!tokenValidation.valid) {
+      console.error(" TOKEN INVALID:", tokenValidation.error)
+      // Clear invalid token and user data
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      localStorage.removeItem('isAuthenticated')
+      return { success: false, error: 'Session expired. Please log in again.' }
+    }
 
     console.log(' Creating order with data:', orderData)
 
@@ -82,6 +129,8 @@ export function CustomerOrderProvider({ children }) {
         ...orderData,
         user: userData
       }
+      
+      console.log(" Making order request with token:", token.substring(0, 20) + "...")
       
       const response = await fetch(`${API_URL}/orders`, {
         method: 'POST',
@@ -98,6 +147,16 @@ export function CustomerOrderProvider({ children }) {
 
       if (!response.ok) {
         console.error(' Order creation failed:', body)
+        
+        // ✅ CHECK IF TOKEN EXPIRED DURING REQUEST
+        if (body.message === 'Invalid authorization token' || body.message === 'Token expired') {
+          console.log(" TOKEN EXPIRED DURING REQUEST - CLEARING SESSION")
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          localStorage.removeItem('isAuthenticated')
+          return { success: false, error: 'Session expired. Please log in again.' }
+        }
+        
         return { success: false, error: body?.message || 'Failed to place order' }
       }
 
