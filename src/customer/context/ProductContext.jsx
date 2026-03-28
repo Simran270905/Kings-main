@@ -15,7 +15,18 @@ import { normalizeProduct, normalizeProducts, syncProductStock } from '../utils/
 import { dataSyncEvents, EVENT_TYPES } from '../../utils/eventSystem.js'
 import { cache } from '../../utils/cacheManager.js'
 
-const ProductContext = createContext()
+const ProductContext = createContext({
+  products: [],
+  categories: [],
+  loading: false,
+  error: null,
+  fetchProducts: () => {},
+  fetchCategories: () => {},
+  getProductById: () => null,
+  getProductsByCategory: () => [],
+  searchProducts: () => [],
+  refreshProducts: () => {}
+})
 
 export const useProduct = () => {
   const context = useContext(ProductContext)

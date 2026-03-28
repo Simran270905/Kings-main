@@ -3,7 +3,20 @@ import adminApi from '../utils/adminApiService'
 import { useAdminAuth } from './useAdminAuth'
 import { extractData, extractPagination, logApiCall, logApiResponse } from '../../utils/dataExtractionHelper.js'
 
-export const OrderContext = createContext()
+export const OrderContext = createContext({
+  orders: [],
+  loading: false,
+  error: null,
+  pagination: null,
+  fetchOrders: () => {},
+  createOrder: () => {},
+  updateOrder: () => {},
+  deleteOrder: () => {},
+  getOrderById: () => null,
+  updateOrderStatus: () => {},
+  setFilters: () => {},
+  setPage: () => {}
+})
 
 export const useOrder = () => {
   const context = useContext(OrderContext)

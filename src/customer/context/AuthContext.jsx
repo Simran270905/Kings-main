@@ -19,7 +19,17 @@ const isTokenValid = (token) => {
   }
 }
 
-export const AuthContext = createContext()
+export const AuthContext = createContext({
+  user: null,
+  isAuthenticated: false,
+  loading: true,
+  login: () => {},
+  register: () => {},
+  logout: () => {},
+  updateProfile: () => {},
+  authenticateWithOTP: () => {},
+  simpleLogin: () => {}
+})
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)

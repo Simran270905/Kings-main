@@ -2,7 +2,20 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useMemo } from 'react'
 import adminApi from '../utils/adminApiService'
 
-export const AdminProductContext = createContext()
+export const AdminProductContext = createContext({
+  products: [],
+  loading: false,
+  error: null,
+  pagination: null,
+  fetchProducts: () => {},
+  createProduct: () => {},
+  updateProduct: () => {},
+  deleteProduct: () => {},
+  getProductById: () => null,
+  uploadProductImage: () => {},
+  setFilters: () => {},
+  setPage: () => {}
+})
 
 export const useAdminProduct = () => {
   const context = useContext(AdminProductContext)

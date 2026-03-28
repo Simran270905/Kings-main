@@ -1,6 +1,16 @@
 import React, { createContext, useEffect, useState } from 'react'
 
-export const CartContext = createContext(null)
+export const CartContext = createContext({
+  cart: [],
+  addToCart: () => {},
+  removeFromCart: () => {},
+  clearCart: () => {},
+  updateQuantity: () => {},
+  getCartTotal: () => 0,
+  getCartCount: () => 0,
+  loading: false,
+  error: null
+})
 
 export function CartProvider({ children }) {
   // FIXED: Initialize cart from localStorage with proper error handling

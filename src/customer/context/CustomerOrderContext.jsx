@@ -5,7 +5,17 @@ import { extractData, extractError, isSuccess, logApiCall, logApiResponse } from
 const API_URL = API_BASE_URL
 const getToken = () => localStorage.getItem('token')
 
-export const CustomerOrderContext = createContext(null)
+export const CustomerOrderContext = createContext({
+  orders: [],
+  currentOrder: null,
+  loading: false,
+  error: null,
+  setError: () => {},
+  fetchUserOrders: () => {},
+  fetchOrderDetails: () => {},
+  createOrder: () => {},
+  buyNow: () => {}
+})
 
 export function CustomerOrderProvider({ children }) {
   const [orders, setOrders] = useState([])

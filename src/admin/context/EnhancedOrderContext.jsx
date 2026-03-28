@@ -1,7 +1,18 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import adminApi from '../utils/adminApiService'
 
-export const EnhancedOrderContext = createContext()
+export const EnhancedOrderContext = createContext({
+  orders: [],
+  loading: false,
+  error: null,
+  stats: null,
+  refreshOrders: () => {},
+  updateOrderStatus: () => {},
+  bulkUpdateOrders: () => {},
+  getOrderStats: () => null,
+  searchOrders: () => [],
+  filterOrders: () => []
+})
 
 export const useEnhancedOrder = () => {
   const context = useContext(EnhancedOrderContext)
