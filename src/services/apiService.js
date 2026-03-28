@@ -45,8 +45,16 @@ export const productApi = {
 
 // ─── Coupons ────────────────────────────────────────────────────────────
 export const couponApi = {
-  getAll: () =>
-    enhancedApiService.request(`${API_BASE_URL}/coupons`),
+  getAll: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/coupons`)
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error('❌ Coupon API Error:', error.message)
+      return { success: false, data: [], message: error.message }
+    }
+  },
 
   getByCode: (code) =>
     fetch(`${API_BASE_URL}/coupons/${code}`).then(handleResponse),

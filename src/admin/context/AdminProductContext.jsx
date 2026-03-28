@@ -71,6 +71,10 @@ export const AdminProductProvider = ({ children }) => {
       let productsArray = []
       if (data.success && data.data && data.data.products) {
         productsArray = data.data.products
+      } else if (data.success && data.data && Array.isArray(data.data)) {
+        productsArray = data.data
+      } else if (data.data && data.data.products) {
+        productsArray = data.data.products
       } else if (data.data && Array.isArray(data.data)) {
         productsArray = data.data
       } else if (data.products) {
@@ -79,15 +83,26 @@ export const AdminProductProvider = ({ children }) => {
         productsArray = data
       }
       
+      console.log('📦 Products data extraction:', {
+        hasData: !!data,
+        hasSuccess: !!data.success,
+        dataStructure: data.data ? Object.keys(data.data) : 'no data',
+        extractedCount: productsArray.length,
+        isArray: Array.isArray(productsArray)
+      })
+      
       // Only update if data has changed to prevent unnecessary re-renders
       const hasChanged = products.length !== productsArray.length || 
         !products.every((product, index) => product._id === productsArray[index]?._id)
       
+      // Safety guard: ensure productsArray is actually an array
+      const safeProductsArray = Array.isArray(productsArray) ? productsArray : []
+      
       if (hasChanged) {
-        setProducts(productsArray)
+        setProducts(safeProductsArray)
         setLastFetch(new Date())
         setRefreshCount(prev => prev + 1)
-        console.log(`📦 Admin Products updated: ${productsArray.length} products (refresh #${refreshCount + 1})`)
+        console.log(`📦 Admin Products updated: ${safeProductsArray.length} products (refresh #${refreshCount + 1})`)
       } else {
         console.log('📦 Products data unchanged, skipping update')
       }
@@ -100,7 +115,7 @@ export const AdminProductProvider = ({ children }) => {
         console.error('❌ Error fetching admin products:', err.message)
         setError(err.message)
       }
-      setProducts([])
+      setProducts([]) // Always ensure array on error
     } finally {
       if (!silent) setLoading(false)
     }

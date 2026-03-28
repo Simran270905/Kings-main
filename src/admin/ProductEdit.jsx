@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { uploadToCloudinary } from "../utils/cloudinaryUpload"
@@ -17,6 +15,7 @@ const ProductEdit = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    purchasePrice: '',
     price: '',
     selling_price: '',
     category: '',
@@ -80,8 +79,29 @@ const ProductEdit = () => {
           isOnSale: product.isOnSale || false,
           discountPercentage: product.discountPercentage || ''
         })
-        setCategories(catData.data?.categories || [])
-        setBrands(brandData.data?.brands || [])
+
+        let categories = [];
+        let brands = [];
+
+        // New structure: { success: true, data: [categories] }
+        if (Array.isArray(catData?.data)) {
+          categories = catData.data;
+        }
+        // Old structure: { success: true, data: { categories: [categories] } }
+        else if (catData?.data?.categories && Array.isArray(catData.data.categories)) {
+          categories = catData.data.categories;
+        }
+
+        // Same for brands
+        if (Array.isArray(brandData?.data)) {
+          brands = brandData.data;
+        }
+        else if (brandData?.data?.brands && Array.isArray(brandData.data.brands)) {
+          brands = brandData.data.brands;
+        }
+
+        setCategories(Array.isArray(categories) ? categories : [])
+        setBrands(Array.isArray(brands) ? brands : [])
       } catch (err) {
         setError(err.message || 'Failed to load product')
       } finally {
@@ -196,14 +216,26 @@ const ProductEdit = () => {
       return
     }
 
+    if (!formData.purchasePrice || Number(formData.purchasePrice) < 0) {
+      setError('Purchase price must be a positive number')
+      return
+    }
+
     if (formData.images.length === 0) {
       setError('At least one image is required')
       return
     }
 
     const price = Number(formData.price)
+    const purchasePrice = Number(formData.purchasePrice)
+    
     if (price <= 0) {
       setError('Price must be greater than 0')
+      return
+    }
+
+    if (formData.selling_price && Number(formData.selling_price) < purchasePrice) {
+      setError('Selling price cannot be less than purchase price')
       return
     }
 
@@ -214,6 +246,7 @@ const ProductEdit = () => {
       
       const product = {
         ...formData,
+        purchasePrice: Number(formData.purchasePrice) || 0,
         price,
         selling_price: formData.selling_price ? Number(formData.selling_price) : null,
         stock: formData.hasSizes ? 0 : (Number(formData.stock) || 1),
@@ -357,6 +390,18 @@ const ProductEdit = () => {
           <div>
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Pricing & Inventory</h2>
             <div className="grid md:grid-cols-3 gap-6">
+              <FormInput
+                label="Purchase Price (₹) *"
+                type="number"
+                name="purchasePrice"
+                value={formData.purchasePrice}
+                onChange={handleInputChange}
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                required
+              />
+
               <FormInput
                 label="Original Price (₹)"
                 type="number"

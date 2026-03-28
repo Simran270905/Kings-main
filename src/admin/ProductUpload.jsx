@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useEffect } from 'react'
 import { uploadToCloudinary } from "../utils/cloudinaryUpload"
 import AdminCard from './layout/AdminCard'
@@ -16,14 +14,70 @@ const ProductUpload = () => {
   useEffect(() => {
     const fetchOptions = async () => {
       try {
+        console.log("🔍 PRODUCT UPLOAD - Fetching brands and categories...")
+        
+        // ✅ Use the working endpoints we discovered
         const [catRes, brandRes] = await Promise.all([
           fetch(`${API_BASE_URL}/categories`),
-          fetch(`${API_BASE_URL}/brands`)
+          fetch(`${API_BASE_URL}/brands`) // Use working endpoint
         ])
         const catData = await catRes.json()
         const brandData = await brandRes.json()
-        setCategories(catData.data?.categories || [])
-        setBrands(brandData.data?.brands || [])
+        
+        console.log("📦 Categories Response:", catData)
+        console.log("📦 Brands Response:", brandData)
+        
+        // ✅ Extract categories (assuming same structure as brands)
+        const categories = catData?.data || catData?.categories || []
+        
+        // ✅ Extract brands using the correct structure we found earlier
+        let brands = []
+        if (brandData?.data?.brands && Array.isArray(brandData.data.brands)) {
+          brands = brandData.data.brands
+          console.log("✅ Found brands in data.data.brands")
+        } else if (brandData?.brands && Array.isArray(brandData.brands)) {
+          brands = brandData.brands
+          console.log("✅ Found brands in data.brands")
+        } else if (brandData?.data && Array.isArray(brandData.data)) {
+          brands = brandData.data
+          console.log("✅ Found brands in data.data")
+        } else {
+          console.log("🔍 Checking all brand data structures:", brandData)
+          // Try to find brands in any nested structure
+          const findBrands = (obj, path = "") => {
+            if (Array.isArray(obj)) {
+              console.log(`✅ Found brand array at ${path}:`, obj)
+              return obj
+            }
+            if (obj && typeof obj === 'object') {
+              for (const [key, value] of Object.entries(obj)) {
+                if (key.toLowerCase().includes('brand')) {
+                  console.log(`🔍 Checking ${path}${key}:`, value)
+                  if (Array.isArray(value)) {
+                    console.log(`✅ Found brands array at ${path}${key}:`, value)
+                    return value
+                  }
+                }
+                const found = findBrands(value, path ? `${path}.${key}` : key)
+                if (found && found.length > 0) return found
+              }
+            }
+            return null
+          }
+          
+          const foundBrands = findBrands(brandData)
+          if (foundBrands) {
+            brands = foundBrands
+            console.log("✅ Found brands in nested structure")
+          }
+        }
+        
+        console.log("📊 Final categories:", categories)
+        console.log("📊 Final brands:", brands)
+        console.log("📊 Brands length:", brands.length)
+        
+        setCategories(Array.isArray(categories) ? categories : [])
+        setBrands(Array.isArray(brands) ? brands : [])
       } catch (e) {
         console.error('Failed to load categories/brands', e)
       }
@@ -34,6 +88,8 @@ const ProductUpload = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    purchasePrice: '',
+    originalPrice: '',
     price: '',
     selling_price: '',
     category: '',
@@ -133,14 +189,26 @@ const ProductUpload = () => {
       return
     }
 
+    if (!formData.purchasePrice || Number(formData.purchasePrice) < 0) {
+      setError('Purchase price must be a positive number')
+      return
+    }
+
     if (!formData.description) {
       setError('Product description is required')
       return
     }
 
     const price = Number(formData.price)
+    const purchasePrice = Number(formData.purchasePrice)
+    
     if (price <= 0) {
       setError('Price must be greater than 0')
+      return
+    }
+
+    if (formData.selling_price && Number(formData.selling_price) < purchasePrice) {
+      setError('Selling price cannot be less than purchase price')
       return
     }
 
@@ -158,6 +226,8 @@ const ProductUpload = () => {
       const payload = {
         name: formData.name.trim(),
         description: formData.description.trim(),
+        purchasePrice: Number(formData.purchasePrice) || 0,
+        originalPrice: Number(formData.originalPrice) || Number(formData.price) || 0,
         price,
         selling_price: formData.selling_price ? Number(formData.selling_price) : null,
         category: formData.category,
@@ -195,6 +265,8 @@ const ProductUpload = () => {
       setFormData({
         name: '',
         description: '',
+        purchasePrice: '',
+        originalPrice: '',
         price: '',
         selling_price: '',
         category: '',
@@ -323,10 +395,22 @@ const ProductUpload = () => {
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Pricing & Inventory</h2>
             <div className="grid md:grid-cols-3 gap-6">
               <FormInput
+                label="Purchase Price (₹) *"
+                type="number"
+                name="purchasePrice"
+                value={formData.purchasePrice}
+                onChange={handleInputChange}
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                required
+              />
+
+              <FormInput
                 label="Original Price (₹)"
                 type="number"
-                name="price"
-                value={formData.price}
+                name="originalPrice"
+                value={formData.originalPrice}
                 onChange={handleInputChange}
                 min="0"
                 step="0.01"

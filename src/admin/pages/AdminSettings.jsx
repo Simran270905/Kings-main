@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import AdminCard from '../layout/AdminCard'
 import AdminButton from '../layout/AdminButton'

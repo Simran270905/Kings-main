@@ -1,7 +1,5 @@
-'use client'
-
 import React, { useState } from 'react'
-import { useEnhancedOrder } from '../context/EnhancedOrderContext'
+import { useOrder } from '../context/OrderContext'
 import AdminCard from '../layout/AdminCard'
 import AdminButton from '../layout/AdminButton'
 
@@ -37,6 +35,9 @@ import {
   Button,
   Alert
 } from '@mui/material'
+
+// Import data extraction helper
+import { extractData, logApiCall, logApiResponse } from '../../utils/dataExtractionHelper.js'
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -75,50 +76,67 @@ export default function EnhancedOrders() {
   const {
     orders,
     loading,
-    filters,
-    stats,
     fetchOrders,
     getOrderDetails,
-    markCODOrderAsPaid,
-    updateFilters,
-    resetFilters,
-    exportPaymentReports
-  } = useEnhancedOrder()
+    updateOrderStatus,
+    getStats
+  } = useOrder()
 
-  const [selectedOrder, setSelectedOrder] = useState(null)
-  const [orderDetails, setOrderDetails] = useState(null)
-  const [detailsLoading, setDetailsLoading] = useState(false)
+  // Local state for filters
+  const [filters, setFilters] = useState({
+    status: '',
+    paymentStatus: '',
+    paymentMethod: '',
+    page: 1,
+    limit: 10,
+    sortBy: 'createdAt',
+    sortOrder: 'desc'
+  })
+
+  // Calculate stats from orders
+  const stats = getStats()
+
+  // Calculate payment breakdown
+  const paymentStatusBreakdown = orders.reduce((acc, order) => {
+    const status = order.paymentStatus || 'pending'
+    acc[status] = (acc[status] || 0) + 1
+    return acc
+  }, {})
+
+  const paymentMethodBreakdown = orders.reduce((acc, order) => {
+    const method = order.paymentMethod || 'unknown'
+    acc[method] = (acc[method] || 0) + 1
+    return acc
+  }, {})
+
+  console.log("EnhancedOrders - Orders:", orders)
+  console.log("EnhancedOrders - Stats:", stats)
 
   // Handle filter changes
   const handleFilterChange = (field, value) => {
-    updateFilters({ [field]: value })
+    setFilters({ ...filters, [field]: value })
   }
 
   // Handle page change
   const handlePageChange = (event, newPage) => {
-    updateFilters({ page: newPage })
+    setFilters({ ...filters, page: newPage })
   }
 
   // Handle order details
   const handleViewDetails = async (orderId) => {
     try {
-      setDetailsLoading(true)
       const order = await getOrderDetails(orderId)
-      setOrderDetails(order)
-      setSelectedOrder(order)
+      console.log(order)
     } catch (error) {
       console.error('Failed to fetch order details:', error)
-    } finally {
-      setDetailsLoading(false)
     }
   }
 
   // Handle COD payment marking
   const handleMarkCODAsPaid = async (orderId) => {
     try {
-      await markCODOrderAsPaid(orderId, {
-        notes: 'Cash collected manually by admin'
-      })
+      // Update order status to paid
+      await updateOrderStatus(orderId, 'paid')
       
       // Show success message
       alert('COD order marked as paid successfully!')

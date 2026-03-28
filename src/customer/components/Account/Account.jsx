@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
-import { useCustomerOrder } from "../../context/CustomerOrderContext";
+import { CustomerOrderContext } from "../../context/CustomerOrderContext";
 import { UserCircleIcon, EnvelopeIcon, PhoneIcon, ShoppingBagIcon, ArrowRightOnRectangleIcon, ClockIcon, CheckCircleIcon, TruckIcon, XCircleIcon } from "@heroicons/react/24/outline";
 
 const Account = () => {
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuth();
-  const { orders: userOrders, loading: ordersLoading, fetchUserOrders } = useCustomerOrder();
+  const { orders: userOrders, loading: ordersLoading, fetchUserOrders } = CustomerOrderContext();
 
   if (!isAuthenticated || !user) {
     return (
@@ -40,6 +40,13 @@ const Account = () => {
     : user.email || user.phone || 'Customer';
 
   const initials = (user.firstName?.[0] || '') + (user.lastName?.[0] || '') || displayName[0]?.toUpperCase() || 'U';
+
+  // Fetch user orders when component mounts or user changes
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetchUserOrders();
+    }
+  }, [isAuthenticated, user, fetchUserOrders]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-10">

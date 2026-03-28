@@ -1,5 +1,3 @@
-'use client'
-
 const StatusBadge = ({ status, size = 'md' }) => {
   const statusConfig = {
     pending: {

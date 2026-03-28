@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
+import { useOrder } from '../context/OrderContext'
 import AdminCard from '../layout/AdminCard'
 import StatCard from '../components/StatCard'
-import { API_BASE_URL } from '@config/api.js'
-import { UsersIcon, MagnifyingGlassIcon, EnvelopeIcon, PhoneIcon } from '@heroicons/react/24/outline'
+import { UsersIcon, MagnifyingGlassIcon, EnvelopeIcon, PhoneIcon, ShoppingBagIcon, ArrowTrendingUpIcon } from '@heroicons/react/24/outline'
 import {
   safeArray,
   safeString,
@@ -10,91 +10,88 @@ import {
   safeCurrency,
   safeDate,
   extractCustomersFromOrders,
-  logAdminData,
-  safeApiResponse
+  logAdminData
 } from '../utils/adminSafetyUtils'
 
 const AdminCustomers = () => {
+  const { orders, loading } = useOrder()
   const [customers, setCustomers] = useState([])
-  const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
 
-  useEffect(() => {
-    const fetchCustomersAndOrders = async () => {
-      setLoading(true)
-      setError('')
-      
-      try {
-        // Fetch orders to extract customers
-        const token = localStorage.getItem('kk_admin_token')
-        
-        const ordersResponse = await fetch(`${API_BASE_URL}/orders`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        
-        if (ordersResponse.ok) {
-          const ordersData = await ordersResponse.json()
-          console.log("AdminCustomers - Orders API Response:", ordersData)
-          // Fix: Extract from nested structure { success, data: { orders: [] } }
-          const ordersArray = safeArray(ordersData.data?.data?.orders || ordersData.data?.orders || ordersData.orders || ordersData.data || ordersData)
-          console.log("AdminCustomers - Orders extracted:", ordersArray)
-          
-          // ✅ TASK 1 & 3: Prevent overwriting with empty data
-          if (Array.isArray(ordersArray) && ordersArray.length > 0) {
-            console.log("AdminCustomers - Setting orders:", ordersArray.length)
-            setOrders(ordersArray)
-            
-            // Extract customers from orders
-            const extractedCustomers = extractCustomersFromOrders(ordersArray)
-            setCustomers(extractedCustomers)
-            logAdminData('AdminCustomers', extractedCustomers, 'extracted')
-          } else {
-            console.log("AdminCustomers - Skipping orders update: empty array")
-          }
-        } else {
-          // Fallback: try direct customers API
-          const customersResponse = await fetch(`${API_BASE_URL}/admin/customers`, {
-            headers: { Authorization: `Bearer ${token}` }
-          })
-          
-          if (customersResponse.ok) {
-            const customersData = await customersResponse.json()
-            console.log("AdminCustomers - Customers API Response:", customersData)
-            // Fix: Extract from nested structure
-            const customersArray = safeArray(customersData.data?.data?.customers || customersData.data?.customers || customersData.customers || customersData.data || customersData)
-            console.log("AdminCustomers - Customers extracted:", customersArray)
-            
-            // ✅ TASK 1 & 3: Prevent overwriting with empty data
-            if (Array.isArray(customersArray) && customersArray.length > 0) {
-              console.log("AdminCustomers - Setting customers:", customersArray.length)
-              setCustomers(customersArray)
-              logAdminData('AdminCustomers', customersArray, 'direct')
-            } else {
-              console.log("AdminCustomers - Skipping customers update: empty array")
-            }
-          } else {
-            throw new Error('Unable to fetch customer data')
-          }
-        }
-        
-      } catch (err) {
-        console.error('AdminCustomers Error:', err)
-        setError(err.message || 'Could not load customers.')
-        logAdminData('AdminCustomers', err, 'error')
-      } finally {
-        setLoading(false)
-      }
-    }
-    
-    fetchCustomersAndOrders()
-  }, [])
+  // Safe rendering check
+  if (!orders) {
+    return (
+      <AdminCard>
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ae0b0b]"></div>
+        </div>
+      </AdminCard>
+    )
+  }
 
-  const filtered = customers.filter(c => {
-    const searchString = `${safeString(c.name)} ${safeString(c.email)} ${safeString(c.phone)}`.toLowerCase()
-    return searchString.includes(search.toLowerCase())
+  // Extract customers from orders when orders change
+  useEffect(() => {
+    console.log("AdminCustomers - Orders received:", orders)
+    
+    if (Array.isArray(orders) && orders.length > 0) {
+      console.log("AdminCustomers - Processing orders:", orders.length)
+      
+      // Extract customers from orders
+      const extractedCustomers = extractCustomersFromOrders(orders)
+      setCustomers(extractedCustomers)
+      logAdminData('AdminCustomers', extractedCustomers, 'extracted')
+    } else {
+      console.log("AdminCustomers - No orders available")
+      setCustomers([])
+    }
+  }, [orders])
+
+  // Filter customers based on search
+  const filteredCustomers = customers.filter(customer => {
+    const searchLower = search.toLowerCase()
+    return (
+      safeString(customer.name).toLowerCase().includes(searchLower) ||
+      safeString(customer.email).toLowerCase().includes(searchLower) ||
+      safeString(customer.phone).toLowerCase().includes(searchLower)
+    )
   })
+
+  // Calculate customer stats
+  const totalCustomers = customers.length
+  const totalOrders = orders.length
+  const avgOrdersPerCustomer = totalCustomers > 0 ? (totalOrders / totalCustomers).toFixed(1) : 0
+
+  console.log("AdminCustomers - Final customers:", customers)
+  console.log("AdminCustomers - Stats:", {
+    totalCustomers,
+    totalOrders,
+    avgOrdersPerCustomer
+  })
+
+  // Loading state
+  if (loading) {
+    return (
+      <AdminCard>
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ae0b0b]"></div>
+        </div>
+      </AdminCard>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <AdminCard>
+        <div className="text-center py-12">
+          <UsersIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Customers</h3>
+          <p className="text-gray-500">{error}</p>
+        </div>
+      </AdminCard>
+    )
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -106,29 +103,22 @@ const AdminCustomers = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard
           title="Total Customers"
-          value={customers.length}
+          value={totalCustomers}
           icon={UsersIcon}
           iconColor="text-blue-600"
           iconBg="bg-blue-50"
         />
         <StatCard
-          title="Active This Month"
-          value={customers.filter(c => {
-            const lastOrder = c.lastOrder || c.createdAt
-            if (!lastOrder) return false
-            const created = new Date(lastOrder)
-            const monthAgo = new Date()
-            monthAgo.setMonth(monthAgo.getMonth() - 1)
-            return created >= monthAgo
-          }).length}
-          icon={UsersIcon}
+          title="Total Orders"
+          value={totalOrders}
+          icon={ShoppingBagIcon}
           iconColor="text-green-600"
           iconBg="bg-green-50"
         />
         <StatCard
-          title="Total Spent"
-          value={safeCurrency(customers.reduce((sum, c) => sum + safeNumber(c.totalSpent), 0))}
-          icon={UsersIcon}
+          title="Avg Orders/Customer"
+          value={avgOrdersPerCustomer}
+          icon={ArrowTrendingUpIcon}
           iconColor="text-purple-600"
           iconBg="bg-purple-50"
         />
@@ -163,7 +153,7 @@ const AdminCustomers = () => {
 
       {!loading && !error && (
         <AdminCard padding="p-0">
-          {filtered.length === 0 ? (
+          {filteredCustomers.length === 0 ? (
             <div className="text-center py-16">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
                 <UsersIcon className="h-8 w-8 text-gray-400" />
@@ -182,7 +172,7 @@ const AdminCustomers = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {filtered.map(c => (
+                  {filteredCustomers.map(c => (
                     <tr key={c._id || c.email || c.phone} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">

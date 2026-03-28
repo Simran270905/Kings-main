@@ -12,6 +12,8 @@ import {
   initializeProductStock,
 } from '../utils/productService'
 import { normalizeProduct, normalizeProducts, syncProductStock } from '../utils/productSchemaNormalizer'
+import { dataSyncEvents, EVENT_TYPES } from '../../utils/eventSystem.js'
+import { cache } from '../../utils/cacheManager.js'
 
 const ProductContext = createContext()
 
@@ -109,6 +111,62 @@ export const ProductProvider = ({ children }) => {
   useEffect(() => {
     fetchData()
   }, [fetchData])
+
+  // ========================================================================
+  // REAL-TIME SYNC EVENT LISTENERS
+  // ========================================================================
+
+  useEffect(() => {
+    // Subscribe to admin product changes
+    const unsubscribeProductCreated = dataSyncEvents.subscribe(EVENT_TYPES.PRODUCT_CREATED, (data) => {
+      console.log('🔄 Real-time: Product created by admin:', data)
+      setProducts(prev => [...prev, normalizeProduct(data)])
+      cache.invalidate('products')
+    })
+
+    const unsubscribeProductUpdated = dataSyncEvents.subscribe(EVENT_TYPES.PRODUCT_UPDATED, (data) => {
+      console.log('🔄 Real-time: Product updated by admin:', data)
+      setProducts(prev => prev.map(product => 
+        product.id === data.id ? normalizeProduct(data) : product
+      ))
+      cache.invalidate('products')
+    })
+
+    const unsubscribeProductDeleted = dataSyncEvents.subscribe(EVENT_TYPES.PRODUCT_DELETED, (data) => {
+      console.log('🔄 Real-time: Product deleted by admin:', data)
+      setProducts(prev => prev.filter(product => product.id !== data.id))
+      cache.invalidate('products')
+    })
+
+    // Subscribe to category changes
+    const unsubscribeCategoryUpdated = dataSyncEvents.subscribe(EVENT_TYPES.CATEGORY_UPDATED, (data) => {
+      console.log('🔄 Real-time: Category updated by admin:', data)
+      // Refresh categories when they change
+      fetchCategoriesFromAPI().then(categories => {
+        setCategories(categories || [])
+      })
+    })
+
+    // Cleanup listeners
+    return () => {
+      unsubscribeProductCreated?.()
+      unsubscribeProductUpdated?.()
+      unsubscribeProductDeleted?.()
+      unsubscribeCategoryUpdated?.()
+    }
+  }, [])
+
+  /**
+   * Fetch categories separately (for real-time updates)
+   */
+  const fetchCategories = useCallback(async () => {
+    try {
+      const apiCategories = await fetchCategoriesFromAPI()
+      setCategories(apiCategories || [])
+    } catch (error) {
+      console.error('❌ Error fetching categories:', error)
+    }
+  }, [])
 
   /**
    * Manually refresh products from API (call after adding/editing products)

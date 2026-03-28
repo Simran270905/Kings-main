@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useEffect } from 'react'
 import { useProduct } from '../../customer/context/ProductContext'
 import useRealAnalytics from '../hooks/useRealAnalytics'

@@ -8,7 +8,6 @@ import toast from 'react-hot-toast'
 import { CreditCardIcon, BanknotesIcon, DevicePhoneMobileIcon, TicketIcon } from '@heroicons/react/24/outline'
 import { API_BASE_URL } from '@config/api.js'
 import { couponApi } from '../../../services/apiService'
-import { ensureUserLoggedIn } from '../../../utils/authHelper'
 
 const API_URL = API_BASE_URL
 
@@ -139,9 +138,14 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
     setError(null)
 
     try {
-      // Ensure user is logged in (emergency fallback)
-      ensureUserLoggedIn();
+      // Check if user is logged in
       const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Please log in to proceed with payment');
+        setLoading(false);
+        return;
+      }
+      
       console.log("Payment proceeding with token:", token);
 
       // Create order data
@@ -158,6 +162,12 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           image: item.image || item.images?.[0] || '',
           subtotal: (item.price || 0) * item.quantity
         })),
+        // Add customer data directly for better storage
+        user: {
+          name: `${deliveryAddress.firstName} ${deliveryAddress.lastName}`,
+          email: deliveryAddress.email || user?.email || '',
+          phone: deliveryAddress.mobile
+        },
         shippingAddress: {
           firstName: deliveryAddress.firstName,
           lastName: deliveryAddress.lastName,

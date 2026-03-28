@@ -26,7 +26,18 @@ export default function Navbar() {
       try {
         const res = await fetch(`${API_BASE_URL}/categories`)
         const data = await res.json()
-        setShopCategories(data.data?.categories || [])
+        let categories = [];
+        
+        // New structure: { success: true, data: [categories] }
+        if (Array.isArray(data?.data)) {
+          categories = data.data;
+        }
+        // Old structure: { success: true, data: { categories: [categories] } }
+        else if (data?.data?.categories && Array.isArray(data.data.categories)) {
+          categories = data.data.categories;
+        }
+        
+        setShopCategories(Array.isArray(categories) ? categories : [])
       } catch {
         setShopCategories([])
       }

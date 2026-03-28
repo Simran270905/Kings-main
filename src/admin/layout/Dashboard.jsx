@@ -22,105 +22,129 @@ import AdminButton from './AdminButton'
 import StatCard from '../components/StatCard'
 import {
   safeArray,
+  safeString,
   safeNumber,
   safeCurrency,
   safeOrderAmount,
   safeOrderStatus,
   safeCustomerEmail,
   logAdminData,
-  safeApiResponse
+  safeAdminFetch
 } from '../utils/adminSafetyUtils'
 
+// Simple loader component
+const Loader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ae0b0b] mx-auto"></div>
+      <p className="mt-4 text-gray-600">Loading dashboard...</p>
+    </div>
+  </div>
+)
+
 export default function Dashboard() {
-  const { products, getTotalStock, getLowStockCount, getTotalProductsCount, refreshProducts } = useAdminProduct()
-  const { cartItems } = useCart()
-  const { orders } = useOrder()
-  
-  // ✅ NEW: Real-time data state
-  const [realTimeOrders, setRealTimeOrders] = useState([])
-  const [realTimeProducts, setRealTimeProducts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  
-  // ✅ NEW: Use real backend analytics
+  // ✅ ALL HOOKS MUST BE AT TOP LEVEL
+  const { products, loading: productsLoading, getTotalStock, getLowStockCount } = useAdminProduct()
+  const { orders, loading: ordersLoading } = useOrder()
   const analytics = useAnalytics()
   
-  // ✅ NEW: Fetch real data
-  const fetchRealTimeData = async () => {
-    try {
-      setError(null)
-      
-      // Fetch orders
-      const ordersResponse = await fetch(`${API_BASE_URL}/orders`, {
-        headers: { 
-          Authorization: `Bearer ${localStorage.getItem('kk_admin_token')}` 
-        }
-      })
-      
-      // Fetch products
-      const productsResponse = await fetch(`${API_BASE_URL}/products`, {
-        headers: { 
-          Authorization: `Bearer ${localStorage.getItem('kk_admin_token')}` 
-        }
-      })
-      
-      // Handle orders data
-      if (ordersResponse.ok) {
-        const ordersData = await ordersResponse.json()
-        console.log("Dashboard - Orders API Response:", ordersData)
-        // Fix: Extract from nested structure { success, data: { orders: [] } }
-        const ordersArray = safeArray(ordersData.data?.data?.orders || ordersData.data?.orders || ordersData.orders || ordersData.data || ordersData)
-        console.log("Dashboard - Orders extracted:", ordersArray)
-        
-        // ✅ TASK 1 & 3: Prevent overwriting with empty data
-        if (Array.isArray(ordersArray) && ordersArray.length > 0) {
-          console.log("Dashboard - Setting orders:", ordersArray.length)
-          setRealTimeOrders(ordersArray)
-          logAdminData('Dashboard', ordersArray, 'orders-loaded')
-        } else {
-          console.log("Dashboard - Skipping orders update: empty array")
-        }
-      } else {
-        console.error("Dashboard - Orders API Error:", ordersResponse.status)
-      }
-      
-      // Handle products data
-      if (productsResponse.ok) {
-        const productsData = await productsResponse.json()
-        console.log("Dashboard - Products API Response:", productsData)
-        // Fix: Extract from nested structure { success, data: { products: [] } }
-        const productsArray = safeArray(productsData.data?.data?.products || productsData.data?.products || productsData.products || productsData.data || productsData)
-        console.log("Dashboard - Products extracted:", productsArray)
-        
-        // ✅ TASK 1 & 3: Prevent overwriting with empty data
-        if (Array.isArray(productsArray) && productsArray.length > 0) {
-          console.log("Dashboard - Setting products:", productsArray.length)
-          setRealTimeProducts(productsArray)
-          logAdminData('Dashboard', productsArray, 'products-loaded')
-        } else {
-          console.log("Dashboard - Skipping products update: empty array")
-        }
-      } else {
-        console.error("Dashboard - Products API Error:", productsResponse.status)
-      }
-      
-    } catch (err) {
-      console.error('Dashboard fetch error:', err)
-      setError(err.message)
-      logAdminData('Dashboard', err, 'error')
-    } finally {
-      setLoading(false)
-    }
+  // ✅ Add loading state for initial data load
+  const [loading, setLoading] = useState(true)
+  
+  // ✅ Add error state for error handling
+  const [error, setError] = useState(null)
+  
+  // ✅ Add loading check for products (AFTER all hooks)
+  if (!products || products.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ae0b0b] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    )
   }
   
-  // ✅ NEW: Real-time refresh every 10 seconds
+  // ✅ Calculate metrics from context data (only when data is available)
+  const metrics = useMemo(() => {
+    // Only calculate if we have data
+    if (!orders || !products || ordersLoading || productsLoading) {
+      return {
+        totalRevenue: 0,
+        totalOrders: 0,
+        pendingOrders: 0,
+        totalUsers: 0,
+        totalProducts: 0,
+        paidOrders: 0,
+        pendingPaymentOrders: 0
+      }
+    }
+    
+    const ordersArray = Array.isArray(orders) ? orders : []
+    const productsArray = Array.isArray(products) ? products : []
+    
+    // Only calculate if we have actual data
+    
+    // Calculate total revenue from orders
+    const totalRevenue = ordersArray.reduce((sum, order) => {
+      return sum + (order.totalAmount || 0);
+    }, 0);
+    
+    // Calculate payment-based stats
+    const paidOrders = ordersArray.filter(order => {
+      const paymentStatus = order.paymentStatus || 'pending';
+      return paymentStatus === 'paid';
+    }).length;
+    
+    const pendingPaymentOrders = ordersArray.filter(order => {
+      const paymentStatus = order.paymentStatus || 'pending';
+      return paymentStatus !== 'paid';
+    }).length;
+    
+    // Calculate pending orders (status-based)
+    const pendingOrdersCount = ordersArray.filter(order => {
+      const status = order.status || 'pending';
+      return status === 'pending';
+    }).length;
+    
+    // Calculate unique users
+    const uniqueUsers = new Set();
+    ordersArray.forEach(order => {
+      const email = order.customer?.email || order.shippingAddress?.email;
+      if (email) uniqueUsers.add(email);
+    });
+    
+    console.log("Dashboard - Final metrics:", {
+      totalRevenue,
+      totalOrders: ordersArray.length,
+      pendingOrders: pendingOrdersCount,
+      totalUsers: uniqueUsers.size,
+      totalProducts: productsArray.length,
+      paidOrders,
+      pendingPaymentOrders
+    });
+    
+    return {
+      totalRevenue,
+      totalOrders: ordersArray.length,
+      pendingOrders: pendingOrdersCount,
+      totalUsers: uniqueUsers.size,
+      totalProducts: productsArray.length,
+      paidOrders,
+      pendingPaymentOrders
+    }
+  }, [orders, products, ordersLoading, productsLoading])
+  
+  // ✅ Update loading state when data is ready
   useEffect(() => {
-    fetchRealTimeData() // Initial fetch
-    
-    const interval = setInterval(fetchRealTimeData, 10000) // Auto-refresh every 10 seconds
-    
-    return () => clearInterval(interval)
-  }, [])
+    if (!ordersLoading && !productsLoading) {
+      setLoading(false)
+    }
+  }, [ordersLoading, productsLoading])
+  
+  // ✅ Combined loading state
+  const isLoading = loading || ordersLoading || productsLoading
   
   // Fallback data in case analytics fails
   const fallbackData = {
@@ -142,42 +166,52 @@ export default function Dashboard() {
 
   // Memoize calculations to prevent flickering
   const totalProducts = useMemo(() => {
-    return realTimeProducts.length || getTotalProductsCount || 0
-  }, [realTimeProducts, getTotalProductsCount])
+    return metrics.totalProducts
+  }, [metrics.totalProducts])
   
-  const lowStockProducts = useMemo(() => getLowStockCount, [getLowStockCount])
-
-  // Refresh products when dashboard mounts (only once)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      refreshProducts()
-    }, 500) // Increased delay to prevent 429 errors
-    return () => clearTimeout(timer)
-  }, []) // Empty dependency array - only run once
+  const totalStock = useMemo(() => {
+    const productsArray = Array.isArray(products) ? products : []
+    const stock = productsArray.reduce((sum, product) => {
+      return sum + getTotalStock(product)
+    }, 0)
+    console.log("Dashboard Products:", {
+      productsCount: productsArray.length,
+      totalStock: stock,
+      products: productsArray.map(p => ({ 
+        name: p.name, 
+        stock: getTotalStock(p),
+        sizes: p.sizes 
+      }))
+    })
+    return stock
+  }, [products, getTotalStock])
+  
+  const lowStockProducts = useMemo(() => {
+    return getLowStockCount
+  }, [products, getLowStockCount])
 
   const formatCurrency = (amount) => {
     return `₹${(amount || 0).toLocaleString('en-IN')}`
   }
 
   // ✅ REAL-TIME CALCULATIONS
-  const totalRevenue = useMemo(() => {
-    const revenue = realTimeOrders.reduce((sum, order) => {
-      return sum + safeOrderAmount(order)
-    }, 0)
-    console.log("Dashboard - Total Revenue:", revenue)
-    return revenue
-  }, [realTimeOrders])
+  const recentProducts = useMemo(() => {
+    const productsArray = Array.isArray(products) ? products : []
+    return productsArray.slice(-5).reverse()
+  }, [products])
   
-  const pendingOrders = useMemo(() => {
-    const pending = realTimeOrders.filter(order => safeOrderStatus(order) === 'pending').length
+  const pendingOrdersCount = useMemo(() => {
+    const ordersArray = Array.isArray(orders) ? orders : []
+    const pending = ordersArray.filter(order => safeOrderStatus(order) === 'pending').length
     console.log("Dashboard - Pending Orders:", pending)
     return pending
-  }, [realTimeOrders])
+  }, [orders])
   
-  const totalUsers = useMemo(() => {
+  const totalUsersCount = useMemo(() => {
     const uniqueUsers = new Map()
     
-    realTimeOrders.forEach(order => {
+    const ordersArray = Array.isArray(orders) ? orders : []
+    ordersArray.forEach(order => {
       const email = safeCustomerEmail(order)
       if (email && email !== 'N/A') {
         uniqueUsers.set(email, {
@@ -191,29 +225,36 @@ export default function Dashboard() {
     const userCount = uniqueUsers.size
     console.log("Dashboard - Total Users:", userCount)
     return userCount
-  }, [realTimeOrders])
+  }, [orders])
   
   const processingOrders = useMemo(() => {
-    return realTimeOrders.filter(order => safeOrderStatus(order) === 'processing').length
-  }, [realTimeOrders])
+    const ordersArray = Array.isArray(orders) ? orders : []
+    return ordersArray.filter(order => safeOrderStatus(order) === 'processing').length
+  }, [orders])
   
   const shippedOrders = useMemo(() => {
-    return realTimeOrders.filter(order => safeOrderStatus(order) === 'shipped').length
-  }, [realTimeOrders])
+    const ordersArray = Array.isArray(orders) ? orders : []
+    return ordersArray.filter(order => safeOrderStatus(order) === 'shipped').length
+  }, [orders])
   
   const deliveredOrders = useMemo(() => {
-    return realTimeOrders.filter(order => safeOrderStatus(order) === 'delivered').length
-  }, [realTimeOrders])
+    const ordersArray = Array.isArray(orders) ? orders : []
+    return ordersArray.filter(order => safeOrderStatus(order) === 'delivered').length
+  }, [orders])
   
   const cancelledOrders = useMemo(() => {
-    return realTimeOrders.filter(order => safeOrderStatus(order) === 'cancelled').length
-  }, [realTimeOrders])
-
-  const recentProducts = realTimeProducts.slice(-5).reverse()
+    const ordersArray = Array.isArray(orders) ? orders : []
+    return ordersArray.filter(order => safeOrderStatus(order) === 'cancelled').length
+  }, [orders])
   
   // Debug logs
-  console.log("Dashboard - Orders:", realTimeOrders.length)
-  console.log("Dashboard - Products:", realTimeProducts.length)
+  console.log("Dashboard - Orders:", Array.isArray(orders) ? orders.length : 0)
+  console.log("Dashboard - Products:", Array.isArray(products) ? products.length : 0)
+
+  // ✅ Show loader while loading
+  if (isLoading) {
+    return <Loader />
+  }
 
   return (
     <div className="space-y-6">
@@ -230,24 +271,30 @@ export default function Dashboard() {
           
           {/* Refresh Button */}
           <button
-            onClick={fetchRealTimeData}
-            disabled={loading}
+            onClick={() => {
+              // Refresh contexts
+              const { refreshProducts } = useAdminProduct()
+              const { refreshOrders } = useOrder()
+              refreshProducts()
+              refreshOrders()
+            }}
+            disabled={isLoading}
             className="px-4 py-2 bg-[#ae0b0b] text-white rounded-lg hover:bg-[#8f0a0a] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             <ArrowTrendingUpIcon className="h-4 w-4" />
-            {loading ? 'Refreshing...' : 'Refresh'}
+            {isLoading ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>
         
         {/* Debug Info */}
         {import.meta.env.DEV && (
           <div className="mt-2 p-2 bg-gray-100 rounded text-sm">
-            <div>Real-time Revenue: ₹{totalRevenue}</div>
-            <div>Total Orders: {realTimeOrders.length}</div>
-            <div>Total Users: {totalUsers}</div>
+            <div>Real-time Revenue: ₹{metrics.totalRevenue}</div>
+            <div>Total Orders: {metrics.totalOrders}</div>
+            <div>Total Users: {metrics.totalUsers}</div>
             <div>Delivered Orders: {deliveredOrders}</div>
-            <div>Pending Orders: {pendingOrders}</div>
-            <div>Total Products: {totalProducts}</div>
+            <div>Pending Orders: {metrics.pendingOrders}</div>
+            <div>Total Products: {metrics.totalProducts}</div>
             {error && <div className="text-red-600">Error: {error}</div>}
           </div>
         )}
@@ -261,11 +308,11 @@ export default function Dashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
         <Link to="/admin/products">
           <StatCard
             title="Total Products"
-            value={totalProducts}
+            value={metrics.totalProducts}
             change="+0%"
             changeType="increase"
             icon={ShoppingBagIcon}
@@ -274,10 +321,22 @@ export default function Dashboard() {
           />
         </Link>
 
+        <Link to="/admin/products">
+          <StatCard
+            title="Total Stock"
+            value={totalStock}
+            change={lowStockProducts > 0 ? `${lowStockProducts} low stock` : 'All good'}
+            changeType={lowStockProducts > 0 ? 'decrease' : 'increase'}
+            icon={ChartBarIcon}
+            iconColor="text-orange-600"
+            iconBg="bg-orange-50"
+          />
+        </Link>
+
         <Link to="/admin/analytics">
           <StatCard
             title="Total Revenue"
-            value={formatCurrency(totalRevenue)}
+            value={formatCurrency(metrics.totalRevenue)}
             change="From paid orders"
             changeType="increase"
             icon={CurrencyDollarIcon}
@@ -289,9 +348,9 @@ export default function Dashboard() {
         <Link to="/admin/orders">
           <StatCard
             title="Pending Orders"
-            value={pendingOrders}
-            change={pendingOrders > 0 ? 'Needs attention' : 'All clear'}
-            changeType={pendingOrders > 0 ? 'decrease' : 'increase'}
+            value={metrics.pendingOrders}
+            change={metrics.pendingOrders > 0 ? 'Needs attention' : 'All clear'}
+            changeType={metrics.pendingOrders > 0 ? 'decrease' : 'increase'}
             icon={ClipboardDocumentListIcon}
             iconColor="text-purple-600"
             iconBg="bg-purple-50"
@@ -301,7 +360,7 @@ export default function Dashboard() {
         <Link to="/admin/customers">
           <StatCard
             title="Total Users"
-            value={totalUsers}
+            value={metrics.totalUsers}
             change="Registered customers"
             changeType="increase"
             icon={UsersIcon}
@@ -420,11 +479,11 @@ export default function Dashboard() {
 
                     <td className="px-6 py-4 text-center">
                       <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
-                        (product.sizes?.reduce((a, s) => a + s.stock, 0) || 0) <= 5
+                        getTotalStock(product) <= 5
                           ? 'bg-red-50 text-red-700'
                           : 'bg-green-50 text-green-700'
                       }`}>
-                        {product.sizes?.reduce((a, s) => a + s.stock, 0) ?? 'N/A'}
+                        {getTotalStock(product)}
                       </span>
                     </td>
                   </tr>

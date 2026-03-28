@@ -30,9 +30,9 @@ function normalize(raw) {
 
   const name = raw.title || raw.name || 'Product'
   
-  // Handle selling_price vs price correctly
+  // Handle selling_price vs originalPrice correctly
   const sellingPrice = raw.selling_price || raw.sellingPrice
-  const originalPrice = raw.price
+  const originalPrice = raw.originalPrice || raw.price
   
   const displayPrice = sellingPrice || originalPrice || 0
 
@@ -218,9 +218,9 @@ export default function ProductDetails() {
           <div className="mt-8">
             <h1 className="text-3xl font-bold text-gray-900">{currentProduct.name}</h1>
             <div className="mt-4 flex items-center gap-3">
-              <p className="text-2xl font-semibold text-[#ae0b0b]">₹{currentProduct.selling_price || currentProduct.price}</p>
-              {currentProduct.price && currentProduct.selling_price && currentProduct.selling_price < currentProduct.price && (
-                <p className="text-sm text-gray-500 line-through">₹{currentProduct.price}</p>
+              <p className="text-2xl font-semibold text-[#ae0b0b]">₹{currentProduct.selling_price || currentProduct.originalPrice}</p>
+              {currentProduct.originalPrice && currentProduct.selling_price && currentProduct.selling_price < currentProduct.originalPrice && (
+                <p className="text-sm text-gray-500 line-through">₹{currentProduct.originalPrice}</p>
               )}
             </div>
 

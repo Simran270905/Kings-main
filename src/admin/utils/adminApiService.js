@@ -1,5 +1,7 @@
 // 🔐 Admin API Service - Centralized API integration with JWT authentication
 import { API_BASE_URL } from '@config/api.js'
+import { events } from '../../utils/eventSystem.js'
+import { cache } from '../../utils/cacheManager.js'
 
 class AdminApiService {
   constructor() {
@@ -161,25 +163,58 @@ class AdminApiService {
 
   // Create product
   async createProduct(productData) {
-    return this.request('/products', {
+    console.log('🔧 Creating product:', productData)
+    
+    const result = await this.request('/products', {
       method: 'POST',
       body: JSON.stringify(productData)
     })
+    
+    // Trigger real-time sync event
+    if (result.success && result.data) {
+      events.productCreated(result.data)
+      cache.invalidate('products') // Invalidate products cache
+      console.log('🔄 Product created event triggered')
+    }
+    
+    return result
   }
 
   // Update product
   async updateProduct(id, productData) {
-    return this.request(`/products/${id}`, {
+    console.log('🔧 Updating product:', id, productData)
+    
+    const result = await this.request(`/products/${id}`, {
       method: 'PUT',
       body: JSON.stringify(productData)
     })
+    
+    // Trigger real-time sync event
+    if (result.success && result.data) {
+      events.productUpdated(result.data)
+      cache.invalidate('products') // Invalidate products cache
+      console.log('🔄 Product updated event triggered')
+    }
+    
+    return result
   }
 
   // Delete product
   async deleteProduct(id) {
-    return this.request(`/products/${id}`, {
+    console.log('🔧 Deleting product:', id)
+    
+    const result = await this.request(`/products/${id}`, {
       method: 'DELETE'
     })
+    
+    // Trigger real-time sync event
+    if (result.success) {
+      events.productDeleted(id)
+      cache.invalidate('products') // Invalidate products cache
+      console.log('🔄 Product deleted event triggered')
+    }
+    
+    return result
   }
 
   // Get product stats
@@ -204,18 +239,41 @@ class AdminApiService {
 
   // Update order status
   async updateOrderStatus(id, status) {
-    return this.request(`/orders/${id}`, {
+    console.log('🔧 Updating order status:', id, status)
+    
+    const result = await this.request(`/orders/${id}`, {
       method: 'PUT',
       body: JSON.stringify({ status })
     })
+    
+    // Trigger real-time sync event
+    if (result.success && result.data) {
+      events.orderStatusChanged(id, status)
+      events.orderUpdated(result.data)
+      cache.invalidate('orders') // Invalidate orders cache
+      console.log('🔄 Order status changed event triggered')
+    }
+    
+    return result
   }
 
   // Mark COD order as paid
   async markCODOrderAsPaid(id, options = {}) {
-    return this.request(`/orders/${id}/mark-cod-paid`, {
+    console.log('🔧 Marking COD order as paid:', id, options)
+    
+    const result = await this.request(`/orders/${id}/mark-cod-paid`, {
       method: 'PUT',
       body: JSON.stringify(options)
     })
+    
+    // Trigger real-time sync event
+    if (result.success && result.data) {
+      events.orderUpdated(result.data)
+      cache.invalidate('orders') // Invalidate orders cache
+      console.log('🔄 Order updated event triggered')
+    }
+    
+    return result
   }
 
   // Get order stats

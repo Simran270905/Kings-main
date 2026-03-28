@@ -98,80 +98,50 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // SIMPLE LOGIN (name, email, phone only) - Local fallback
+  // SIMPLE LOGIN (name, email, phone only)
   const simpleLogin = async (data) => {
     try {
-      // Try backend login first
-      try {
-        const res = await fetch(`${API_BASE_URL}/users/login`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        })
+      // Try backend login
+      const res = await fetch(`${API_BASE_URL}/customers/register-or-login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
 
-        const result = await res.json()
+      const result = await res.json()
 
-        if (res.ok) {
-          // Store user info and generate fake token
-          const fakeToken = "kkings_user_token";
-          
-          localStorage.setItem('token', fakeToken)
-          localStorage.setItem('user', JSON.stringify(result.user))
-          localStorage.setItem('isAuthenticated', 'true')
+      if (res.ok) {
+        // Store user info and real token
+        localStorage.setItem('token', result.data.token)
+        localStorage.setItem('user', JSON.stringify(result.data.user))
+        localStorage.setItem('isAuthenticated', 'true')
 
-          setUser(result.user)
-          setIsAuthenticated(true)
+        setUser(result.data.user)
+        setIsAuthenticated(true)
 
-          console.log("User logged in via backend:", result.user)
+        console.log("User logged in via backend:", result.data.user)
 
-          return {
-            success: true,
-            user: result.user
-          }
+        return {
+          success: true,
+          user: result.data.user
         }
-      } catch (backendError) {
-        console.log("Backend login failed, using local fallback:", backendError.message)
+      } else {
+        throw new Error(result.message || 'Login failed')
       }
-
-      // Local fallback - login without backend
-      const fakeToken = "kkings_user_token";
-      const userData = {
-        id: Date.now().toString(),
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        role: 'customer',
-        createdAt: new Date().toISOString()
-      };
-
-      localStorage.setItem('token', fakeToken);
-      localStorage.setItem('user', JSON.stringify(userData));
-      localStorage.setItem('isAuthenticated', 'true');
-
-      setUser(userData);
-      setIsAuthenticated(true);
-
-      console.log("User logged in locally:", userData);
-
-      return { 
-        success: true,
-        user: userData
-      };
-
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message || 'Login failed. Please check your credentials and try again.'
       }
     }
   }
 
-  // ✅ LOGIN (kept for backward compatibility)
+  // LOGIN (kept for backward compatibility)
   const login = async (data) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/customers/login`, {
+      const res = await fetch(`${API_BASE_URL}/customers/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -192,6 +162,8 @@ export function AuthProvider({ children }) {
       }
 
       localStorage.setItem('token', result.data.token)
+      localStorage.setItem('user', JSON.stringify(result.data.user))
+      localStorage.setItem('isAuthenticated', 'true')
 
       setUser(result.data.user)
       setIsAuthenticated(true)
@@ -209,10 +181,10 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // ✅ REGISTER (kept for backward compatibility)
+  // REGISTER (kept for backward compatibility)
   const register = async (data) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/customers/register`, {
+      const res = await fetch(`${API_BASE_URL}/customers/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

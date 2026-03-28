@@ -1,10 +1,10 @@
 // API Service Error Handler and Recovery
 class ApiServiceErrorHandler {
   constructor() {
-    this.retryAttempts = 3
+    this.retryAttempts = 2  // ✅ Reduced from 3
     this.retryDelay = 1000
-    this.circuitBreakerThreshold = 5
-    this.circuitBreakerTimeout = 30000
+    this.circuitBreakerThreshold = 10  // ✅ Increased from 5
+    this.circuitBreakerTimeout = 15000  // ✅ Reduced from 30000
     this.failureCount = 0
     this.lastFailureTime = null
     this.circuitBreakerOpen = false

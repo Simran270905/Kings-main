@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { API_BASE_URL } from '@config/api.js'
+import { extractData, extractError, isSuccess, logApiCall, logApiResponse } from '../../utils/dataExtractionHelper.js'
 
 const API_URL = API_BASE_URL
 const getToken = () => localStorage.getItem('token')
@@ -24,27 +25,22 @@ export function CustomerOrderProvider({ children }) {
     setError(null)
 
     try {
-      // Check if using fake token - load local orders
-      if (token === 'kkings_user_token') {
-        console.log(' Using fake token, loading local orders...')
-        const localOrders = JSON.parse(localStorage.getItem('localOrders') || '[]')
-        setOrders(localOrders.reverse()) // Show newest first
-        return
-      }
-
-      // Try backend API for real tokens
+      logApiCall('/orders/my-orders', 'GET')
       const response = await fetch(`${API_URL}/orders/my-orders`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       const body = await response.json()
+      logApiResponse('/orders/my-orders', body)
 
       if (!response.ok) {
-        throw new Error(body?.message || 'Unable to load orders')
+        throw new Error(extractError(body))
       }
 
-      setOrders(body.data?.orders || body.data || [])
+      const ordersData = extractData(body)
+      setOrders(ordersData)
     } catch (err) {
-      setError(err.message || 'Network error while loading orders')
+      setError(extractError(err) || 'Network error while loading orders')
+      setOrders([]) // Clear orders on error
     } finally {
       setLoading(false)
     }
@@ -80,58 +76,6 @@ export function CustomerOrderProvider({ children }) {
     setError(null)
 
     try {
-      // Check if using fake token - if so, create order locally
-      if (token === 'kkings_user_token') {
-        console.log(' Using fake token, creating order locally...')
-        
-        // Get user data from localStorage
-        const userData = JSON.parse(localStorage.getItem('user') || '{}')
-        
-        // Create local order
-        const localOrder = {
-          _id: Date.now().toString(),
-          id: Date.now().toString(),
-          ...orderData,
-          status: 'pending',
-          paymentMethod: orderData.paymentMethod || 'COD',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          
-          // STORE CUSTOMER INFO DIRECTLY
-          customer: {
-            name: userData.name || (orderData.shippingAddress?.firstName && orderData.shippingAddress?.lastName ? 
-                  `${orderData.shippingAddress.firstName} ${orderData.shippingAddress.lastName}` : "Guest User"),
-            email: userData.email || orderData.shippingAddress?.email || "",
-            phone: userData.phone || orderData.shippingAddress?.mobile || "",
-            
-            // Keep backward compatibility
-            firstName: userData.name?.split(' ')[0] || orderData.shippingAddress?.firstName || "Guest",
-            lastName: userData.name?.split(' ')[1] || orderData.shippingAddress?.lastName || "User", 
-            mobile: userData.phone || orderData.shippingAddress?.mobile || ""
-          }
-        }
-
-        // Store order in localStorage
-        const existingOrders = JSON.parse(localStorage.getItem('localOrders') || '[]')
-        existingOrders.push(localOrder)
-        localStorage.setItem('localOrders', JSON.stringify(existingOrders))
-
-        // Update current order
-        setCurrentOrder(localOrder)
-        
-        // Clear cart if function provided
-        if (typeof clearCartFn === 'function') {
-          clearCartFn()
-        }
-
-        // Dispatch event for UI updates
-        window.dispatchEvent(new Event('ordersUpdated'))
-
-        console.log(' Local order created successfully:', localOrder)
-        return { success: true, order: localOrder }
-      }
-
-      // Try backend API for real tokens
       // Get user data from localStorage to send with order
       const userData = JSON.parse(localStorage.getItem('user') || '{}')
       const orderDataWithUser = {

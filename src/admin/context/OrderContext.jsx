@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import adminApi from '../utils/adminApiService'
 import { useAdminAuth } from './useAdminAuth'
+import { extractData, extractPagination, logApiCall, logApiResponse } from '../../utils/dataExtractionHelper.js'
 
 export const OrderContext = createContext()
 
@@ -15,6 +16,7 @@ export const useOrder = () => {
 export const OrderProvider = ({ children }) => {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
   const [lastFetch, setLastFetch] = useState(null)
   const { setOrderRefreshCallback } = useAdminAuth() || {}
 
@@ -41,38 +43,49 @@ export const OrderProvider = ({ children }) => {
     // return () => clearInterval(interval)
   }, [])
 
+  // ✅ FETCH ALL ORDERS (with standardized data extraction)
   const fetchOrders = async (silent = false) => {
     try {
       if (!silent) setLoading(true)
       
+      logApiCall('/orders', 'GET')
       const data = await adminApi.getOrders()
-      console.log("OrderContext - API Response:", data)
-      // Fix: Extract from nested structure { success, data: { orders: [] } }
-      const newOrders = data.data?.data?.orders || data.data?.orders || data.orders || data.data || data || []
-      console.log("OrderContext - Orders extracted:", newOrders)
-
-      // ✅ TASK 1 & 3: Prevent overwriting with empty data
-      if (Array.isArray(newOrders) && newOrders.length > 0) {
-        // Only update if orders have changed (check length and IDs)
-        const hasChanged = orders.length !== newOrders.length || 
-          !orders.every((order, index) => order._id === newOrders[index]?._id)
-        
-        if (hasChanged) {
-          setOrders(newOrders)
-          setLastFetch(new Date())
-          console.log(`📋 Orders updated: ${newOrders.length} orders (from real API)`)
-        } else {
-          console.log("📋 Orders unchanged, skipping update")
-        }
+      logApiResponse('/orders', data)
+      
+      // ✅ DEBUG: Detailed API response inspection
+      console.log("🔍 ORDERS API INVESTIGATION:")
+      console.log("📦 Raw API Response:", data)
+      console.log("📦 Response type:", typeof data)
+      console.log("📦 Response keys:", Object.keys(data || {}))
+      console.log("📦 Response.data:", data?.data)
+      console.log("📦 Response.data type:", typeof data?.data)
+      console.log("📦 Response.data isArray:", Array.isArray(data?.data))
+      console.log("📦 Response.orders:", data?.orders)
+      console.log("📦 Response.orders type:", typeof data?.orders)
+      console.log("📦 Response.orders isArray:", Array.isArray(data?.orders))
+      
+      // ✅ Use standardized data extraction
+      const newOrders = extractData(data)
+      console.log("📊 Extracted orders:", newOrders)
+      console.log("📊 Extracted orders type:", typeof newOrders)
+      console.log("📊 Extracted orders isArray:", Array.isArray(newOrders))
+      console.log("📊 Extracted orders length:", newOrders?.length)
+      const pagination = extractPagination(data)
+      
+      // ✅ Always update orders, even if empty
+      const hasChanged = orders.length !== newOrders.length || 
+        !orders.every((order, index) => order._id === newOrders[index]?._id)
+      
+      if (hasChanged || newOrders.length === 0) {
+        setOrders(newOrders)
+        setLastFetch(new Date())
+        console.log(`📋 Orders updated: ${newOrders.length} orders (from real API)`)
       } else {
-        console.log("📋 Skipping orders update: empty array")
-        // Don't clear existing orders on silent fetch errors to prevent UI flicker
-        if (!silent && orders.length === 0) {
-          setOrders([])
-        }
+        console.log("📋 Orders unchanged, skipping update")
       }
     } catch (error) {
       console.error('❌ Error loading orders:', error.message)
+      setError(error.message)
       // Don't clear orders on silent fetch errors to prevent UI flicker
       if (!silent) {
         setOrders([])
@@ -153,14 +166,33 @@ export const OrderProvider = ({ children }) => {
   }
 
   // GET STATS
-  const getStats = () => ({
-    total: orders.length,
-    pending: orders.filter(o => o.status === 'pending').length,
-    processing: orders.filter(o => o.status === 'processing').length,
-    shipped: orders.filter(o => o.status === 'shipped').length,
-    delivered: orders.filter(o => o.status === 'delivered').length,
-    cancelled: orders.filter(o => o.status === 'cancelled').length,
-  })
+  const getStats = () => {
+    const totalOrders = orders.length;
+    const totalRevenue = orders.reduce((sum, o) => {
+      return sum + (o.totalAmount || 0);
+    }, 0);
+    const paidOrders = orders.filter(o => o.paymentStatus === 'paid').length;
+    const pendingOrders = orders.filter(o => o.paymentStatus !== 'paid').length;
+    
+    // Status-based stats
+    const pendingStatusOrders = orders.filter(o => o.status === 'pending').length;
+    const processingOrders = orders.filter(o => o.status === 'processing').length;
+    const shippedOrders = orders.filter(o => o.status === 'shipped').length;
+    const deliveredOrders = orders.filter(o => o.status === 'delivered').length;
+    const cancelledOrders = orders.filter(o => o.status === 'cancelled').length;
+
+    return {
+      total: totalOrders,
+      totalRevenue,
+      paidOrders,
+      pendingOrders,
+      pending: pendingStatusOrders,
+      processing: processingOrders,
+      shipped: shippedOrders,
+      delivered: deliveredOrders,
+      cancelled: cancelledOrders
+    };
+  }
 
   // Refresh orders (call after login)
   const refreshOrders = () => {
@@ -178,6 +210,7 @@ export const OrderProvider = ({ children }) => {
       value={{
         orders,
         loading,
+        error,
         lastFetch,
         createOrder,
         updateOrderStatus,

@@ -9,7 +9,7 @@ import {
   safeNumber,
   safeCategoryName,
   logAdminData,
-  safeApiResponse
+  safeAdminFetch
 } from '../utils/adminSafetyUtils'
 
 export default function CategoriesManagement() {
@@ -34,25 +34,55 @@ export default function CategoriesManagement() {
   const fetchCategories = async () => {
     setLoading(true)
     try {
-      const token = localStorage.getItem('kk_admin_token')
+      console.log('🔍 CategoriesManagement: Fetching categories...')
       
-      const response = await safeApiResponse(
-        fetch(`${API_BASE_URL}/categories/admin/all`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        'CategoriesManagement'
-      )
+      // Try admin endpoint first
+      let response = await safeAdminFetch(`${API_BASE_URL}/categories/admin/all`, {}, 'CategoriesManagement')
+      
+      // If admin endpoint fails, try public endpoint
+      if (!response.success) {
+        console.log('⚠️ Admin endpoint failed, trying public endpoint...')
+        response = await safeAdminFetch(`${API_BASE_URL}/categories`, {}, 'CategoriesManagement-Public')
+      }
+      
+      console.log('📊 Categories API Response:', response)
       
       if (response.success && response.data) {
-        const categoriesData = safeArray(response.data.data?.categories || response.data)
-        setCategories(categoriesData)
+        // Fix extraction: handle both old and new response structures
+        let categories = [];
+        
+        // New structure: { success: true, data: [categories] }
+        if (Array.isArray(response.data)) {
+          categories = response.data;
+        }
+        // Old structure: { success: true, data: { categories: [categories] } }
+        else if (response.data.categories && Array.isArray(response.data.categories)) {
+          categories = response.data.categories;
+        }
+        
+        const categoriesData = Array.isArray(categories) ? categories : [];
+        
+        console.log(`✅ Categories loaded: ${categoriesData.length} items`)
+        console.log('📋 Categories data structure:', {
+          hasData: !!response.data,
+          dataType: typeof response.data,
+          isArray: Array.isArray(response.data),
+          hasCategories: !!response.data.categories,
+          extractedCount: categoriesData.length
+        })
+        
+        // Ensure we always set an array
+        setCategories(categoriesData || [])
         logAdminData('CategoriesManagement', categoriesData, 'loaded')
       } else {
-        throw new Error('Failed to load categories')
+        console.warn('⚠️ Categories API returned no data, setting empty array')
+        setCategories([]) // Always ensure array
+        logAdminData('CategoriesManagement', [], 'no-data')
       }
     } catch (error) {
-      console.error('CategoriesManagement Error:', error)
+      console.error('❌ CategoriesManagement Error:', error)
       toast.error('Failed to load categories')
+      setCategories([]) // Ensure we always have an array
       logAdminData('CategoriesManagement', error, 'error')
     } finally {
       setLoading(false)

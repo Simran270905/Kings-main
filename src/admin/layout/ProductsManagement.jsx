@@ -21,8 +21,7 @@ import {
   safeCurrency,
   safeProductName,
   safeCategoryName,
-  logAdminData,
-  safeApiResponse
+  logAdminData
 } from '../utils/adminSafetyUtils'
 
 export default function ProductsManagement() {
@@ -31,6 +30,7 @@ export default function ProductsManagement() {
   const [selectedCategory, setSelectedCategory] = useState('')
   const [sortBy, setSortBy] = useState('createdAt')
   const [sortOrder, setSortOrder] = useState('desc')
+  const [deletingId, setDeletingId] = useState(null) // Track which product is being deleted
 
   // Safe data handling
   const safeProducts = safeArray(products)
@@ -85,14 +85,28 @@ export default function ProductsManagement() {
   // 🔥 Delete product
   const handleDelete = async (id, name) => {
     if (!window.confirm(`Delete "${name}"?`)) return
+    
+    // Prevent multiple deletions of the same product
+    if (deletingId === id) {
+      console.log('Product already being deleted:', id)
+      return
+    }
 
     try {
+      setDeletingId(id) // Set loading state
       await adminApi.deleteProduct(id)
       toast.success('Product deleted successfully')
       triggerGlobalRefresh() // Trigger global refresh across all components
     } catch (err) {
       console.error(err)
-      toast.error('Failed to delete product')
+      if (err.message?.includes('Product not found')) {
+        toast.error('Product was already deleted')
+        triggerGlobalRefresh() // Refresh to update UI
+      } else {
+        toast.error('Failed to delete product')
+      }
+    } finally {
+      setDeletingId(null) // Clear loading state
     }
   }
 
@@ -201,7 +215,8 @@ export default function ProductsManagement() {
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Product</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Price</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Purchase Price</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Original Price</th>
                   <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Stock</th>
                 <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
               </tr>
@@ -247,7 +262,14 @@ export default function ProductsManagement() {
                       </span>
                     </td>
 
-                    {/* Price */}
+                    {/* Purchase Price */}
+                    <td className="px-6 py-4 text-right">
+                      <span className="font-medium text-gray-700">
+                        ₹{(product.purchasePrice || 0).toLocaleString('en-IN')}
+                      </span>
+                    </td>
+
+                    {/* Original Price */}
                     <td className="px-6 py-4 text-right">
                       <span className="font-semibold text-gray-900">
                         ₹{(product.price || 0).toLocaleString('en-IN')}
@@ -279,10 +301,19 @@ export default function ProductsManagement() {
                         </Link>
                         <button
                           onClick={() => handleDelete(product._id, product.name)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete product"
+                          disabled={deletingId === product._id}
+                          className={`p-2 rounded-lg transition-colors ${
+                            deletingId === product._id
+                              ? 'text-gray-400 bg-gray-50 cursor-not-allowed'
+                              : 'text-red-600 hover:bg-red-50'
+                          }`}
+                          title={deletingId === product._id ? 'Deleting...' : 'Delete product'}
                         >
-                          <TrashIcon className="h-5 w-5" />
+                          {deletingId === product._id ? (
+                            <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-red-600"></div>
+                          ) : (
+                            <TrashIcon className="h-5 w-5" />
+                          )}
                         </button>
                       </div>
                     </td>

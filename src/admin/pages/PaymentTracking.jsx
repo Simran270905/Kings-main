@@ -1,7 +1,5 @@
-'use client'
-
 import React, { useState } from 'react'
-import { useEnhancedOrder } from '../context/EnhancedOrderContext'
+import { useOrder } from '../context/OrderContext'
 import AdminCard from '../layout/AdminCard'
 import AdminButton from '../layout/AdminButton'
 
@@ -22,23 +20,98 @@ export default function PaymentTracking() {
   const {
     orders,
     loading,
-    filters,
-    stats,
     fetchOrders,
     getOrderDetails,
-    markCODOrderAsPaid,
-    updateFilters,
-    resetFilters,
-    exportPaymentReports
-  } = useEnhancedOrder()
+    updateOrderStatus,
+    getStats
+  } = useOrder()
 
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [orderDetails, setOrderDetails] = useState(null)
   const [detailsLoading, setDetailsLoading] = useState(false)
 
+  // Filter state
+  const [filters, setFilters] = useState({
+    status: "all",
+    paymentStatus: "all",
+    paymentMethod: "all",
+    page: 1,
+    limit: 10,
+    startDate: "",
+    endDate: ""
+  })
+
+  // Safe rendering check
+  if (!orders) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <ClockIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500">Loading orders...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Calculate payment tracking metrics directly from orders
+  const totalOrders = orders.length
+  const totalRevenue = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0)
+  const paidOrders = orders.filter(o => o.paymentStatus === 'paid').length
+  const pendingOrders = orders.filter(o => o.paymentStatus !== 'paid').length
+
+  console.log("PaymentTracking - Orders:", orders)
+  console.log("PaymentTracking - Metrics:", {
+    totalOrders,
+    totalRevenue,
+    paidOrders,
+    pendingOrders
+  })
+
+  // Filter orders based on current filters
+  const filteredOrders = orders.filter((order) => {
+    const statusMatch = filters?.status === "all" || order.status === filters?.status
+    const paymentStatusMatch = filters?.paymentStatus === "all" || order.paymentStatus === filters?.paymentStatus
+    const paymentMethodMatch = filters?.paymentMethod === "all" || order.paymentMethod === filters?.paymentMethod
+    
+    return statusMatch && paymentStatusMatch && paymentMethodMatch
+  })
+
+  // Helper function to format currency
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR'
+    }).format(amount)
+  }
+
   // Handle filter changes
   const handleFilterChange = (field, value) => {
-    updateFilters({ [field]: value })
+    setFilters(prev => ({
+      ...prev,
+      [field]: value
+    }))
+    console.log(`Filter ${field} changed to:`, value)
+  }
+
+  // Reset filters
+  const resetFilters = () => {
+    setFilters({
+      status: "all",
+      paymentStatus: "all",
+      paymentMethod: "all",
+      page: 1,
+      limit: 10,
+      startDate: "",
+      endDate: ""
+    })
+  }
+
+  // Update filters
+  const updateFilters = (newFilters) => {
+    setFilters(prev => ({
+      ...prev,
+      ...newFilters
+    }))
   }
 
   // Handle order details
@@ -84,17 +157,13 @@ export default function PaymentTracking() {
     }
   }
 
-  // Format currency
-  const formatCurrency = (amount) => {
-    return `₹${(amount || 0).toLocaleString('en-IN')}`
-  }
-
   // Format date
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-IN', {
-      year: 'numeric',
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A'
+    return new Date(dateString).toLocaleDateString('en-IN', {
+      day: 'numeric',
       month: 'short',
-      day: 'numeric'
+      year: 'numeric'
     })
   }
 
@@ -158,28 +227,28 @@ export default function PaymentTracking() {
         <AdminCard>
           <div className="text-center">
             <div className="text-sm font-medium text-gray-600">Total Orders</div>
-            <div className="text-2xl font-bold text-gray-900">{stats.totalOrders}</div>
+            <div className="text-2xl font-bold text-gray-900">{totalOrders}</div>
           </div>
         </AdminCard>
         
         <AdminCard>
           <div className="text-center">
             <div className="text-sm font-medium text-gray-600">Total Revenue</div>
-            <div className="text-2xl font-bold text-green-600">{formatCurrency(stats.totalRevenue)}</div>
+            <div className="text-2xl font-bold text-green-600">{formatCurrency(totalRevenue)}</div>
           </div>
         </AdminCard>
         
         <AdminCard>
           <div className="text-center">
             <div className="text-sm font-medium text-gray-600">Paid Orders</div>
-            <div className="text-2xl font-bold text-green-600">{stats.paymentStatusBreakdown?.paid || 0}</div>
+            <div className="text-2xl font-bold text-green-600">{paidOrders}</div>
           </div>
         </AdminCard>
         
         <AdminCard>
           <div className="text-center">
             <div className="text-sm font-medium text-gray-600">Pending Orders</div>
-            <div className="text-2xl font-bold text-yellow-600">{stats.paymentStatusBreakdown?.pending || 0}</div>
+            <div className="text-2xl font-bold text-yellow-600">{pendingOrders}</div>
           </div>
         </AdminCard>
       </div>
@@ -274,7 +343,7 @@ export default function PaymentTracking() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {orders.map((order) => (
+              {filteredOrders.map((order) => (
                 <tr key={order._id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     #{order._id.toString().slice(-8).toUpperCase()}
@@ -360,7 +429,7 @@ export default function PaymentTracking() {
         {/* Pagination */}
         <div className="flex justify-between items-center mt-4">
           <div className="text-sm text-gray-500">
-            Showing {orders.length} of {stats.totalOrders} orders
+            Showing {filteredOrders.length} of {totalOrders} orders
           </div>
           <div className="flex gap-2">
             <button
@@ -372,7 +441,7 @@ export default function PaymentTracking() {
             </button>
             <button
               className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50"
-              disabled={orders.length < filters.limit}
+              disabled={filteredOrders.length < filters.limit}
               onClick={() => updateFilters({ page: parseInt(filters.page) + 1 })}
             >
               Next

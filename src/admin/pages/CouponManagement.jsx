@@ -3,6 +3,7 @@ import { couponApi } from '../../services/apiService'
 import toast from 'react-hot-toast'
 import AdminCard from '../layout/AdminCard'
 import AdminButton from '../layout/AdminButton'
+import { extractData, extractError, isSuccess, logApiCall, logApiResponse } from '../../utils/dataExtractionHelper.js'
 
 export default function CouponManagement() {
   const [coupons, setCoupons] = useState([])
@@ -29,10 +30,22 @@ export default function CouponManagement() {
 
   const fetchCoupons = async () => {
     try {
+      logApiCall('/api/coupons', 'GET')
       const response = await couponApi.getAll()
-      setCoupons(response.data || [])
+      logApiResponse('/api/coupons', response)
+      
+      if (isSuccess(response)) {
+        const couponsData = extractData(response)
+        setCoupons(couponsData)
+        console.log(`✅ Loaded ${couponsData?.length || 0} coupons`)
+      } else {
+        console.warn('⚠️ Coupon API returned no success, setting empty array')
+        setCoupons([])
+      }
     } catch (error) {
-      toast.error('Failed to fetch coupons')
+      console.error('❌ Error fetching coupons:', error.message)
+      toast.error('Failed to load coupons')
+      setCoupons([]) // Always ensure array
     } finally {
       setLoading(false)
     }
@@ -129,7 +142,12 @@ export default function CouponManagement() {
   if (loading) {
     return (
       <div className="p-6">
-        <div className="animate-pulse">Loading coupons...</div>
+        <div className="flex items-center justify-center min-h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ae0b0b] mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading coupons...</p>
+          </div>
+        </div>
       </div>
     )
   }

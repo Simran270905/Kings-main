@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useEffect } from 'react'
 import { PencilIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'

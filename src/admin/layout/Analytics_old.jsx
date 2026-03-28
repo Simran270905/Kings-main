@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { useProduct } from '../../customer/context/ProductContext'
 import { useDetailedAnalytics } from '../hooks/useDetailedAnalytics'

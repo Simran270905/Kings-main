@@ -262,9 +262,9 @@ const AdminOrders = () => {
             <div>
               <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Customer Information</h4>
               <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                <p className="text-sm"><span className="font-medium">Name:</span> {selectedOrder.shippingAddress?.firstName} {selectedOrder.shippingAddress?.lastName}</p>
-                <p className="text-sm"><span className="font-medium">Email:</span> {selectedOrder.shippingAddress?.email}</p>
-                <p className="text-sm"><span className="font-medium">Phone:</span> {selectedOrder.shippingAddress?.mobile}</p>
+                <p className="text-sm"><span className="font-medium">Name:</span> {selectedOrder.customer?.name || `${selectedOrder.shippingAddress?.firstName} ${selectedOrder.shippingAddress?.lastName}` || 'Guest User'}</p>
+                <p className="text-sm"><span className="font-medium">Email:</span> {selectedOrder.customer?.email || selectedOrder.shippingAddress?.email || '-'}</p>
+                <p className="text-sm"><span className="font-medium">Phone:</span> {selectedOrder.customer?.phone || selectedOrder.shippingAddress?.mobile || '-'}</p>
               </div>
             </div>
 

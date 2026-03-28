@@ -36,10 +36,22 @@ function HomePage() {
       try {
         const res = await fetch(`${API_BASE_URL}/categories`)
         const data = await res.json()
-        setCategories(data.data?.categories || [])
+        // Handle both old and new response structures
+        let categories = [];
+        
+        // New structure: { success: true, data: [categories] }
+        if (Array.isArray(data?.data)) {
+          categories = data.data;
+        }
+        // Old structure: { success: true, data: { categories: [categories] } }
+        else if (data?.data?.categories && Array.isArray(data.data.categories)) {
+          categories = data.data.categories;
+        }
+        
+        setCategories(Array.isArray(categories) ? categories : [])
       } catch (error) {
         console.error('❌ Error fetching categories:', error)
-        setCategories([])
+        setCategories([]) // Always ensure array
       } finally {
         setCategoriesLoading(false)
       }

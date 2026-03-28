@@ -12,10 +12,10 @@ const ProductCard = ({ product, onAddToCart }) => {
   const productImage = optimizeCloudinaryUrl((product.images?.[0]) || product.image || null);
   const title = product.title || product.name || "Product";
   const brand = product.brand || product.category || "";
-  const price = product.price || 0;
-  const sellingPrice = product.selling_price || product.sellingPrice || price;
-  const discount = price > sellingPrice
-    ? Math.round(((price - sellingPrice) / price) * 100)
+  const originalPrice = product.originalPrice || product.price || 0;
+  const sellingPrice = product.selling_price || product.sellingPrice || originalPrice;
+  const discount = originalPrice > sellingPrice
+    ? Math.round(((originalPrice - sellingPrice) / originalPrice) * 100)
     : 0;
   
   const isBestSeller = product.isBestSeller || false;
@@ -87,10 +87,10 @@ const ProductCard = ({ product, onAddToCart }) => {
         <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug flex-1">{title}</h3>
 
         <div className="mt-2">
-          {isOnSale && sellingPrice < price ? (
+          {isOnSale && sellingPrice < originalPrice ? (
             <div className="flex items-center gap-2">
               <span className="text-base font-bold text-[#ae0b0b]">{formatPrice(sellingPrice)}</span>
-              <span className="text-sm text-gray-400 line-through">{formatPrice(price)}</span>
+              <span className="text-sm text-gray-400 line-through">{formatPrice(originalPrice)}</span>
             </div>
           ) : (
             <span className="text-base font-bold text-[#ae0b0b]">{formatPrice(sellingPrice)}</span>

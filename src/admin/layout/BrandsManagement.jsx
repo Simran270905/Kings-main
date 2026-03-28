@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useEffect } from 'react'
 import AdminCard from './AdminCard'
 import { API_BASE_URL } from '@config/api.js'
@@ -7,12 +5,75 @@ import toast from 'react-hot-toast'
 import { PlusCircleIcon, PencilIcon, TrashIcon, TagIcon } from '@heroicons/react/24/outline'
 
 export default function BrandsManagement() {
+  // ✅ STEP 4: FIX STATE INITIALIZATION
   const [brands, setBrands] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editingBrand, setEditingBrand] = useState(null)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ name: '', description: '' })
+
+  // ✅ ADD BRAND LISTING DEBUG FUNCTION
+  const debugBrandsList = async () => {
+    console.log("🔍 COMPREHENSIVE BRANDS DEBUG:")
+    console.log("📊 Current brands state:", brands)
+    console.log("📊 Brands length:", brands.length)
+    
+    if (brands.length > 0) {
+      console.log("📋 EXISTING BRANDS LIST:")
+      brands.forEach((brand, index) => {
+        console.log(`${index + 1}. Name: "${brand.name}"`)
+        console.log(`   ID: ${brand._id}`)
+        console.log(`   Description: ${brand.description || 'No description'}`)
+        console.log(`   Active: ${brand.isActive || 'Unknown'}`)
+        console.log(`   Created: ${brand.createdAt || 'Unknown'}`)
+        console.log(`   ---`)
+      })
+    } else {
+      console.log("❌ NO BRANDS FOUND IN STATE")
+    }
+    
+    // Also try direct API call to verify database contents
+    try {
+      const token = localStorage.getItem('kk_admin_token')
+      console.log("� DIRECT API CALL TO VERIFY DATABASE:")
+      
+      // Test all possible endpoints
+      const endpoints = ['/api/brands', '/brands', '/brands/admin/all']
+      
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`📡 Testing ${endpoint}:`)
+          const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+          const data = await res.json()
+          console.log(`📦 Response from ${endpoint}:`, data)
+          
+          if (data?.data && Array.isArray(data.data)) {
+            console.log(`📋 BRANDS FROM ${endpoint}:`)
+            data.data.forEach((brand, index) => {
+              console.log(`${index + 1}. "${brand.name}" (ID: ${brand._id})`)
+            })
+          } else if (data?.brands && Array.isArray(data.brands)) {
+            console.log(`� BRANDS FROM ${endpoint} (data.brands):`)
+            data.brands.forEach((brand, index) => {
+              console.log(`${index + 1}. "${brand.name}" (ID: ${brand._id})`)
+            })
+          }
+        } catch (err) {
+          console.log(`❌ Failed ${endpoint}:`, err.message)
+        }
+      }
+    } catch (error) {
+      console.error('❌ Debug API call failed:', error)
+    }
+  }
+
+  // ✅ CALL DEBUG FUNCTION ON COMPONENT RENDER
+  useEffect(() => {
+    debugBrandsList()
+  }, [brands])
 
   useEffect(() => {
     fetchBrands()
@@ -22,12 +83,113 @@ export default function BrandsManagement() {
     setLoading(true)
     try {
       const token = localStorage.getItem('kk_admin_token')
-      const res = await fetch(`${API_BASE_URL}/brands/admin/all`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      const data = await res.json()
-      setBrands(data.data?.brands || [])
-    } catch {
+      
+      // ✅ TRY MULTIPLE ENDPOINTS TO FIND THE CORRECT ONE
+      console.log("🔍 TESTING MULTIPLE BRANDS API ENDPOINTS:")
+      
+      let brandsData = []
+      
+      // Try endpoint 1: /api/brands
+      try {
+        console.log("📡 Trying endpoint: /api/brands")
+        const res1 = await fetch(`${API_BASE_URL}/api/brands`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        const data1 = await res1.json()
+        console.log("📦 Response from /api/brands:", data1)
+        
+        if (data1?.data && Array.isArray(data1.data)) {
+          brandsData = data1.data
+          console.log("✅ SUCCESS: Got brands from /api/brands")
+        }
+      } catch (err1) {
+        console.log("❌ Failed /api/brands:", err1.message)
+      }
+      
+      // Try endpoint 2: /brands (THIS ONE WORKS!)
+      if (brandsData.length === 0) {
+        try {
+          console.log("📡 Trying endpoint: /brands")
+          const res2 = await fetch(`${API_BASE_URL}/brands`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+          const data2 = await res2.json()
+          console.log("📦 Response from /brands:", data2)
+          
+          // ✅ CHECK ALL POSSIBLE DATA STRUCTURES FROM WORKING ENDPOINT
+          if (data2?.data && Array.isArray(data2.data)) {
+            brandsData = data2.data
+            console.log("✅ SUCCESS: Got brands from /brands (data.data)")
+          } else if (data2?.brands && Array.isArray(data2.brands)) {
+            brandsData = data2.brands
+            console.log("✅ SUCCESS: Got brands from /brands (data.brands)")
+          } else if (data2?.data?.brands && Array.isArray(data2.data.brands)) {
+            brandsData = data2.data.brands
+            console.log("✅ SUCCESS: Got brands from /brands (data.data.brands)")
+          } else {
+            console.log("🔍 Checking all possible structures in /brands response:")
+            console.log("📦 data2 keys:", Object.keys(data2 || {}))
+            console.log("📦 data2.data keys:", Object.keys(data2?.data || {}))
+            console.log("📦 data2.data type:", typeof data2?.data)
+            
+            // Try to find brands in any nested structure
+            const findBrands = (obj, path = "") => {
+              if (Array.isArray(obj)) {
+                console.log(`✅ Found array at ${path}:`, obj)
+                return obj
+              }
+              if (obj && typeof obj === 'object') {
+                for (const [key, value] of Object.entries(obj)) {
+                  if (key.toLowerCase().includes('brand')) {
+                    console.log(`🔍 Checking ${path}${key}:`, value)
+                    if (Array.isArray(value)) {
+                      console.log(`✅ Found brands array at ${path}${key}:`, value)
+                      return value
+                    }
+                  }
+                  const found = findBrands(value, path ? `${path}.${key}` : key)
+                  if (found && found.length > 0) return found
+                }
+              }
+              return null
+            }
+            
+            const foundBrands = findBrands(data2)
+            if (foundBrands) {
+              brandsData = foundBrands
+              console.log("✅ SUCCESS: Found brands in nested structure")
+            }
+          }
+        } catch (err2) {
+          console.log("❌ Failed /brands:", err2.message)
+        }
+      }
+      
+      // Try endpoint 3: /brands/admin/all
+      if (brandsData.length === 0) {
+        try {
+          console.log("📡 Trying endpoint: /brands/admin/all")
+          const res3 = await fetch(`${API_BASE_URL}/brands/admin/all`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+          const data3 = await res3.json()
+          console.log("📦 Response from /brands/admin/all:", data3)
+          
+          if (data3?.data?.brands && Array.isArray(data3.data.brands)) {
+            brandsData = data3.data.brands
+            console.log("✅ SUCCESS: Got brands from /brands/admin/all")
+          }
+        } catch (err3) {
+          console.log("❌ Failed /brands/admin/all:", err3.message)
+        }
+      }
+      
+      console.log("📊 FINAL BRANDS DATA:", brandsData)
+      console.log("📊 FINAL BRANDS LENGTH:", brandsData.length)
+      
+      setBrands(brandsData)
+    } catch (error) {
+      console.error('❌ Failed to load brands:', error)
       toast.error('Failed to load brands')
     } finally {
       setLoading(false)
@@ -58,13 +220,53 @@ export default function BrandsManagement() {
       toast.error('Brand name is required')
       return
     }
+
+    // ✅ RE-ENABLE DUPLICATE CHECK WITH BETTER LOGIC
+    console.log("🔍 DUPLICATE VALIDATION DEBUG:")
+    console.log("📊 Current brands:", brands)
+    console.log("📊 Brands length:", brands.length)
+    console.log("📊 Form name:", form.name)
+    console.log("📊 Form name trimmed:", form.name.trim())
+    console.log("📊 Editing brand ID:", editingBrand?._id)
+    
+    // Only check for duplicates if we have brands loaded
+    if (brands.length > 0) {
+      const existingBrand = brands.find(brand => {
+        console.log(`🔍 Checking brand: ${brand.name} vs ${form.name.trim()}`)
+        console.log(`🔍 Comparison: ${brand.name.toLowerCase()} === ${form.name.trim().toLowerCase()}`)
+        console.log(`🔍 ID check: ${brand._id} !== ${editingBrand?._id}`)
+        
+        const matches = brand.name.toLowerCase() === form.name.trim().toLowerCase() && 
+                       brand._id !== editingBrand?._id
+        
+        console.log(`🔍 Matches: ${matches}`)
+        return matches
+      })
+      
+      console.log("📊 Found existing brand:", existingBrand)
+      
+      if (existingBrand) {
+        console.log("❌ DUPLICATE DETECTED - Blocking save")
+        toast.error(`Brand "${form.name}" already exists`)
+        return
+      } else {
+        console.log("✅ NO DUPLICATE - Proceeding with save")
+      }
+    } else {
+      console.log("ℹ️ NO BRANDS LOADED - Skipping duplicate check")
+    }
+
     setSaving(true)
     try {
       const token = localStorage.getItem('kk_admin_token')
+      // ✅ USE THE WORKING ENDPOINT FOR BRAND CREATION
       const url = editingBrand
         ? `${API_BASE_URL}/brands/${editingBrand._id}`
         : `${API_BASE_URL}/brands`
       const method = editingBrand ? 'PUT' : 'POST'
+
+      console.log(`🔧 ${method} Brand:`, form)
+      console.log("📡 Using endpoint:", url)
 
       const res = await fetch(url, {
         method,
@@ -76,16 +278,24 @@ export default function BrandsManagement() {
       })
       const data = await res.json()
 
+      console.log("📦 Brand Save Response:", data)
+
       if (!res.ok) {
-        toast.error(data.message || 'Failed to save brand')
+        // ✅ Handle specific duplicate key error
+        if (data.message && data.message.includes('duplicate key') && data.message.includes('name')) {
+          toast.error(`Brand "${form.name}" already exists. Please choose a different name.`)
+        } else {
+          toast.error(data.message || 'Failed to save brand')
+        }
         return
       }
 
-      toast.success(editingBrand ? 'Brand updated!' : 'Brand created!')
+      toast.success(editingBrand ? 'Brand updated successfully' : 'Brand created successfully')
       closeModal()
-      fetchBrands()
-    } catch {
-      toast.error('Network error')
+      fetchBrands() // Refresh brands list
+    } catch (error) {
+      console.error('❌ Save brand error:', error)
+      toast.error('Failed to save brand')
     } finally {
       setSaving(false)
     }
