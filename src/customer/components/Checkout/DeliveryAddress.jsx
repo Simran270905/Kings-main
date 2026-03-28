@@ -156,6 +156,17 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
             const token = localStorage.getItem('token');
             if (token) {
                 try {
+                    // First check if backend is reachable
+                    console.log('🔍 Checking backend connectivity...');
+                    const healthCheck = await fetch(`${API_URL}/health`).catch(() => null);
+                    
+                    if (!healthCheck || !healthCheck.ok) {
+                        console.warn('⚠️ Backend not reachable, saving locally only');
+                        toast.success('Address saved locally (backend unavailable)');
+                        return;
+                    }
+                    
+                    console.log('✅ Backend reachable, attempting to save address:', formData);
                     const response = await fetch(`${API_URL}/customers/addresses`, {
                         method: 'POST',
                         headers: {
@@ -165,7 +176,12 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
                         body: JSON.stringify(formData)
                     });
 
+                    console.log('🔍 Backend response status:', response.status);
+                    console.log('🔍 Backend response ok:', response.ok);
+
                     if (response.ok) {
+                        const result = await response.json();
+                        console.log('✅ Backend save successful:', result);
                         toast.success('Address saved successfully');
                         
                         // Reload addresses from backend
@@ -184,16 +200,28 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
                         }
                     } else {
                         // Backend save failed, but local save worked
-                        console.warn('Backend save failed, but address saved locally');
-                        toast.success('Address saved locally');
+                        const errorData = await response.json().catch(() => ({}));
+                        console.warn('⚠️ Backend save failed:', response.status, errorData);
+                        
+                        // Provide specific error messages based on status
+                        if (response.status === 401) {
+                            toast.error('Session expired. Please login again.');
+                        } else if (response.status === 404) {
+                            toast.error('Service temporarily unavailable. Address saved locally.');
+                        } else if (response.status >= 500) {
+                            toast.error('Server error. Address saved locally.');
+                        } else {
+                            toast.error('Address saved locally (backend error)');
+                        }
                     }
                 } catch (backendError) {
                     // Backend unavailable, but local save worked
-                    console.warn('Backend unavailable, address saved locally:', backendError);
+                    console.warn('⚠️ Backend unavailable, address saved locally:', backendError);
                     toast.success('Address saved locally');
                 }
             } else {
                 // No token, but address saved locally
+                console.log('ℹ️ No token found, address saved locally only');
                 toast.success('Address saved locally');
             }
         } catch (error) {
