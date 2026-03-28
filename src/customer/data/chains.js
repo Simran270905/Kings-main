@@ -4,18 +4,14 @@ export const chains = [
   {
     id: "chain_001",
     _id: "chain_001",
-    images: [
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828250/main4_qeoepd.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828246/bdchains_n0errq.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828247/diamondchain1_ogovqe.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828247/diamondchain1_ogovqe.jpg"
-    ],
+    image: "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828250/main4_qeoepd.jpg",
     brand: "MOTI CHAINS",
     title: "1 Gram Gold Plated Chain",
     color: "Gold Plated",
 
     price: 2499,
     selling_price: 2000,
+    disscount: "20%",
     inStock: true,
     category: "chain",
     material: "gold",
@@ -31,18 +27,14 @@ export const chains = [
   {
     id: "chain_002",
     _id: "chain_002",
-    images: [
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828247/diamondchain1_ogovqe.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828246/bdchains_n0errq.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828250/main4_qeoepd.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828249/snakechain1_hnkbi4.jpg"
-    ],
+    image: "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828247/diamondchain1_ogovqe.jpg",
     brand: "MOTI CHAINS",
     title: "1 Gram Gold Plated Chain",
     color: "Gold Plated",
 
     price: 3699,
     selling_price: 3200,
+    disscount: "13%",
     inStock: true,
     category: "chain",
     material: "gold",
@@ -58,18 +50,14 @@ export const chains = [
   {
     id: "chain_003",
     _id: "chain_003",
-    images: [
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828247/diamondchain1_ogovqe.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828246/bdchains_n0errq.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828250/main4_qeoepd.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828249/snakechain1_hnkbi4.jpg"
-    ],
+    image: "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828246/bdchains_n0errq.jpg",
     brand: "DIAMOND CHAINS",
     title: "1 Gram Gold Plated Chain",
     color: "Gold Plated",
 
     price: 2699,
     selling_price: 2300,
+    disscount: "15%",
     inStock: true,
     category: "chain",
     material: "diamond",
@@ -86,18 +74,14 @@ export const chains = [
   {
     id: "chain_004",
     _id: "chain_004",
-    images: [
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828247/diamondchain1_ogovqe.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828246/bdchains_n0errq.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828250/main4_qeoepd.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828249/snakechain1_hnkbi4.jpg"
-    ],
+    image: "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828249/snakechain1_hnkbi4.jpg",
     brand: "MOTI CHAINS",
     title: "1 Gram Gold Plated Chain",
     color: "Gold Plated",
 
     price: 3699,
     selling_price: 3200,
+    disscount: "13%",
     inStock: false,
     category: "chain",
     material: "gold",
@@ -111,18 +95,14 @@ export const chains = [
   {
     id: "chain_005",
     _id: "chain_005",
-    images: [
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828249/snakechain1_hnkbi4.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828250/main4_qeoepd.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828251/main3_uugqkn.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828247/diamondchain1_ogovqe.jpg"
-    ],
+    image: "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828251/main3_uugqkn.jpg",
     brand: "SNAKE CHAINS",
     title: "1 Gram Gold Plated Chain",
     color: "Gold Plated",
 
     price: 3699,
     selling_price: 3200,
+    disscount: "13%",
     inStock: true,
     category: "chain",
     material: "gold",
@@ -138,18 +118,14 @@ export const chains = [
   {
     id: "chain_006",
     _id: "chain_006",
-    images: [
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828250/main4_qeoepd.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828251/main3_uugqkn.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828249/snakechain1_hnkbi4.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828247/diamondchain1_ogovqe.jpg"
-    ],
+    image: "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828250/main4_qeoepd.jpg",
     brand: "BROAD CHAINS",
     title: "1 Gram Gold Plated Broad Chain",
     color: "Gold Plated",
 
     price: 3699,
     selling_price: 3200,
+    disscount: "13%",
     inStock: true,
     category: "chain",
     material: "gold",
@@ -165,18 +141,14 @@ export const chains = [
   {
     id: "chain_007",
     _id: "chain_007",
-    images: [
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828251/main3_uugqkn.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828250/main4_qeoepd.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828249/snakechain1_hnkbi4.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828247/diamondchain1_ogovqe.jpg"
-    ],
+    image: "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828247/diamondchain1_ogovqe.jpg",
     brand: "MOTI CHAINS",
     title: "1 Gram Gold Plated Chain",
     color: "Gold Plated",
 
     price: 3699,
     selling_price: 3200,
+    disscount: "13%",
     inStock: true,
     category: "chain",
     material: "gold",
@@ -190,18 +162,14 @@ export const chains = [
   {
     id: "chain_008",
     _id: "chain_008",
-    images: [
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828251/main3_uugqkn.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828250/main4_qeoepd.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828249/snakechain1_hnkbi4.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828247/diamondchain1_ogovqe.jpg"
-    ],
+    image: "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828251/main3_uugqkn.jpg",
     brand: "MOTI CHAINS",
     title: "1 Gram Gold Plated Chain",
     color: "Gold Plated",
 
     price: 3699,
     selling_price: 3200,
+    disscount: "13%",
     inStock: true,
     category: "chain",
     material: "gold",
@@ -215,18 +183,14 @@ export const chains = [
   {
     id: "chain_009",
     _id: "chain_009",
-    images: [
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828251/main3_uugqkn.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828250/main4_qeoepd.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828249/snakechain1_hnkbi4.jpg",
-      "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828247/diamondchain1_ogovqe.jpg"
-    ],
+    image: "https://res.cloudinary.com/dkbxrhe1v/image/upload/f_auto,q_auto,w_600/v1768828246/bdchains_n0errq.jpg",
     brand: "MOTI CHAINS",
     title: "1 Gram Gold Plated Chain",
     color: "Gold Plated",
 
     price: 3699,
     selling_price: 3200,
+    disscount: "13%",
     inStock: false,
     category: "chain",
     material: "gold",
