@@ -119,6 +119,7 @@ const AdminCustomers = () => {
   const totalRevenue = customers.reduce((sum, customer) => sum + (customer.totalSpent || 0), 0)
   const totalOrders = customers.reduce((sum, customer) => sum + (customer.totalOrders || 0), 0)
   const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
+  const avgOrdersPerCustomer = totalCustomers > 0 ? totalOrders / totalCustomers : 0
 
   console.log("AdminCustomers - Final customers:", customers)
   console.log("AdminCustomers - Stats:", {
