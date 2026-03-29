@@ -247,15 +247,13 @@ const ProductUpload = () => {
       const payload = {
         name: formData.name.trim(),
         description: formData.description.trim(),
-        // ✅ STEP 3: FIX NUMBER CONVERSION
-        purchasePrice: purchasePrice,
+        // ✅ FIXED: Send correct field names - backend now handles both
         originalPrice: originalPrice,
-        sellingPrice: sellingPrice, // ✅ STEP 5: BACKEND VALIDATION FIX - USE sellingPrice
-        price: sellingPrice, // ✅ BACKEND COMPATIBILITY - Add price field for backend validation
+        sellingPrice: sellingPrice, // Send as sellingPrice (camelCase)
         category: formData.category,
         brand: formData.brand || null,
         images: validImages,
-        stock: formData.hasSizes ? 0 : stock, // ✅ STEP 3: FIX NUMBER CONVERSION
+        stock: formData.hasSizes ? 0 : stock,
         hasSizes: formData.hasSizes,
         sizes: formData.sizes,
         material: formData.material || 'Gold',

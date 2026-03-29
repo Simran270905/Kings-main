@@ -3,20 +3,38 @@ import { Link } from "react-router-dom";
 import { HeartIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
 import { optimizeCloudinaryUrl } from '../../../utils/cloudinary'
+// ✅ IMPORT SHARED HELPERS
+import {
+  getProductImage,
+  getSellingPrice,
+  getOriginalPrice,
+  getDiscountPercentage,
+  getProductName,
+  getProductBrand,
+  getProductMaterial,
+  getProductPurity,
+  getProductWeight,
+  isProductInStock,
+  formatPrice,
+  formatProductDetails,
+  debugProductFields
+} from '../../../utils/productHelpers'
 
 const ProductCard = ({ product, onAddToCart }) => {
   const [imgError, setImgError] = useState(false);
   const [wishlisted, setWishlisted] = useState(false);
   const [added, setAdded] = useState(false);
 
-  const productImage = optimizeCloudinaryUrl((product.images?.[0]) || product.image || null);
-  const title = product.title || product.name || "Product";
-  const brand = product.brand || product.category || "";
-  const originalPrice = product.originalPrice; // No fallback
-  const sellingPrice = product.sellingPrice; // No fallback
-  const discount = originalPrice && sellingPrice && originalPrice > sellingPrice
-    ? Math.round(((originalPrice - sellingPrice) / originalPrice) * 100)
-    : 0;
+  // 🔍 DEBUG: Log full product object from LISTING component
+  debugProductFields(product, 'PRODUCT CARD (LISTING)');
+
+  // ✅ FIXED: Use shared helpers for consistent field mapping
+  const productImage = optimizeCloudinaryUrl(getProductImage(product));
+  const title = getProductName(product);
+  const brand = getProductBrand(product);
+  const sellingPrice = getSellingPrice(product);
+  const originalPrice = getOriginalPrice(product);
+  const discount = getDiscountPercentage(product);
   
   const isBestSeller = product.isBestSeller || false;
   const isOnSale = product.isOnSale || false;
@@ -65,11 +83,12 @@ const ProductCard = ({ product, onAddToCart }) => {
       <div className="relative aspect-square overflow-hidden bg-gray-50">
         {productImage && !imgError ? (
           <img
-            src={optimizeCloudinaryUrl(productImage)}
-            alt={product.name || product.title}
+            src={productImage}
+            alt={title}
             loading="lazy"
             decoding="async"
             onError={(e) => {
+              setImgError(true);
               e.target.src = 'https://via.placeholder.com/400x400?text=No+Image'
             }}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
@@ -86,25 +105,30 @@ const ProductCard = ({ product, onAddToCart }) => {
         {brand && <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{brand}</p>}
         <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug flex-1">{title}</h3>
 
+        {/* ✅ FIXED: Consistent price display */}
         <div className="mt-2">
-          {isOnSale && sellingPrice < originalPrice ? (
+          {originalPrice && originalPrice > sellingPrice ? (
             <div className="flex items-center gap-2">
               <span className="text-base font-bold text-[#ae0b0b]">{formatPrice(sellingPrice)}</span>
               <span className="text-sm text-gray-400 line-through">{formatPrice(originalPrice)}</span>
+              {discount > 0 && (
+                <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">-{discount}%</span>
+              )}
             </div>
           ) : (
             <span className="text-base font-bold text-[#ae0b0b]">{formatPrice(sellingPrice)}</span>
           )}
         </div>
 
-        {(product.material || product.purity || product.weight) && (
+        {/* ✅ FIXED: Use shared helper for product details */}
+        {formatProductDetails(product) && (
           <p className="text-xs text-gray-500 mt-1">
-            {[product.material && `Material: ${product.material}`, product.purity && `Purity: ${product.purity}`, product.weight && `Weight: ${product.weight}g`].filter(Boolean).join(' · ')}
+            {formatProductDetails(product)}
           </p>
         )}
 
-        <p className={`text-sm font-semibold mt-2 ${product.inStock ? 'text-emerald-700' : 'text-red-600'}`}>
-          {product.inStock ? 'In Stock' : 'Out of Stock'}
+        <p className={`text-sm font-semibold mt-2 ${isProductInStock(product) ? 'text-emerald-700' : 'text-red-600'}`}>
+          {isProductInStock(product) ? 'In Stock' : 'Out of Stock'}
         </p>
 
         <button

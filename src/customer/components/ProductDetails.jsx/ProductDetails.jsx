@@ -7,6 +7,24 @@ import { getAvailableSizes } from '../../utils/productSchemaNormalizer'
 import HomeSectionCard from '../HomeSectionCard/HomeSectionCard'
 import { useCart } from '../../context/useCart'
 import { API_BASE_URL } from '@config/api.js'
+// ✅ IMPORT SHARED HELPERS
+import {
+  getProductImage,
+  getProductImages,
+  getSellingPrice,
+  getOriginalPrice,
+  getDiscountPercentage,
+  getProductName,
+  getProductMaterial,
+  getProductPurity,
+  getProductWeight,
+  getProductDescription,
+  getProductCategory,
+  isProductInStock,
+  formatPrice,
+  formatProductDetails,
+  debugProductFields
+} from '../../utils/productHelpers'
 
 const API_URL = `${API_BASE_URL}/products`
 
@@ -111,9 +129,28 @@ export default function ProductDetails() {
         // Handle different response structures
         const productData = data.data ? data.data : data
         
-        const normalized = normalize(productData)
-        setCurrentProduct(normalized)
-        setSelectedImage(normalized?.images?.[0] || null)
+        // 🔍 DEBUG: Log full product object from DETAIL page
+        debugProductFields(productData, 'PRODUCT DETAILS PAGE');
+        
+        // ✅ FIXED: Use shared helpers instead of custom normalize
+        const normalizedProduct = {
+          ...productData,
+          id: productData._id || productData.id,
+          name: getProductName(productData),
+          displayPrice: formatPrice(getSellingPrice(productData)),
+          originalPriceDisplay: getOriginalPrice(productData) ? formatPrice(getOriginalPrice(productData)) : null,
+          images: getProductImages(productData),
+          description: getProductDescription(productData),
+          material: getProductMaterial(productData),
+          purity: getProductPurity(productData),
+          weight: getProductWeight(productData),
+          category: getProductCategory(productData),
+          inStock: isProductInStock(productData),
+          discountPercentage: getDiscountPercentage(productData)
+        };
+        
+        setCurrentProduct(normalizedProduct)
+        setSelectedImage(getProductImages(productData)[0] || null)
       } catch (err) {
         console.error(err)
       } finally {
@@ -145,9 +182,18 @@ export default function ProductDetails() {
         // Handle different response structures
         const productsData = data.data?.products ? data.data.products : (Array.isArray(data) ? data : [])
         
+        // ✅ FIXED: Use shared helpers for similar products
         const filtered = productsData
           .filter(p => (p._id || p.id) !== currentProduct.id)
-          .map(normalize)
+          .map(product => ({
+            ...product,
+            id: product._id || product.id,
+            name: getProductName(product),
+            sellingPrice: getSellingPrice(product),
+            originalPrice: getOriginalPrice(product),
+            images: getProductImages(product),
+            inStock: isProductInStock(product)
+          }))
 
         const shuffled = [...filtered]
         for (let i = shuffled.length - 1; i > 0; i--) {
@@ -242,15 +288,23 @@ export default function ProductDetails() {
               {currentProduct.originalPriceDisplay && (
                 <p className="text-sm text-gray-500 line-through">{currentProduct.originalPriceDisplay}</p>
               )}
+              {currentProduct.discountPercentage > 0 && (
+                <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">
+                  -{currentProduct.discountPercentage}%
+                </span>
+              )}
             </div>
 
             <div className="mt-4 text-sm text-gray-700 space-y-1">
-              {currentProduct.material && <p><span className="font-semibold">Material:</span> {currentProduct.material}</p>}
+              <p><span className="font-semibold">Material:</span> {currentProduct.material}</p>
               {currentProduct.purity && <p><span className="font-semibold">Purity:</span> {currentProduct.purity}</p>}
               {currentProduct.weight != null && <p><span className="font-semibold">Weight:</span> {currentProduct.weight} g</p>}
               {currentProduct.category && <p><span className="font-semibold">Category:</span> {currentProduct.category}</p>}
               {currentProduct.brand && <p><span className="font-semibold">Brand:</span> {currentProduct.brand}</p>}
               {currentProduct.sku && <p><span className="font-semibold">SKU:</span> {currentProduct.sku}</p>}
+              
+              {/* ✅ FIXED: Use shared helper for product details */}
+              <p className="text-gray-600">{formatProductDetails(currentProduct)}</p>
 
               {currentProduct.hasSizes && currentProduct.sizes && currentProduct.sizes.length > 0 ? (
                 <div>
