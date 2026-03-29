@@ -36,6 +36,16 @@ function normalize(raw) {
   
   const displayPrice = sellingPrice || originalPrice || 0
 
+  console.log('🔍 Product Details Debug:', {
+    productId: raw._id || raw.id,
+    name,
+    title: raw.title,
+    raw,
+    sellingPrice,
+    originalPrice,
+    displayPrice
+  })
+
   const images =
     raw.images && Array.isArray(raw.images) && raw.images.length > 0
       ? raw.images.map((img, index) => ({

@@ -8,14 +8,35 @@ const HomeSectionCard = ({ product }) => {
   const {
     image,
     images,
+    name,
     title,
     brand,
+    originalPrice,
+    sellingPrice,
     price,
     selling_price,
     disscount,
     isBestSeller,
     isOnSale,
   } = product
+
+  // Use proper field mapping with fallbacks
+  const productName = name || title
+  const displayPrice = sellingPrice || selling_price || price || 0
+  const originalPriceDisplay = originalPrice || (displayPrice !== price ? price : null)
+
+  console.log('🛍️ Product Card Debug:', {
+    productId: product.id || product._id,
+    name,
+    title,
+    productName,
+    originalPrice,
+    sellingPrice,
+    price,
+    selling_price,
+    displayPrice,
+    originalPriceDisplay
+  })
 
   const { addToCart } = useCart()
 
@@ -104,16 +125,16 @@ const HomeSectionCard = ({ product }) => {
         </h3>
 
         <p className="text-[13px] sm:text-sm text-[#5c3a2e] leading-snug sm:leading-relaxed line-clamp-2">
-          {title}
+          {productName}
         </p>
 
         <div className="flex items-center justify-center gap-1.5 sm:gap-2 pt-1.5 sm:pt-2">
           <span className="text-[#b91c1c] font-semibold text-sm sm:text-base">
-            ₹{parseFloat(selling_price || 0).toLocaleString('en-IN')}
+            ₹{parseFloat(displayPrice || 0).toLocaleString('en-IN')}
           </span>
-          {price && parseFloat(price) !== parseFloat(selling_price || 0) && (
+          {originalPriceDisplay && parseFloat(originalPriceDisplay) !== parseFloat(displayPrice) && (
             <span className="text-[#9c7c4a] line-through text-xs sm:text-sm">
-              ₹{parseFloat(price).toLocaleString('en-IN')}
+              ₹{parseFloat(originalPriceDisplay).toLocaleString('en-IN')}
             </span>
           )}
         </div>
