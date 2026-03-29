@@ -39,8 +39,6 @@ export const AdminProductProvider = ({ children }) => {
   // Global refresh event listener
   useEffect(() => {
     const handleProductUpdate = () => {
-      console.log('🔄 Global product refresh triggered')
-      
       // Clear existing timeout
       if (debounceRefresh.current) {
         clearTimeout(debounceRefresh.current)
