@@ -30,12 +30,10 @@ function normalize(raw) {
 
   const name = raw.title || raw.name || 'Product'
   
-  // Handle selling_price vs originalPrice correctly
-  const sellingPrice = raw.selling_price || raw.sellingPrice
-  const originalPrice = raw.originalPrice || raw.price
+  // CORRECT MAPPING: sellingPrice is main price, originalPrice is strikethrough
+  const sellingPrice = raw.selling_price || raw.sellingPrice || 0
+  const originalPrice = raw.originalPrice || raw.price || null
   
-  const displayPrice = sellingPrice || originalPrice || 0
-
   console.log('🔍 Product Details Debug:', {
     productId: raw._id || raw.id,
     name,
@@ -43,7 +41,7 @@ function normalize(raw) {
     raw,
     sellingPrice,
     originalPrice,
-    displayPrice
+    mapping: 'sellingPrice → MAIN, originalPrice → STRIKETHROUGH'
   })
 
   const images =
@@ -66,7 +64,8 @@ function normalize(raw) {
     name,
     price: originalPrice,
     selling_price: sellingPrice,
-    displayPrice: `₹${displayPrice}`,
+    displayPrice: `₹${sellingPrice || 0}`, // sellingPrice is main price
+    originalPriceDisplay: originalPrice ? `₹${originalPrice}` : null, // originalPrice is strikethrough
     images,
     description: raw.description || '',
     highlights: raw.highlights || [],
@@ -228,9 +227,9 @@ export default function ProductDetails() {
           <div className="mt-8">
             <h1 className="text-3xl font-bold text-gray-900">{currentProduct.name}</h1>
             <div className="mt-4 flex items-center gap-3">
-              <p className="text-2xl font-semibold text-[#ae0b0b]">₹{currentProduct.selling_price || currentProduct.originalPrice}</p>
-              {currentProduct.originalPrice && currentProduct.selling_price && currentProduct.selling_price < currentProduct.originalPrice && (
-                <p className="text-sm text-gray-500 line-through">₹{currentProduct.originalPrice}</p>
+              <p className="text-2xl font-semibold text-[#ae0b0b]">{currentProduct.displayPrice}</p>
+              {currentProduct.originalPriceDisplay && (
+                <p className="text-sm text-gray-500 line-through">{currentProduct.originalPriceDisplay}</p>
               )}
             </div>
 
