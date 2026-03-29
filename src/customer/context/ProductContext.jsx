@@ -157,6 +157,30 @@ export const ProductProvider = ({ children }) => {
 
     window.addEventListener('adminProductUpdated', handleAdminProductUpdate)
 
+    // Real-time polling for continuous sync
+    const startRealTimeSync = () => {
+      const syncInterval = setInterval(async () => {
+        try {
+          console.log('🔄 Real-time sync: Checking for new products...')
+          const latestProducts = await fetchProductsFromAPI()
+          const currentProductIds = new Set(products.map(p => p.id))
+          const newProducts = latestProducts.filter(p => !currentProductIds.has(p.id))
+          
+          if (newProducts.length > 0) {
+            console.log(`🔄 Real-time sync: Found ${newProducts.length} new products`)
+            setProducts(prev => [...prev, ...newProducts.map(normalizeProduct)])
+            cache.invalidate('products')
+          }
+        } catch (error) {
+          console.error('❌ Real-time sync error:', error)
+        }
+      }, 10000) // Check every 10 seconds
+
+      return syncInterval
+    }
+
+    const syncInterval = startRealTimeSync()
+
     // Subscribe to category changes
     const unsubscribeCategoryUpdated = dataSyncEvents.subscribe(EVENT_TYPES.CATEGORY_UPDATED, (data) => {
       console.log('🔄 Real-time: Category updated by admin:', data)
@@ -173,8 +197,9 @@ export const ProductProvider = ({ children }) => {
       unsubscribeProductDeleted?.()
       unsubscribeCategoryUpdated?.()
       window.removeEventListener('adminProductUpdated', handleAdminProductUpdate)
+      clearInterval(syncInterval)
     }
-  }, [fetchData])
+  }, [fetchData, products])
 
   /**
    * Fetch categories separately (for real-time updates)
