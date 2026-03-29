@@ -115,6 +115,12 @@ export const ProductProvider = ({ children }) => {
         ? apiProducts.map(product => normalizeProduct(product))
         : []
       
+      console.log("🔧 PRODUCT CONTEXT DEBUG:")
+      console.log("Raw API products:", apiProducts?.length || 0)
+      console.log("Normalized products:", normalizedProducts.length)
+      console.log("Raw API sample:", apiProducts?.slice(0, 1))
+      console.log("Normalized sample:", normalizedProducts.slice(0, 1))
+      
       setProducts(normalizedProducts)
       setCategories(apiCategories || [])
       setLastFetch(Date.now())

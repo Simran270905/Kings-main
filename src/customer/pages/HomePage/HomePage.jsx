@@ -21,12 +21,23 @@ function HomePage() {
   const productsByCategory = useMemo(() => {
     if (!products || products.length === 0) return {}
     
+    console.log("🏠 HOMEPAGE DEBUG:")
+    console.log("Total products:", products.length)
+    console.log("Products sample:", products.slice(0, 2))
+    console.log("Categories:", categories.map(c => c.name))
+    
     const categoryMap = {}
     categories.forEach(cat => {
       categoryMap[cat.name] = products.filter(p =>
         p.category && p.category.toLowerCase() === cat.name.toLowerCase()
       )
     })
+    
+    console.log("Products by category:", Object.keys(categoryMap).map(cat => ({
+      category: cat,
+      count: categoryMap[cat].length
+    })))
+    
     return categoryMap
   }, [products, categories])
 
