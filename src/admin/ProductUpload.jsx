@@ -29,7 +29,7 @@ const ProductUpload = () => {
         console.log("📦 Brands Response:", brandData)
         
         // ✅ Extract categories (assuming same structure as brands)
-        const categories = catData?.data || catData?.categories || []
+        const categories = catData?.data?.categories || catData?.data || catData?.categories || []
         
         // ✅ Extract brands using the correct structure we found earlier
         let brands = []
