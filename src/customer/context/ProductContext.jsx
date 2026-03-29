@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import {
   fetchProductsFromAPI,
   fetchCategoriesFromAPI,
@@ -68,6 +68,11 @@ export const ProductProvider = ({ children }) => {
    */
   const [categories, setCategories] = useState([])
 
+  /**
+   * Track last fetch time for caching
+   */
+  const lastProductsFetch = useRef(null)
+
   const [loading, setLoading] = useState(true)
   const [lastFetch, setLastFetch] = useState(null)
   const [error, setError] = useState(null)
@@ -124,6 +129,7 @@ export const ProductProvider = ({ children }) => {
       setProducts(normalizedProducts)
       setCategories(apiCategories || [])
       setLastFetch(Date.now())
+      lastProductsFetch.current = Date.now() // Update ref for cache check
       
       console.log(`✅ Loaded ${normalizedProducts.length} products and ${apiCategories?.length || 0} categories`)
     } catch (error) {
