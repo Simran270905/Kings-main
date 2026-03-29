@@ -149,6 +149,14 @@ export const ProductProvider = ({ children }) => {
       cache.invalidate('products')
     })
 
+    // Listen for admin product updates (fallback mechanism)
+    const handleAdminProductUpdate = () => {
+      console.log('🔄 Admin product update detected, refreshing data...')
+      fetchData()
+    }
+
+    window.addEventListener('adminProductUpdated', handleAdminProductUpdate)
+
     // Subscribe to category changes
     const unsubscribeCategoryUpdated = dataSyncEvents.subscribe(EVENT_TYPES.CATEGORY_UPDATED, (data) => {
       console.log('🔄 Real-time: Category updated by admin:', data)
@@ -164,8 +172,9 @@ export const ProductProvider = ({ children }) => {
       unsubscribeProductUpdated?.()
       unsubscribeProductDeleted?.()
       unsubscribeCategoryUpdated?.()
+      window.removeEventListener('adminProductUpdated', handleAdminProductUpdate)
     }
-  }, [])
+  }, [fetchData])
 
   /**
    * Fetch categories separately (for real-time updates)

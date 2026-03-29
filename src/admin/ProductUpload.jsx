@@ -309,9 +309,11 @@ const ProductUpload = () => {
       setTimeout(() => setSuccess(''), 5000)
 
       // Trigger real-time sync event for customer side
+      console.log('🔄 Triggering productCreated event with data:', data.data?.product || data.data)
       events.productCreated(data.data?.product || data.data)
       
       // Also trigger admin refresh
+      console.log('🔄 Triggering adminProductUpdated event')
       window.dispatchEvent(new Event('adminProductUpdated'))
 
     } catch (err) {

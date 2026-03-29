@@ -273,9 +273,11 @@ const ProductEdit = () => {
       setSuccess('Product updated successfully!')
       
       // Trigger real-time sync event for customer side
+      console.log('🔄 Triggering productUpdated event with data:', data.data?.product || data.data)
       events.productUpdated(data.data?.product || data.data)
       
       // Also trigger admin refresh
+      console.log('🔄 Triggering adminProductUpdated event')
       window.dispatchEvent(new Event('adminProductUpdated'))
       
       setTimeout(() => {
