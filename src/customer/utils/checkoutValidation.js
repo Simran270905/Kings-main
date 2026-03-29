@@ -244,13 +244,13 @@ export const generateOrderSummary = (cartItems, productContext, deliveryInfo = {
     if (!product) return
 
     const quantity = cartItem.quantity || 1
-    const itemTotal = (product.price || 0) * quantity
+    const itemTotal = (product.sellingPrice || 0) * quantity
 
     items.push({
       productId: product.id,
       productName: product.name || product.title,
       quantity,
-      unitPrice: product.price || 0,
+      unitPrice: product.sellingPrice || 0,
       itemTotal
     })
 

@@ -15,80 +15,12 @@ export const normalizeProduct = (product) => {
     return null
   }
 
-  // Pricing validation
-  const originalPrice = parseFloat(product.originalPrice) || 0
-  const sellingPrice = parseFloat(product.sellingPrice) || 0
-  const hasValidPriceRelationship = originalPrice > 0 && (sellingPrice <= originalPrice || !sellingPrice)
-
-  // Base normalized product
-  const normalized = {
-    // ID handling
-    id: product.id || product._id?.toString() || `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    
-    // Name/title handling - prefer title for frontend, name for admin compatibility
-    title: product.title || product.name || 'Untitled Product',
-    name: product.name || product.title || 'Untitled Product',
-    
-    // Image handling - support both single image and multiple images
-    image: product.images && product.images.length > 0 
-      ? product.images[0] 
-      : product.image || '',
-    images: Array.isArray(product.images) 
-      ? product.images 
-      : product.image 
-        ? [product.image] 
-        : [],
-    
-    // Description
-    description: product.description || '',
-    
-    // Pricing - PASS-THROUGH without fallbacks
-    originalPrice: product.originalPrice,
-    sellingPrice: product.sellingPrice,
-    hasValidPriceRelationship: originalPrice > 0 && (sellingPrice <= originalPrice || !sellingPrice),
-    
-    // Category
-    category: product.category || 'uncategorized',
-    
-    // Brand
-    brand: product.brand || null,
-    
-    // Color
-    color: product.color || '',
-    
-    // Material
-    material: product.material || '',
-    
-    // Stock handling
-    stock: parseInt(product.stock) || 0,
-    inStock: (parseInt(product.stock) || 0) > 0,
-    
-    // Size handling
-    sizes: Array.isArray(product.sizes) ? product.sizes : [],
-    
-    // Metadata
-    createdAt: product.createdAt || new Date().toISOString(),
-    updatedAt: product.updatedAt || new Date().toISOString(),
-    
-    // Additional fields
-    lowStockThreshold: product.lowStockThreshold || 5,
-    isBestSeller: product.isBestSeller || false,
-    isOnSale: product.isOnSale || false,
+  // PURE PASS-THROUGH - No field modifications, no defaults, no renaming
+  return {
+    ...product,
+    // Ensure ID consistency
+    id: product.id || product._id?.toString() || `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
   }
-
-  // Calculate total stock from sizes if available
-  if (normalized.sizes && normalized.sizes.length > 0) {
-    const totalStock = normalized.sizes.reduce((sum, size) => sum + (parseInt(size.stock) || 0), 0)
-    normalized.stock = totalStock
-    normalized.inStock = totalStock > 0
-  }
-
-  // Sync inStock with stock field
-  if (normalized.stock !== undefined) {
-    normalized.inStock = normalized.stock > 0
-  }
-
-  return normalized
 }
 
 /**

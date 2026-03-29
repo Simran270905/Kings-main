@@ -35,7 +35,10 @@ const HomeSectionCard = ({ product }) => {
     selling_price: product.selling_price,
     original_price: product.original_price
   })
-  console.log("Raw Data:", product)
+  console.log("Mapped Prices:", {
+    mainPrice,      // sellingPrice - MAIN PRICE
+    strikethroughPrice  // originalPrice - STRIKETHROUGH
+  })
   console.log("===================")
 
   const { addToCart } = useCart()
@@ -129,13 +132,19 @@ const HomeSectionCard = ({ product }) => {
         </p>
 
         <div className="flex items-center justify-center gap-1.5 sm:gap-2 pt-1.5 sm:pt-2">
-          <span className="text-[#b91c1c] font-semibold text-sm sm:text-base">
-            ₹{parseFloat(mainPrice || 0).toLocaleString('en-IN')}
-          </span>
-          {strikethroughPrice && parseFloat(strikethroughPrice) > 0 && parseFloat(strikethroughPrice) !== parseFloat(mainPrice) && (
-            <span className="text-[#9c7c4a] line-through text-xs sm:text-sm">
-              ₹{parseFloat(strikethroughPrice).toLocaleString('en-IN')}
-            </span>
+          {mainPrice && mainPrice > 0 ? (
+            <>
+              <span className="text-[#b91c1c] font-semibold text-sm sm:text-base">
+                ₹{parseFloat(mainPrice).toLocaleString('en-IN')}
+              </span>
+              {strikethroughPrice && strikethroughPrice > 0 && strikethroughPrice !== mainPrice && (
+                <span className="text-[#9c7c4a] line-through text-xs sm:text-sm">
+                  ₹{parseFloat(strikethroughPrice).toLocaleString('en-IN')}
+                </span>
+              )}
+            </>
+          ) : (
+            <span className="text-gray-500 text-sm sm:text-base">Price unavailable</span>
           )}
         </div>
 

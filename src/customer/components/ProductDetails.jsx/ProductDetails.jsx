@@ -35,22 +35,22 @@ function normalize(raw) {
   const originalPrice = raw.originalPrice
   
   // Add debug validation
-  console.log("FINAL PRODUCT:", {
-    productId: raw._id || raw.id,
-    name,
-    sellingPrice,
-    originalPrice,
-    rawBackendData: raw,
-    allFields: Object.keys(raw),
-    priceFields: {
-      sellingPrice: raw.sellingPrice,
-      originalPrice: raw.originalPrice,
-      price: raw.price,
-      selling_price: raw.selling_price,
-      original_price: raw.original_price,
-      purchasePrice: raw.purchasePrice
-    }
+  console.log("=== PRODUCT DETAILS DEBUG ===")
+  console.log("Product ID:", raw._id || raw.id)
+  console.log("Name:", name)
+  console.log("Available Fields:", Object.keys(raw))
+  console.log("Price Fields:", {
+    sellingPrice: raw.sellingPrice,
+    originalPrice: raw.originalPrice,
+    price: raw.price,
+    selling_price: raw.selling_price,
+    original_price: raw.original_price
   })
+  console.log("Mapped Prices:", {
+    mainPrice: sellingPrice,      // sellingPrice - MAIN PRICE
+    strikethroughPrice: originalPrice  // originalPrice - STRIKETHROUGH
+  })
+  console.log("===================")
 
   const images =
     raw.images && Array.isArray(raw.images) && raw.images.length > 0
@@ -72,8 +72,8 @@ function normalize(raw) {
     name,
     originalPrice,
     selling_price: sellingPrice,
-    displayPrice: sellingPrice ? `₹${sellingPrice}` : 'Price unavailable',
-    originalPriceDisplay: originalPrice ? `₹${originalPrice}` : null,
+    displayPrice: sellingPrice && sellingPrice > 0 ? `₹${sellingPrice}` : 'Price unavailable',
+    originalPriceDisplay: originalPrice && originalPrice > 0 ? `₹${originalPrice}` : null,
     images,
     description: raw.description || '',
     highlights: raw.highlights || [],

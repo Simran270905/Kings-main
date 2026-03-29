@@ -12,9 +12,9 @@ const ProductCard = ({ product, onAddToCart }) => {
   const productImage = optimizeCloudinaryUrl((product.images?.[0]) || product.image || null);
   const title = product.title || product.name || "Product";
   const brand = product.brand || product.category || "";
-  const originalPrice = product.originalPrice || product.price || 0;
-  const sellingPrice = product.selling_price || product.sellingPrice || originalPrice;
-  const discount = originalPrice > sellingPrice
+  const originalPrice = product.originalPrice; // No fallback
+  const sellingPrice = product.sellingPrice; // No fallback
+  const discount = originalPrice && sellingPrice && originalPrice > sellingPrice
     ? Math.round(((originalPrice - sellingPrice) / originalPrice) * 100)
     : 0;
   

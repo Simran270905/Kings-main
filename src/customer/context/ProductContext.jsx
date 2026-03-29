@@ -85,15 +85,7 @@ export const ProductProvider = ({ children }) => {
     setError(null)
     
     try {
-      // Check if we have fresh cached data (less than 30 seconds old)
-      const now = Date.now()
-      const lastFetch = lastProductsFetch.current
-      
-      if (lastFetch && (now - lastFetch) < 30 * 1000) {
-        console.log('📦 Using cached data (fresh)')
-        return
-      }
-
+      // Always fetch fresh data - API responses take priority
       console.log('🌐 Fetching fresh data from API...')
       
       // Parallel fetch for better performance
@@ -102,22 +94,9 @@ export const ProductProvider = ({ children }) => {
         fetchCategoriesFromAPI()
       ])
 
+      // Use API data directly without normalization interference
       const normalizedProducts = apiProducts && apiProducts.length > 0 
-        ? (() => {
-            const uniqueProducts = []
-            const seenIds = new Set()
-            
-            for (const product of apiProducts) {
-              const productId = product.id || product._id
-              if (!seenIds.has(productId)) {
-                seenIds.add(productId)
-                uniqueProducts.push(normalizeProduct(product))
-              }
-            }
-            
-            console.log(`🔄 Product normalization: ${uniqueProducts.length} unique products from ${apiProducts.length} API products`)
-            return uniqueProducts
-          })()
+        ? apiProducts.map(product => normalizeProduct(product))
         : []
       
       setProducts(normalizedProducts)
@@ -217,7 +196,8 @@ export const ProductProvider = ({ children }) => {
               return prev.map(product => {
                 const updatedProduct = updatedProducts.find(up => (up.id || up._id) === (product.id || product._id))
                 if (updatedProduct) {
-                  // Safe merge without normalization - preserve existing data structure
+                  // Safe merge - preserve existing data structure
+                  // DO NOT manually override price fields
                   return {
                     ...product,
                     ...updatedProduct
