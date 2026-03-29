@@ -101,7 +101,21 @@ export const ProductProvider = ({ children }) => {
       ])
 
       const normalizedProducts = apiProducts && apiProducts.length > 0 
-        ? normalizeProducts(apiProducts)
+        ? (() => {
+            const uniqueProducts = []
+            const seenIds = new Set()
+            
+            for (const product of apiProducts) {
+              const productId = product.id || product._id
+              if (!seenIds.has(productId)) {
+                seenIds.add(productId)
+                uniqueProducts.push(normalizeProduct(product))
+              }
+            }
+            
+            console.log(`🔄 Product normalization: ${uniqueProducts.length} unique products from ${apiProducts.length} API products`)
+            return uniqueProducts
+          })()
         : []
       
       setProducts(normalizedProducts)
@@ -163,13 +177,25 @@ export const ProductProvider = ({ children }) => {
         try {
           console.log('🔄 Real-time sync: Checking for new products...')
           const latestProducts = await fetchProductsFromAPI()
-          const currentProductIds = new Set(products.map(p => p.id))
-          const newProducts = latestProducts.filter(p => !currentProductIds.has(p.id))
+          const currentProductIds = new Set(products.map(p => p.id || p._id))
+          const newProducts = latestProducts.filter(p => 
+            !currentProductIds.has(p.id || p._id)
+          )
           
           if (newProducts.length > 0) {
             console.log(`🔄 Real-time sync: Found ${newProducts.length} new products`)
-            setProducts(prev => [...prev, ...newProducts.map(normalizeProduct)])
+            setProducts(prev => {
+              const existingIds = new Set(prev.map(p => p.id || p._id))
+              const trulyNew = newProducts.filter(p => !existingIds.has(p.id || p._id))
+              if (trulyNew.length > 0) {
+                console.log(`🔄 Real-time sync: Adding ${trulyNew.length} truly new products`)
+                return [...prev, ...trulyNew.map(normalizeProduct)]
+              }
+              return prev
+            })
             cache.invalidate('products')
+          } else {
+            console.log('🔄 Real-time sync: No new products found')
           }
         } catch (error) {
           console.error('❌ Real-time sync error:', error)

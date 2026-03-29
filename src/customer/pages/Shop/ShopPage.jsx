@@ -20,14 +20,44 @@ export default function ShopPage() {
 
   const baseProducts = useMemo(() => {
     if (!allProducts || allProducts.length === 0) return []
-    if (!cat) return allProducts
+    if (!cat) {
+      // Remove duplicates from all products view
+      const uniqueProducts = []
+      const seenIds = new Set()
+      
+      for (const product of allProducts) {
+        const productId = product.id || product._id
+        if (!seenIds.has(productId)) {
+          seenIds.add(productId)
+          uniqueProducts.push(product)
+        }
+      }
+      
+      console.log(`🛍️ Shop Page: All Products - Found ${uniqueProducts.length} unique products from ${allProducts.length} total`)
+      return uniqueProducts
+    }
     
     // Filter products by category (case-insensitive match)
-    return allProducts.filter(product => {
+    const filtered = allProducts.filter(product => {
       if (!product.category) return false
       const productCat = product.category.toLowerCase()
       return productCat.includes(cat) || cat.includes(productCat)
     })
+    
+    // Remove duplicates based on product ID
+    const uniqueProducts = []
+    const seenIds = new Set()
+    
+    for (const product of filtered) {
+      const productId = product.id || product._id
+      if (!seenIds.has(productId)) {
+        seenIds.add(productId)
+        uniqueProducts.push(product)
+      }
+    }
+    
+    console.log(`🛍️ Shop Page: ${cat} - Found ${uniqueProducts.length} unique products from ${filtered.length} filtered`)
+    return uniqueProducts
   }, [allProducts, cat])
 
   const products = useMemo(() => {
