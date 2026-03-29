@@ -36,11 +36,13 @@ export const getProductImages = (product) => {
   return [];
 };
 
-// ✅ PRICE HELPERS
+// ✅ PRICE HELPERS - Updated for new pricing structure
 export const getSellingPrice = (product) => {
   if (!product) return 0;
   
-  return product.sellingPrice || 
+  // This is now the DISCOUNTED PRICE (what customer actually pays)
+  return product.originalPrice ||  // Renamed field: Discounted Price
+         product.sellingPrice || 
          product.selling_price || 
          product.price || 
          product.discountedPrice || 
@@ -51,21 +53,43 @@ export const getSellingPrice = (product) => {
 export const getOriginalPrice = (product) => {
   if (!product) return null;
   
-  return product.originalPrice || 
+  // This is now the ORIGINAL PRICE / MRP (strikethrough price)
+  return product.selling_price ||  // Renamed field: Original Price / MRP
+         product.sellingPrice || 
+         product.originalPrice || 
          product.mrp || 
          product.original_price || 
          null;
 };
 
 export const getDiscountPercentage = (product) => {
-  const sellingPrice = getSellingPrice(product);
-  const originalPrice = getOriginalPrice(product);
+  const sellingPrice = getSellingPrice(product);  // Discounted Price
+  const originalPrice = getOriginalPrice(product); // Original Price / MRP
   
   if (!originalPrice || !sellingPrice || originalPrice <= sellingPrice) {
     return 0;
   }
   
   return Math.round(((originalPrice - sellingPrice) / originalPrice) * 100);
+};
+
+// ✅ NEW HELPER: Get purchase price (internal only)
+export const getPurchasePrice = (product) => {
+  if (!product) return 0;
+  
+  // This is the COST PRICE - never shown to customers
+  return product.purchasePrice || 
+         product.cost_price || 
+         product.wholesalePrice || 
+         0;
+};
+
+// ✅ NEW HELPER: Calculate profit per unit
+export const calculateProfit = (product) => {
+  const sellingPrice = getSellingPrice(product);  // What customer pays
+  const purchasePrice = getPurchasePrice(product); // What we paid
+  
+  return sellingPrice - purchasePrice;
 };
 
 // ✅ PRODUCT INFO HELPERS

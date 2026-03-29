@@ -431,7 +431,7 @@ const ProductUpload = () => {
               />
 
               <FormInput
-                label="Original Price (₹)"
+                label="Discounted Price (₹)"
                 type="number"
                 name="originalPrice"
                 value={formData.originalPrice}
@@ -443,14 +443,15 @@ const ProductUpload = () => {
               />
 
               <FormInput
-                label="Selling Price (₹)"
+                label="Original Price / MRP (₹)"
                 type="number"
                 name="selling_price"
                 value={formData.selling_price}
                 onChange={handleInputChange}
                 min="0"
                 step="0.01"
-                placeholder="Leave empty if same as price"
+                placeholder="0.00"
+                required
               />
 
               {!formData.hasSizes && (

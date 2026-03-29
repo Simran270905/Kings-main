@@ -282,15 +282,15 @@ export default function ProductDetails() {
           <div className="mt-8">
             <h1 className="text-3xl font-bold text-gray-900">{currentProduct.name}</h1>
             <div className="mt-4 flex items-center gap-3">
-              <p className="text-2xl font-semibold text-[#ae0b0b]">
+              {currentProduct.originalPriceDisplay && (
+                <p className="text-lg text-gray-400 line-through">{currentProduct.originalPriceDisplay}</p>
+              )}
+              <p className="text-3xl font-bold text-green-600">
                 {currentProduct.displayPrice}
               </p>
-              {currentProduct.originalPriceDisplay && (
-                <p className="text-sm text-gray-500 line-through">{currentProduct.originalPriceDisplay}</p>
-              )}
               {currentProduct.discountPercentage > 0 && (
-                <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">
-                  -{currentProduct.discountPercentage}%
+                <span className="text-sm bg-red-100 text-red-700 px-3 py-1 rounded-full font-semibold">
+                  ({currentProduct.discountPercentage}% OFF)
                 </span>
               )}
             </div>

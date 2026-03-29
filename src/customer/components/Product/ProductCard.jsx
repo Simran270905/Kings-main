@@ -105,18 +105,18 @@ const ProductCard = ({ product, onAddToCart }) => {
         {brand && <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{brand}</p>}
         <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug flex-1">{title}</h3>
 
-        {/* ✅ FIXED: Consistent price display */}
+        {/* ✅ UPDATED: New pricing display with MRP strikethrough */}
         <div className="mt-2">
           {originalPrice && originalPrice > sellingPrice ? (
             <div className="flex items-center gap-2">
-              <span className="text-base font-bold text-[#ae0b0b]">{formatPrice(sellingPrice)}</span>
               <span className="text-sm text-gray-400 line-through">{formatPrice(originalPrice)}</span>
+              <span className="text-lg font-bold text-green-600">{formatPrice(sellingPrice)}</span>
               {discount > 0 && (
-                <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">-{discount}%</span>
+                <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-semibold">({discount}% OFF)</span>
               )}
             </div>
           ) : (
-            <span className="text-base font-bold text-[#ae0b0b]">{formatPrice(sellingPrice)}</span>
+            <span className="text-lg font-bold text-green-600">{formatPrice(sellingPrice)}</span>
           )}
         </div>
 
