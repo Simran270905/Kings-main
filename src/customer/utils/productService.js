@@ -63,7 +63,10 @@ export const fetchProductsFromAPI = async () => {
     }
     
     const data = await response.json()
-    return data.data?.products || []
+    console.log('🔍 Raw API Response from /products:', data)
+    const products = data.data?.products || []
+    console.log('🔍 Extracted Products Array:', products)
+    return products
   } catch (error) {
     if (error.name === 'AbortError') {
       console.error('❌ API timeout: Request took too long')

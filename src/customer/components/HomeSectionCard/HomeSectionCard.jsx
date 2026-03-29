@@ -13,19 +13,15 @@ const HomeSectionCard = ({ product }) => {
     brand,
     originalPrice,
     sellingPrice,
-    price,
-    selling_price,
     disscount,
     isBestSeller,
     isOnSale,
   } = product
 
-  // Use proper field mapping with fallbacks
+  // STRICT mapping without fallbacks
   const productName = name || title
-  
-  // CORRECT MAPPING: sellingPrice is main price, originalPrice is strikethrough
-  const mainPrice = sellingPrice || selling_price || 0
-  const strikethroughPrice = originalPrice || price || null
+  const mainPrice = sellingPrice
+  const strikethroughPrice = originalPrice
   
   console.log('🛍️ Product Card Debug:', {
     productId: product.id || product._id,
@@ -34,11 +30,10 @@ const HomeSectionCard = ({ product }) => {
     productName,
     originalPrice,
     sellingPrice,
-    price,
-    selling_price,
     mainPrice,
     strikethroughPrice,
-    mapping: 'sellingPrice → MAIN, originalPrice → STRIKETHROUGH'
+    rawProduct: product,
+    mapping: 'sellingPrice → MAIN, originalPrice → STRIKETHROUGH (STRICT)'
   })
 
   const { addToCart } = useCart()
@@ -135,7 +130,7 @@ const HomeSectionCard = ({ product }) => {
           <span className="text-[#b91c1c] font-semibold text-sm sm:text-base">
             ₹{parseFloat(mainPrice || 0).toLocaleString('en-IN')}
           </span>
-          {strikethroughPrice && parseFloat(strikethroughPrice) !== parseFloat(mainPrice) && (
+          {strikethroughPrice && parseFloat(strikethroughPrice) > 0 && parseFloat(strikethroughPrice) !== parseFloat(mainPrice) && (
             <span className="text-[#9c7c4a] line-through text-xs sm:text-sm">
               ₹{parseFloat(strikethroughPrice).toLocaleString('en-IN')}
             </span>

@@ -37,11 +37,9 @@ export const normalizeProduct = (product) => {
     // Description
     description: product.description || '',
     
-    // Pricing - Handle both field naming conventions
-    price: parseFloat(product.price) || parseFloat(product.originalPrice) || 0,
-    originalPrice: parseFloat(product.originalPrice) || parseFloat(product.price) || 0,
-    selling_price: parseFloat(product.selling_price) || parseFloat(product.sellingPrice) || parseFloat(product.price) || 0,
-    sellingPrice: parseFloat(product.sellingPrice) || parseFloat(product.selling_price) || parseFloat(product.price) || 0,
+    // Pricing - STRICT mapping without fallbacks
+    originalPrice: parseFloat(product.originalPrice) || 0,
+    sellingPrice: parseFloat(product.sellingPrice) || 0,
     
     // Category
     category: product.category || 'uncategorized',

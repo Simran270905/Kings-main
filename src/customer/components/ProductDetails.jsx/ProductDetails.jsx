@@ -30,9 +30,9 @@ function normalize(raw) {
 
   const name = raw.title || raw.name || 'Product'
   
-  // CORRECT MAPPING: sellingPrice is main price, originalPrice is strikethrough
-  const sellingPrice = raw.selling_price || raw.sellingPrice || 0
-  const originalPrice = raw.originalPrice || raw.price || null
+  // STRICT mapping without fallbacks
+  const sellingPrice = raw.sellingPrice || 0
+  const originalPrice = raw.originalPrice || 0
   
   console.log('🔍 Product Details Debug:', {
     productId: raw._id || raw.id,
@@ -41,7 +41,7 @@ function normalize(raw) {
     raw,
     sellingPrice,
     originalPrice,
-    mapping: 'sellingPrice → MAIN, originalPrice → STRIKETHROUGH'
+    mapping: 'sellingPrice → MAIN, originalPrice → STRIKETHROUGH (STRICT)'
   })
 
   const images =
@@ -62,10 +62,10 @@ function normalize(raw) {
     ...raw,
     id: raw._id || raw.id,
     name,
-    price: originalPrice,
+    originalPrice,
     selling_price: sellingPrice,
-    displayPrice: `₹${sellingPrice || 0}`, // sellingPrice is main price
-    originalPriceDisplay: originalPrice ? `₹${originalPrice}` : null, // originalPrice is strikethrough
+    displayPrice: `₹${sellingPrice}`, // sellingPrice is main price
+    originalPriceDisplay: originalPrice > 0 ? `₹${originalPrice}` : null, // originalPrice is strikethrough
     images,
     description: raw.description || '',
     highlights: raw.highlights || [],
@@ -97,12 +97,18 @@ export default function ProductDetails() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
+        console.log('🔍 Fetching product from API:', `${API_URL}/${id}`)
         const res = await fetch(`${API_URL}/${id}`)
         const data = await res.json()
 
+        console.log('🔍 Raw API Response:', data)
+
         // Handle different response structures
         const productData = data.data ? data.data : data
+        console.log('🔍 Extracted Product Data:', productData)
+        
         const normalized = normalize(productData)
+        console.log('🔍 Normalized Product:', normalized)
         setCurrentProduct(normalized)
         setSelectedImage(normalized?.images?.[0] || null)
       } catch (err) {
