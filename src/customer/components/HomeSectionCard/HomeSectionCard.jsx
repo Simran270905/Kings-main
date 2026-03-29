@@ -111,7 +111,7 @@ const HomeSectionCard = ({ product }) => {
           <span className="text-[#b91c1c] font-semibold text-sm sm:text-base">
             ₹{parseFloat(selling_price || 0).toLocaleString('en-IN')}
           </span>
-          {price && parseFloat(price) > parseFloat(selling_price || 0) && (
+          {price && parseFloat(price) !== parseFloat(selling_price || 0) && (
             <span className="text-[#9c7c4a] line-through text-xs sm:text-sm">
               ₹{parseFloat(price).toLocaleString('en-IN')}
             </span>
