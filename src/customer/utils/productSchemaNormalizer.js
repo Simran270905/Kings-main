@@ -15,6 +15,11 @@ export const normalizeProduct = (product) => {
     return null
   }
 
+  // Pricing validation
+  const originalPrice = parseFloat(product.originalPrice) || 0
+  const sellingPrice = parseFloat(product.sellingPrice) || 0
+  const hasValidPriceRelationship = originalPrice > 0 && (sellingPrice <= originalPrice || !sellingPrice)
+
   // Base normalized product
   const normalized = {
     // ID handling
@@ -38,8 +43,9 @@ export const normalizeProduct = (product) => {
     description: product.description || '',
     
     // Pricing - STRICT mapping without fallbacks
-    originalPrice: parseFloat(product.originalPrice) || 0,
-    sellingPrice: parseFloat(product.sellingPrice) || 0,
+    originalPrice,
+    sellingPrice,
+    hasValidPriceRelationship,
     
     // Category
     category: product.category || 'uncategorized',
@@ -69,20 +75,6 @@ export const normalizeProduct = (product) => {
     isBestSeller: product.isBestSeller || false,
     isOnSale: product.isOnSale || false,
   }
-
-  console.log('🔄 NormalizeProduct Debug:', {
-    productId: normalized.id,
-    originalName: product.name,
-    originalTitle: product.title,
-    normalizedName: normalized.name,
-    normalizedTitle: normalized.title,
-    originalPrice: product.originalPrice,
-    originalSellingPrice: product.sellingPrice,
-    normalizedPrice: normalized.price,
-    normalizedOriginalPrice: normalized.originalPrice,
-    normalizedSellingPrice: normalized.sellingPrice,
-    normalizedSelling_price: normalized.selling_price
-  })
 
   // Calculate total stock from sizes if available
   if (normalized.sizes && normalized.sizes.length > 0) {

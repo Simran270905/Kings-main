@@ -2,8 +2,6 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 
 const CategoryHeader = ({ title, showExploreButton = true }) => {
-  console.log('🎯 CategoryHeader rendering:', { title, showExploreButton })
-  
   return (
     <div className="relative mb-8 lg:mb-12 flex items-center justify-between">
       <div>

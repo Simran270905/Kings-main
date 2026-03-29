@@ -100,9 +100,6 @@ export const ProductProvider = ({ children }) => {
         fetchCategoriesFromAPI()
       ])
 
-      console.log('🔍 Raw API Products Response:', apiProducts)
-      console.log('🔍 Raw API Categories Response:', apiCategories)
-
       const normalizedProducts = apiProducts && apiProducts.length > 0 
         ? (() => {
             const uniqueProducts = []

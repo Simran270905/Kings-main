@@ -80,7 +80,6 @@ export default function ShopPage() {
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#f3e6cf]/20 via-transparent to-[#f3e6cf]/20" />
         
         <div className="relative">
-          {console.log('🛍️ ShopPage rendering:', { title, cat, productsLength: products.length })}
           <nav className="flex items-center gap-2 text-sm text-gray-500 mb-3">
             <Link to="/" className="hover:text-[#ae0b0b] transition-colors">Home</Link>
             <span>/</span>
@@ -89,10 +88,8 @@ export default function ShopPage() {
           </nav>
           
           <div className="flex items-end justify-between gap-4">
-            <div className="flex-1">
-              <CategoryHeader title={title} showExploreButton={false} />
-              <p className="text-sm text-gray-500 mt-2">{products.length} product{products.length !== 1 ? 's' : ''}</p>
-            </div>
+            <CategoryHeader title={title} showExploreButton={false} />
+            <p className="text-sm text-gray-500">{products.length} product{products.length !== 1 ? 's' : ''}</p>
             
             {/* Sort */}
             <div className="relative">

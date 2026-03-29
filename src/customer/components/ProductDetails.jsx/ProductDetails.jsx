@@ -30,19 +30,12 @@ function normalize(raw) {
 
   const name = raw.title || raw.name || 'Product'
   
-  // STRICT mapping without fallbacks
-  const sellingPrice = raw.sellingPrice || 0
-  const originalPrice = raw.originalPrice || 0
+  // Handle missing prices gracefully
+  const sellingPrice = raw.sellingPrice
+  const originalPrice = raw.originalPrice
   
-  console.log('🔍 Product Details Debug:', {
-    productId: raw._id || raw.id,
-    name,
-    title: raw.title,
-    raw,
-    sellingPrice,
-    originalPrice,
-    mapping: 'sellingPrice → MAIN, originalPrice → STRIKETHROUGH (STRICT)'
-  })
+  const hasValidPrice = sellingPrice && sellingPrice > 0
+  const hasValidStrikethrough = originalPrice && originalPrice > 0 && originalPrice !== sellingPrice
 
   const images =
     raw.images && Array.isArray(raw.images) && raw.images.length > 0
@@ -64,8 +57,10 @@ function normalize(raw) {
     name,
     originalPrice,
     selling_price: sellingPrice,
-    displayPrice: `₹${sellingPrice}`, // sellingPrice is main price
-    originalPriceDisplay: originalPrice > 0 ? `₹${originalPrice}` : null, // originalPrice is strikethrough
+    displayPrice: hasValidPrice ? `₹${sellingPrice}` : 'Price unavailable',
+    originalPriceDisplay: hasValidStrikethrough ? `₹${originalPrice}` : null,
+    hasValidPrice,
+    hasValidStrikethrough,
     images,
     description: raw.description || '',
     highlights: raw.highlights || [],
@@ -97,18 +92,13 @@ export default function ProductDetails() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        console.log('🔍 Fetching product from API:', `${API_URL}/${id}`)
         const res = await fetch(`${API_URL}/${id}`)
         const data = await res.json()
 
-        console.log('🔍 Raw API Response:', data)
-
         // Handle different response structures
         const productData = data.data ? data.data : data
-        console.log('🔍 Extracted Product Data:', productData)
         
         const normalized = normalize(productData)
-        console.log('🔍 Normalized Product:', normalized)
         setCurrentProduct(normalized)
         setSelectedImage(normalized?.images?.[0] || null)
       } catch (err) {
@@ -233,7 +223,9 @@ export default function ProductDetails() {
           <div className="mt-8">
             <h1 className="text-3xl font-bold text-gray-900">{currentProduct.name}</h1>
             <div className="mt-4 flex items-center gap-3">
-              <p className="text-2xl font-semibold text-[#ae0b0b]">{currentProduct.displayPrice}</p>
+              <p className={`text-2xl font-semibold ${currentProduct.hasValidPrice ? 'text-[#ae0b0b]' : 'text-gray-500'}`}>
+                {currentProduct.displayPrice}
+              </p>
               {currentProduct.originalPriceDisplay && (
                 <p className="text-sm text-gray-500 line-through">{currentProduct.originalPriceDisplay}</p>
               )}
