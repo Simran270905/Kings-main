@@ -33,7 +33,16 @@ const HomeSectionCard = ({ product }) => {
     originalPrice,
     mainPrice,
     strikethroughPrice,
-    rawBackendData: product
+    rawBackendData: product,
+    allFields: Object.keys(product),
+    priceFields: {
+      sellingPrice: product.sellingPrice,
+      originalPrice: product.originalPrice,
+      price: product.price,
+      selling_price: product.selling_price,
+      original_price: product.original_price,
+      purchasePrice: product.purchasePrice
+    }
   })
 
   const { addToCart } = useCart()

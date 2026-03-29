@@ -40,7 +40,16 @@ function normalize(raw) {
     name,
     sellingPrice,
     originalPrice,
-    rawBackendData: raw
+    rawBackendData: raw,
+    allFields: Object.keys(raw),
+    priceFields: {
+      sellingPrice: raw.sellingPrice,
+      originalPrice: raw.originalPrice,
+      price: raw.price,
+      selling_price: raw.selling_price,
+      original_price: raw.original_price,
+      purchasePrice: raw.purchasePrice
+    }
   })
 
   const images =

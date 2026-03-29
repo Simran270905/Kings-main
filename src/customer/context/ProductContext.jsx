@@ -115,7 +115,7 @@ export const ProductProvider = ({ children }) => {
       
       setProducts(normalizedProducts)
       setCategories(apiCategories || [])
-      setLastFetch(now)
+      setLastFetch(Date.now())
       
       console.log(`✅ Loaded ${normalizedProducts.length} products and ${apiCategories?.length || 0} categories`)
     } catch (error) {
