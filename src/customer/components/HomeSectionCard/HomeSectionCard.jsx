@@ -18,10 +18,10 @@ const HomeSectionCard = ({ product }) => {
     isOnSale,
   } = product
 
-  // STRICT mapping without fallbacks
+  // STRICT mapping using correct backend field names
   const productName = name || title
-  const mainPrice = sellingPrice
-  const strikethroughPrice = originalPrice
+  const mainPrice = sellingPrice || price || selling_price  // Use sellingPrice, fallback to price, fallback to selling_price
+  const strikethroughPrice = originalPrice  // Use originalPrice directly
   
   // Add debug validation - simpler version
   console.log("=== PRODUCT DEBUG ===")
@@ -36,7 +36,7 @@ const HomeSectionCard = ({ product }) => {
     original_price: product.original_price
   })
   console.log("Mapped Prices:", {
-    mainPrice,      // sellingPrice - MAIN PRICE
+    mainPrice,      // sellingPrice || price || selling_price - MAIN PRICE
     strikethroughPrice  // originalPrice - STRIKETHROUGH
   })
   console.log("===================")

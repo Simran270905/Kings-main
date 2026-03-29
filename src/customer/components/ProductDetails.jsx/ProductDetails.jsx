@@ -30,9 +30,9 @@ function normalize(raw) {
 
   const name = raw.title || raw.name || 'Product'
   
-  // STRICT mapping without fallbacks
-  const sellingPrice = raw.sellingPrice
-  const originalPrice = raw.originalPrice
+  // STRICT mapping using correct backend field names
+  const sellingPrice = raw.sellingPrice || raw.price || raw.selling_price  // Use sellingPrice, fallback to price, fallback to selling_price
+  const originalPrice = raw.originalPrice  // Use originalPrice directly
   
   // Add debug validation
   console.log("=== PRODUCT DETAILS DEBUG ===")
@@ -47,7 +47,7 @@ function normalize(raw) {
     original_price: raw.original_price
   })
   console.log("Mapped Prices:", {
-    mainPrice: sellingPrice,      // sellingPrice - MAIN PRICE
+    mainPrice: sellingPrice,      // sellingPrice || price || selling_price - MAIN PRICE
     strikethroughPrice: originalPrice  // originalPrice - STRIKETHROUGH
   })
   console.log("===================")
