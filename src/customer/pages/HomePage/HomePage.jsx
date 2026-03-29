@@ -28,27 +28,62 @@ function HomePage() {
         // Fetch all categories
         const catResponse = await fetch(`${API_BASE_URL}/categories`)
         const catData = await catResponse.json()
-        const cats = catData.categories || catData.data || catData || []
+        
+        // Debug: Log the actual response structure
+        console.log('Categories API Response:', catData)
+        
+        // Handle different response structures
+        let cats = []
+        if (Array.isArray(catData)) {
+          cats = catData
+        } else if (catData?.data && Array.isArray(catData.data)) {
+          cats = catData.data
+        } else if (catData?.categories && Array.isArray(catData.categories)) {
+          cats = catData.categories
+        } else if (catData?.data?.categories && Array.isArray(catData.data.categories)) {
+          cats = catData.data.categories
+        } else {
+          console.warn('Unexpected categories response structure:', catData)
+          cats = []
+        }
+        
+        console.log('Extracted categories:', cats)
         setCategories(cats)
 
         // For each category, fetch its products
         const productsMap = {}
-        await Promise.all(
-          cats.map(async (cat) => {
-            const prodResponse = await fetch(
-              `${API_BASE_URL}/products?category=${cat.name}&limit=8`
-            )
-            const prodData = await prodResponse.json()
-            const prods = prodData.products 
-                       || prodData.data?.products 
-                       || prodData.data 
-                       || prodData 
-                       || []
-            if (prods.length > 0) {
-              productsMap[cat._id] = prods
-            }
-          })
-        )
+        if (cats.length > 0) {
+          await Promise.all(
+            cats.map(async (cat) => {
+              try {
+                const prodResponse = await fetch(
+                  `${API_BASE_URL}/products?category=${cat.name}&limit=8`
+                )
+                const prodData = await prodResponse.json()
+                
+                // Debug: Log products response
+                console.log(`Products for category ${cat.name}:`, prodData)
+                
+                const prods = prodData.products 
+                           || prodData.data?.products 
+                           || prodData.data 
+                           || prodData 
+                           || []
+                
+                // Ensure products is an array
+                const productsArray = Array.isArray(prods) ? prods : []
+                
+                if (productsArray.length > 0) {
+                  productsMap[cat._id] = productsArray
+                }
+              } catch (err) {
+                console.error(`Failed to fetch products for category ${cat.name}:`, err)
+              }
+            })
+          )
+        }
+        
+        console.log('Products by category map:', productsMap)
         setProductsByCategory(productsMap)
       } catch (err) {
         console.error('Failed to fetch categories/products:', err)
