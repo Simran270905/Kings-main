@@ -3,6 +3,7 @@
 import React, { useRef, useState, useCallback } from 'react'
 import AliceCarousel from 'react-alice-carousel'
 import HomeSectionCard from '../HomeSectionCard/HomeSectionCard'
+import CategoryHeader from '../CategoryHeader/CategoryHeader'
 import { Link } from 'react-router-dom'
 import { Button } from '@mui/material'
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft'
@@ -80,23 +81,7 @@ const HomeSectionCarousel = ({ data, sectionName, showExploreButton = true }) =>
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#f3e6cf]/20 via-transparent to-[#f3e6cf]/20" />
 
       {/* ================= HEADING ================= */}
-      <div className="relative mb-8 lg:mb-12 flex items-center justify-between">
-        <div>
-            <h2 className="text-2xl lg:text-3xl font-semibold tracking-wide text-[#ae0b0b]">
-              {sectionName}
-            </h2>
-            <span className="mt-3 block h-1 w-16 rounded-full bg-gradient-to-r from-[#b91c1c] to-[#d4af37]" />
-        </div>
-
-        {showExploreButton && (
-          <Link
-            to={`/shop/${String(sectionName).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')}`}
-            className="text-sm font-medium text-[#ae0b0b] hidden sm:inline-flex"
-          >
-            Explore →
-          </Link>
-        )}
-      </div>
+      <CategoryHeader title={sectionName} showExploreButton={showExploreButton} />
 
       {/* ================= CAROUSEL ================= */}
       <div

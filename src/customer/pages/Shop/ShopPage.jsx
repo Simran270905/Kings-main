@@ -5,6 +5,7 @@ import { Link, useParams } from 'react-router-dom'
 import { ChevronDownIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline'
 import { useProduct } from '../../context/ProductContext'
 import HomeSectionCarosal from '../../components/HomeSectionCarosal/HomeSectionCarosal'
+import CategoryHeader from '../../components/CategoryHeader/CategoryHeader'
 import { CategorySkeleton } from '../../../components/LoadingSkeletons'
 
 const sortOptions = [
@@ -88,10 +89,7 @@ export default function ShopPage() {
           
           <div className="flex items-end justify-between gap-4">
             <div>
-              <h2 className="text-2xl lg:text-3xl font-semibold tracking-wide text-[#ae0b0b]">
-                {title}
-              </h2>
-              <span className="mt-3 block h-1 w-16 rounded-full bg-gradient-to-r from-[#b91c1c] to-[#d4af37]" />
+              <CategoryHeader title={title} showExploreButton={false} />
               <p className="text-sm text-gray-500 mt-2">{products.length} product{products.length !== 1 ? 's' : ''}</p>
             </div>
             
