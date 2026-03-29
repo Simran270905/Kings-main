@@ -109,7 +109,16 @@ export const ProductProvider = ({ children }) => {
               const productId = product.id || product._id
               if (!seenIds.has(productId)) {
                 seenIds.add(productId)
-                uniqueProducts.push(normalizeProduct(product))
+                const normalized = normalizeProduct(product)
+                console.log('🔄 Product Debug - Normalized:', {
+                  productId,
+                  title: normalized.title,
+                  price: normalized.price,
+                  selling_price: normalized.selling_price,
+                  formattedSellingPrice: `₹${parseFloat(normalized.selling_price || 0).toLocaleString('en-IN')}`,
+                  formattedPrice: `₹${parseFloat(normalized.price || 0).toLocaleString('en-IN')}`
+                })
+                uniqueProducts.push(normalized)
               }
             }
             
