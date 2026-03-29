@@ -225,7 +225,7 @@ class AdminApiService {
 
   // Get product stats
   async getProductStats() {
-    return this.request('/products/stats')
+    return this.request('/api/products/stats')
   }
 
   // ======================

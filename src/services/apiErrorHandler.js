@@ -49,14 +49,22 @@ class ApiServiceErrorHandler {
     await this.checkCircuitBreaker()
 
     try {
+      // Create AbortController for timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
       const response = await fetch(url, {
         ...options,
+        signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache',
           ...options.headers
         }
       })
+
+      // Clear timeout if request completed
+      clearTimeout(timeoutId)
 
       // Check for HTTP errors
       if (!response.ok) {
@@ -69,6 +77,12 @@ class ApiServiceErrorHandler {
 
     } catch (error) {
       this.recordFailure()
+
+      // Handle timeout specifically
+      if (error.name === 'AbortError') {
+        console.log('❌ API timeout: Request took too long')
+        throw new Error('Request took too long')
+      }
 
       // Retry logic for network errors
       if (retryCount < this.retryAttempts && this.shouldRetry(error)) {
