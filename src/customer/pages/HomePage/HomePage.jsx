@@ -80,6 +80,54 @@ function HomePage() {
       {/* ================= HERO (Critical) ================= */}
       <MainCarosal />
 
+      {/* ================= FEATURED PRODUCTS SECTION ================= */}
+      <div className="bg-white py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Featured Products Heading */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            marginBottom: '30px',
+            padding: '0 10px'
+          }}>
+            <div>
+              <h2 style={{
+                fontSize: '28px',
+                fontWeight: '700',
+                color: '#c0392b',
+                margin: '0 0 8px 0'
+              }}>
+                Featured Products
+              </h2>
+              <div style={{
+                width: '50px',
+                height: '3px',
+                backgroundColor: '#c0392b',
+                borderRadius: '2px'
+              }} />
+            </div>
+            <a href="/shop" style={{
+              color: '#c0392b',
+              fontWeight: '500',
+              fontSize: '15px',
+              textDecoration: 'none'
+            }}>
+              Explore →
+            </a>
+          </div>
+
+          {/* Featured Products Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 lg:gap-6">
+            {products.slice(0, 8).map((product, index) => (
+              <div key={product._id || product.id || index}>
+                <HomeSectionCard product={product} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* ================= SECTIONS ================= */}
       <div className="bg-gray-50 py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto space-y-16">
