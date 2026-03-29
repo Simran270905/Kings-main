@@ -5,7 +5,7 @@ import { Link, useParams } from 'react-router-dom'
 import { ChevronDownIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline'
 import { useProduct } from '../../context/ProductContext'
 import HomeSectionCarosal from '../../components/HomeSectionCarosal/HomeSectionCarosal'
-import CategorySkeleton from '../../components/CategorySkeleton/CategorySkeleton'
+import { CategorySkeleton } from '../../../components/LoadingSkeletons'
 
 const sortOptions = [
   { value: 'newest', label: 'Newest First' },
