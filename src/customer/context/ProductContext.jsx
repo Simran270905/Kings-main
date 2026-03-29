@@ -151,9 +151,21 @@ export const ProductProvider = ({ children }) => {
 
     const unsubscribeProductUpdated = dataSyncEvents.subscribe(EVENT_TYPES.PRODUCT_UPDATED, (data) => {
       console.log('🔄 Real-time: Product updated by admin:', data)
-      setProducts(prev => prev.map(product => 
-        product.id === data.id ? normalizeProduct(data) : product
-      ))
+      setProducts(prev => prev.map(product => {
+        const productId = product.id || product._id
+        const updatedProductId = data.id || data._id
+        if (productId === updatedProductId) {
+          const normalizedUpdated = normalizeProduct(data)
+          console.log('🔄 Real-time: Updating product prices:', {
+            old_price: product.price,
+            old_selling_price: product.selling_price,
+            new_price: normalizedUpdated.price,
+            new_selling_price: normalizedUpdated.selling_price
+          })
+          return normalizedUpdated
+        }
+        return product
+      }))
       cache.invalidate('products')
     })
 
@@ -175,12 +187,54 @@ export const ProductProvider = ({ children }) => {
     const startRealTimeSync = () => {
       const syncInterval = setInterval(async () => {
         try {
-          console.log('🔄 Real-time sync: Checking for new products...')
+          console.log('🔄 Real-time sync: Checking for product updates...')
           const latestProducts = await fetchProductsFromAPI()
           const currentProductIds = new Set(products.map(p => p.id || p._id))
+          
+          // Check for updated products (price changes, etc.)
+          const updatedProducts = latestProducts.filter(p => {
+            const productId = p.id || p._id
+            if (!currentProductIds.has(productId)) return false // Skip new products
+            
+            const currentProduct = products.find(cp => (cp.id || cp._id) === productId)
+            if (!currentProduct) return false
+            
+            // Check if prices changed
+            const priceChanged = parseFloat(p.price) !== parseFloat(currentProduct.price)
+            const sellingPriceChanged = parseFloat(p.selling_price) !== parseFloat(currentProduct.selling_price)
+            
+            if (priceChanged || sellingPriceChanged) {
+              console.log('🔄 Real-time sync: Price changes detected for', {
+                productId,
+                old_price: currentProduct.price,
+                new_price: p.price,
+                old_selling_price: currentProduct.selling_price,
+                new_selling_price: p.selling_price
+              })
+              return true
+            }
+            
+            return false
+          })
+          
+          // Check for new products
           const newProducts = latestProducts.filter(p => 
             !currentProductIds.has(p.id || p._id)
           )
+          
+          if (updatedProducts.length > 0) {
+            console.log(`🔄 Real-time sync: Updating ${updatedProducts.length} products with price changes`)
+            setProducts(prev => {
+              return prev.map(product => {
+                const updatedProduct = updatedProducts.find(up => (up.id || up._id) === (product.id || product._id))
+                if (updatedProduct) {
+                  return normalizeProduct(updatedProduct)
+                }
+                return product
+              })
+            })
+            cache.invalidate('products')
+          }
           
           if (newProducts.length > 0) {
             console.log(`🔄 Real-time sync: Found ${newProducts.length} new products`)
@@ -194,8 +248,10 @@ export const ProductProvider = ({ children }) => {
               return prev
             })
             cache.invalidate('products')
-          } else {
-            console.log('🔄 Real-time sync: No new products found')
+          }
+          
+          if (updatedProducts.length === 0 && newProducts.length === 0) {
+            console.log('🔄 Real-time sync: No updates found')
           }
         } catch (error) {
           console.error('❌ Real-time sync error:', error)
