@@ -23,27 +23,20 @@ const HomeSectionCard = ({ product }) => {
   const mainPrice = sellingPrice
   const strikethroughPrice = originalPrice
   
-  // Add debug validation
-  console.log("FINAL PRODUCT:", {
-    productId: product.id || product._id,
-    name,
-    title,
-    productName,
-    sellingPrice,
-    originalPrice,
-    mainPrice,
-    strikethroughPrice,
-    rawBackendData: product,
-    allFields: Object.keys(product),
-    priceFields: {
-      sellingPrice: product.sellingPrice,
-      originalPrice: product.originalPrice,
-      price: product.price,
-      selling_price: product.selling_price,
-      original_price: product.original_price,
-      purchasePrice: product.purchasePrice
-    }
+  // Add debug validation - simpler version
+  console.log("=== PRODUCT DEBUG ===")
+  console.log("Product ID:", product.id || product._id)
+  console.log("Name:", name)
+  console.log("Available Fields:", Object.keys(product))
+  console.log("Price Fields:", {
+    sellingPrice: product.sellingPrice,
+    originalPrice: product.originalPrice,
+    price: product.price,
+    selling_price: product.selling_price,
+    original_price: product.original_price
   })
+  console.log("Raw Data:", product)
+  console.log("===================")
 
   const { addToCart } = useCart()
 

@@ -85,8 +85,15 @@ export const ProductProvider = ({ children }) => {
     setError(null)
     
     try {
-      // Always fetch fresh data to ensure data consistency
-      // Cache disabled to prevent stale data issues
+      // Check if we have fresh cached data (less than 30 seconds old)
+      const now = Date.now()
+      const lastFetch = lastProductsFetch.current
+      
+      if (lastFetch && (now - lastFetch) < 30 * 1000) {
+        console.log('📦 Using cached data (fresh)')
+        return
+      }
+
       console.log('🌐 Fetching fresh data from API...')
       
       // Parallel fetch for better performance
