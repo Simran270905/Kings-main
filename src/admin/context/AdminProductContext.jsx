@@ -94,12 +94,10 @@ export const AdminProductProvider = ({ children }) => {
         productsArray = data
       }
       
-      console.log('📦 Products data extraction:', {
+      console.log(`📦 Products data extraction:`, {
         hasData: !!data,
         hasSuccess: !!data.success,
         dataStructure: data.data ? Object.keys(data.data) : 'no data',
-        extractedCount: productsArray.length,
-        isArray: Array.isArray(productsArray)
       })
       
       // Only update if data has changed to prevent unnecessary re-renders
@@ -113,9 +111,8 @@ export const AdminProductProvider = ({ children }) => {
         setProducts(safeProductsArray)
         setLastFetch(new Date())
         setRefreshCount(prev => prev + 1)
-        console.log(`📦 Admin Products updated: ${safeProductsArray.length} products (refresh #${refreshCount + 1})`)
       } else {
-        console.log('📦 Products data unchanged, skipping update')
+        // Skip update if no changes
       }
     } catch (err) {
       // Handle 429 rate limiting specifically
@@ -136,7 +133,6 @@ export const AdminProductProvider = ({ children }) => {
   useEffect(() => {
     if (!isInitialized.current && !loading) {
       isInitialized.current = true
-      console.log('🚀 Initial product fetch')
       fetchProducts()
     }
   }, []) // Empty dependency array - only run once

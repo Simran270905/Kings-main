@@ -42,10 +42,10 @@ export const normalizeProduct = (product) => {
     // Description
     description: product.description || '',
     
-    // Pricing - STRICT mapping without fallbacks
-    originalPrice,
-    sellingPrice,
-    hasValidPriceRelationship,
+    // Pricing - PASS-THROUGH without fallbacks
+    originalPrice: product.originalPrice,
+    sellingPrice: product.sellingPrice,
+    hasValidPriceRelationship: originalPrice > 0 && (sellingPrice <= originalPrice || !sellingPrice),
     
     // Category
     category: product.category || 'uncategorized',

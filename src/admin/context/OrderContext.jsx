@@ -65,18 +65,6 @@ export const OrderProvider = ({ children }) => {
       const data = await adminApi.getOrders()
       logApiResponse('/orders', data)
       
-      // ✅ DEBUG: Detailed API response inspection
-      console.log("🔍 ORDERS API INVESTIGATION:")
-      console.log("📦 Raw API Response:", data)
-      console.log("📦 Response type:", typeof data)
-      console.log("📦 Response keys:", Object.keys(data || {}))
-      console.log("📦 Response.data:", data?.data)
-      console.log("📦 Response.data type:", typeof data?.data)
-      console.log("📦 Response.data isArray:", Array.isArray(data?.data))
-      console.log("📦 Response.orders:", data?.orders)
-      console.log("📦 Response.orders type:", typeof data?.orders)
-      console.log("📦 Response.orders isArray:", Array.isArray(data?.orders))
-      
       // ✅ Use standardized data extraction
       const newOrders = extractData(data)
       console.log("📊 Extracted orders:", newOrders)
@@ -111,7 +99,6 @@ export const OrderProvider = ({ children }) => {
   // CREATE ORDER (for customers)
   const createOrder = async (orderData) => {
     try {
-      console.log('📦 Creating order:', orderData)
 
       const res = await fetch(API_URL, {
         method: 'POST',
@@ -214,7 +201,6 @@ export const OrderProvider = ({ children }) => {
 
   // Force refresh (manual)
   const forceRefresh = () => {
-    console.log('🔄 Force refreshing orders...')
     fetchOrders()
   }
 

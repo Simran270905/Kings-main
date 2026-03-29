@@ -64,7 +64,6 @@ export const useAnalytics = () => {
   }, [])
 
   const refresh = () => {
-    console.log('🔄 Refreshing analytics...')
     fetchStats()
   }
 

@@ -85,13 +85,8 @@ export const ProductProvider = ({ children }) => {
     setError(null)
     
     try {
-      // Check if we have fresh data (cache for 5 minutes)
-      const now = Date.now()
-      if (lastFetch && (now - lastFetch) < 5 * 60 * 1000) {
-        console.log('📦 Using cached data (fresh)')
-        return
-      }
-
+      // Always fetch fresh data to ensure data consistency
+      // Cache disabled to prevent stale data issues
       console.log('🌐 Fetching fresh data from API...')
       
       // Parallel fetch for better performance
@@ -215,7 +210,11 @@ export const ProductProvider = ({ children }) => {
               return prev.map(product => {
                 const updatedProduct = updatedProducts.find(up => (up.id || up._id) === (product.id || product._id))
                 if (updatedProduct) {
-                  return normalizeProduct(updatedProduct)
+                  // Safe merge without normalization - preserve existing data structure
+                  return {
+                    ...product,
+                    ...updatedProduct
+                  }
                 }
                 return product
               })
@@ -228,10 +227,9 @@ export const ProductProvider = ({ children }) => {
             setProducts(prev => {
               const existingIds = new Set(prev.map(p => p.id || p._id))
               const trulyNew = newProducts.filter(p => !existingIds.has(p.id || p._id))
-              if (trulyNew.length > 0) {
-                return [...prev, ...trulyNew.map(normalizeProduct)]
-              }
-              return prev
+              
+              // Add new products without normalization to preserve backend data
+              return [...prev, ...trulyNew]
             })
             cache.invalidate('products')
           }

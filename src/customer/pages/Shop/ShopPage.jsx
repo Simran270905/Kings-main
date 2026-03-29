@@ -64,8 +64,8 @@ export default function ShopPage() {
 
   const products = useMemo(() => {
     const arr = [...baseProducts]
-    if (sort === 'price_asc') arr.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0))
-    if (sort === 'price_desc') arr.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0))
+    if (sort === 'price_asc') arr.sort((a, b) => (Number(a.sellingPrice) || 0) - (Number(b.sellingPrice) || 0))
+    if (sort === 'price_desc') arr.sort((a, b) => (Number(b.sellingPrice) || 0) - (Number(a.sellingPrice) || 0))
     return arr
   }, [baseProducts, sort])
 

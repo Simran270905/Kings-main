@@ -30,12 +30,18 @@ function normalize(raw) {
 
   const name = raw.title || raw.name || 'Product'
   
-  // Handle missing prices gracefully
+  // STRICT mapping without fallbacks
   const sellingPrice = raw.sellingPrice
   const originalPrice = raw.originalPrice
   
-  const hasValidPrice = sellingPrice && sellingPrice > 0
-  const hasValidStrikethrough = originalPrice && originalPrice > 0 && originalPrice !== sellingPrice
+  // Add debug validation
+  console.log("FINAL PRODUCT:", {
+    productId: raw._id || raw.id,
+    name,
+    sellingPrice,
+    originalPrice,
+    rawBackendData: raw
+  })
 
   const images =
     raw.images && Array.isArray(raw.images) && raw.images.length > 0
@@ -57,10 +63,8 @@ function normalize(raw) {
     name,
     originalPrice,
     selling_price: sellingPrice,
-    displayPrice: hasValidPrice ? `₹${sellingPrice}` : 'Price unavailable',
-    originalPriceDisplay: hasValidStrikethrough ? `₹${originalPrice}` : null,
-    hasValidPrice,
-    hasValidStrikethrough,
+    displayPrice: sellingPrice ? `₹${sellingPrice}` : 'Price unavailable',
+    originalPriceDisplay: originalPrice ? `₹${originalPrice}` : null,
     images,
     description: raw.description || '',
     highlights: raw.highlights || [],
@@ -223,7 +227,7 @@ export default function ProductDetails() {
           <div className="mt-8">
             <h1 className="text-3xl font-bold text-gray-900">{currentProduct.name}</h1>
             <div className="mt-4 flex items-center gap-3">
-              <p className={`text-2xl font-semibold ${currentProduct.hasValidPrice ? 'text-[#ae0b0b]' : 'text-gray-500'}`}>
+              <p className="text-2xl font-semibold text-[#ae0b0b]">
                 {currentProduct.displayPrice}
               </p>
               {currentProduct.originalPriceDisplay && (

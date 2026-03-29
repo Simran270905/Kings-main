@@ -23,9 +23,18 @@ const HomeSectionCard = ({ product }) => {
   const mainPrice = sellingPrice
   const strikethroughPrice = originalPrice
   
-  // Handle missing prices gracefully
-  const hasValidPrice = mainPrice && mainPrice > 0
-  const hasValidStrikethrough = strikethroughPrice && strikethroughPrice > 0 && strikethroughPrice !== mainPrice
+  // Add debug validation
+  console.log("FINAL PRODUCT:", {
+    productId: product.id || product._id,
+    name,
+    title,
+    productName,
+    sellingPrice,
+    originalPrice,
+    mainPrice,
+    strikethroughPrice,
+    rawBackendData: product
+  })
 
   const { addToCart } = useCart()
 
@@ -118,19 +127,13 @@ const HomeSectionCard = ({ product }) => {
         </p>
 
         <div className="flex items-center justify-center gap-1.5 sm:gap-2 pt-1.5 sm:pt-2">
-          {hasValidPrice ? (
-            <>
-              <span className="text-[#b91c1c] font-semibold text-sm sm:text-base">
-                ₹{parseFloat(mainPrice).toLocaleString('en-IN')}
-              </span>
-              {hasValidStrikethrough && (
-                <span className="text-[#9c7c4a] line-through text-xs sm:text-sm">
-                  ₹{parseFloat(strikethroughPrice).toLocaleString('en-IN')}
-                </span>
-              )}
-            </>
-          ) : (
-            <span className="text-gray-500 text-sm sm:text-base">Price unavailable</span>
+          <span className="text-[#b91c1c] font-semibold text-sm sm:text-base">
+            ₹{parseFloat(mainPrice || 0).toLocaleString('en-IN')}
+          </span>
+          {strikethroughPrice && parseFloat(strikethroughPrice) > 0 && parseFloat(strikethroughPrice) !== parseFloat(mainPrice) && (
+            <span className="text-[#9c7c4a] line-through text-xs sm:text-sm">
+              ₹{parseFloat(strikethroughPrice).toLocaleString('en-IN')}
+            </span>
           )}
         </div>
 

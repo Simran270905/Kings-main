@@ -113,7 +113,6 @@ export const useDetailedAnalytics = () => {
   }, [])
 
   const refresh = () => {
-    console.log('🔄 Refreshing detailed analytics...')
     fetchAnalytics()
   }
 
