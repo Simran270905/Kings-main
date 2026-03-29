@@ -86,6 +86,23 @@ const HomeSectionCarousel = ({ sectionName }) => {
     >
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#f3e6cf]/20 via-transparent to-[#f3e6cf]/20" />
 
+      {/* ================= HEADING ================= */}
+      <div className="relative mb-8 lg:mb-12 flex items-center justify-between">
+        <div>
+            <h2 className="text-2xl lg:text-3xl font-semibold tracking-wide text-[#ae0b0b]">
+              {sectionName}
+            </h2>
+            <span className="mt-3 block h-1 w-16 rounded-full bg-gradient-to-r from-[#b91c1c] to-[#d4af37]" />
+        </div>
+
+        <Link
+          to={`/shop/${String(sectionName).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')}`}
+          className="text-sm font-medium text-[#ae0b0b] hidden sm:inline-flex"
+        >
+          Explore →
+        </Link>
+      </div>
+
       {/* ================= CAROUSEL ================= */}
       <div
         className="relative outline-none"
