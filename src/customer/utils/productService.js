@@ -58,6 +58,14 @@ export const fetchProductsFromAPI = async () => {
     
     if (!response.ok) {
       console.error(`❌ API Error: HTTP ${response.status}`)
+      
+      // Handle 429 rate limit errors specifically
+      if (response.status === 429) {
+        const error = new Error('HTTP 429: Too many requests - rate limit exceeded')
+        error.status = 429
+        throw error
+      }
+      
       return []
     }
     
@@ -67,6 +75,9 @@ export const fetchProductsFromAPI = async () => {
   } catch (error) {
     if (error.name === 'AbortError') {
       console.error('❌ API timeout: Request took too long')
+    } else if (error.status === 429) {
+      console.error('❌ Rate limit exceeded:', error.message)
+      throw error // Re-throw to let ProductContext handle the retry
     } else {
       console.error('❌ Error fetching products from API:', error.message)
     }
