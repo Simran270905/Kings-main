@@ -16,64 +16,57 @@ const LazyHomeSection = lazy(() =>
 function HomePage() {
   const { products, loading: productsLoading } = useProduct()
   const [categories, setCategories] = useState([])
-  const [categoriesLoading, setCategoriesLoading] = useState(true)
+  const [productsByCategory, setProductsByCategory] = useState({})
+  const [loading, setLoading] = useState(true)
 
-  // Memoize category products to avoid recalculation
-  const productsByCategory = useMemo(() => {
-    if (!products || products.length === 0) return {}
-    
-    console.log("🏠 HOMEPAGE DEBUG:")
-    console.log("Total products:", products.length)
-    console.log("Products sample:", products.slice(0, 2))
-    console.log("Categories:", categories.map(c => c.name))
-    
-    const categoryMap = {}
-    categories.forEach(cat => {
-      categoryMap[cat.name] = products.filter(p =>
-        p.category && p.category.toLowerCase() === cat.name.toLowerCase()
-      )
-    })
-    
-    console.log("Products by category:", Object.keys(categoryMap).map(cat => ({
-      category: cat,
-      count: categoryMap[cat].length
-    })))
-    
-    return categoryMap
-  }, [products, categories])
-
+  // Fetch categories and their products
   useEffect(() => {
-    const fetchCategories = async () => {
-      setCategoriesLoading(true)
+    const fetchCategoriesAndProducts = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/categories`)
-        const data = await res.json()
-        // Handle both old and new response structures
-        let categories = [];
+        setLoading(true)
         
-        // New structure: { success: true, data: [categories] }
-        if (Array.isArray(data?.data)) {
-          categories = data.data;
-        }
-        // Old structure: { success: true, data: { categories: [categories] } }
-        else if (data?.data?.categories && Array.isArray(data.data.categories)) {
-          categories = data.data.categories;
-        }
-        
-        setCategories(Array.isArray(categories) ? categories : [])
-      } catch (error) {
-        console.error('❌ Error fetching categories:', error)
-        setCategories([]) // Always ensure array
+        // Fetch all categories
+        const catResponse = await fetch(`${API_BASE_URL}/categories`)
+        const catData = await catResponse.json()
+        const cats = catData.categories || catData.data || catData || []
+        setCategories(cats)
+
+        // For each category, fetch its products
+        const productsMap = {}
+        await Promise.all(
+          cats.map(async (cat) => {
+            const prodResponse = await fetch(
+              `${API_BASE_URL}/products?category=${cat.name}&limit=8`
+            )
+            const prodData = await prodResponse.json()
+            const prods = prodData.products 
+                       || prodData.data?.products 
+                       || prodData.data 
+                       || prodData 
+                       || []
+            if (prods.length > 0) {
+              productsMap[cat._id] = prods
+            }
+          })
+        )
+        setProductsByCategory(productsMap)
+      } catch (err) {
+        console.error('Failed to fetch categories/products:', err)
       } finally {
-        setCategoriesLoading(false)
+        setLoading(false)
       }
     }
-    fetchCategories()
+
+    fetchCategoriesAndProducts()
   }, [])
 
-  // Show skeleton while loading products
-  if (productsLoading && categoriesLoading) {
-    return <HomePageSkeleton />
+  // Show loading state
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>
+        Loading collections...
+      </div>
+    )
   }
 
   return (
@@ -81,98 +74,83 @@ function HomePage() {
       {/* ================= HERO (Critical) ================= */}
       <MainCarosal />
 
-      {/* ================= FEATURED PRODUCTS SECTION ================= */}
-      <div className="bg-white py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Featured Products Heading */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            marginBottom: '30px',
-            padding: '0 10px'
-          }}>
-            <div>
-              <h2 style={{
-                fontSize: '28px',
-                fontWeight: '700',
-                color: '#c0392b',
-                margin: '0 0 8px 0'
+      {/* ================= DYNAMIC CATEGORY SECTIONS ================= */}
+      <div className="bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto space-y-8">
+          {categories.map(cat => {
+            const catProducts = productsByCategory[cat._id];
+            if (!catProducts || catProducts.length === 0) return null;
+
+            return (
+              <div key={cat._id} style={{
+                background: '#faf9f6',
+                borderRadius: '16px',
+                padding: '30px 20px',
+                marginBottom: '40px'
               }}>
-                Featured Products
-              </h2>
-              <div style={{
-                width: '50px',
-                height: '3px',
-                backgroundColor: '#c0392b',
-                borderRadius: '2px'
-              }} />
-            </div>
-            <a href="/shop" style={{
-              color: '#c0392b',
-              fontWeight: '500',
-              fontSize: '15px',
-              textDecoration: 'none'
-            }}>
-              Explore →
-            </a>
-          </div>
-
-          {/* Featured Products Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 lg:gap-6">
-            {products.slice(0, 8).map((product, index) => (
-              <div key={product._id || product.id || index}>
-                <HomeSectionCard product={product} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ================= SECTIONS ================= */}
-      <div className="bg-gray-50 py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto space-y-16">
-          
-          {/* Categories Loading State */}
-          {categoriesLoading ? (
-            <CategorySkeleton />
-          ) : !productsLoading && products.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="text-gray-500 text-lg">No products available at the moment.</div>
-              <div className="text-gray-400 text-sm mt-2">Please check back later.</div>
-            </div>
-          ) : (
-            <>
-              {/* First 2 Categories - Load Immediately */}
-              {categories.slice(0, 2).map((cat) => {
-                const catProducts = productsByCategory[cat.name] || []
-                if (catProducts.length === 0) return null
-                return (
-                  <div key={cat._id}>
-                    <HomeSectionCarosal
-                      data={catProducts}
-                      sectionName={cat.name.toUpperCase()}
-                    />
+                {/* Category Heading Row */}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  marginBottom: '24px'
+                }}>
+                  <div>
+                    <h2 style={{
+                      fontSize: '28px',
+                      fontWeight: '700',
+                      color: '#c0392b',
+                      margin: '0 0 8px 0',
+                      textTransform: 'capitalize'
+                    }}>
+                      {cat.name}
+                    </h2>
+                    <div style={{
+                      width: '50px',
+                      height: '3px',
+                      backgroundColor: '#c0392b',
+                      borderRadius: '2px'
+                    }} />
                   </div>
-                )
-              })}
+                  <a 
+                    href={`/shop?category=${cat._id}`}
+                    style={{
+                      color: '#c0392b',
+                      fontWeight: '500',
+                      fontSize: '15px',
+                      textDecoration: 'none'
+                    }}
+                  >
+                    Explore →
+                  </a>
+                </div>
 
-              {/* Remaining Categories - Lazy Load */}
-              <Suspense fallback={<CategorySkeleton />}>
-                {categories.slice(2).map((cat) => {
-                  const catProducts = productsByCategory[cat.name] || []
-                  if (catProducts.length === 0) return null
-                  return (
-                    <div key={cat._id}>
-                      <LazyHomeSection
-                        data={catProducts}
-                        sectionName={cat.name.toUpperCase()}
-                      />
-                    </div>
-                  )
-                })}
-              </Suspense>
-            </>
+                {/* Products Grid */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                  gap: '20px'
+                }}>
+                  {catProducts.map(product => (
+                    <HomeSectionCard key={product._id || product.id} product={product} />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Show message if no categories have products */}
+          {categories.length > 0 && Object.keys(productsByCategory).length === 0 && (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>
+              No products available in any category at the moment.
+            </div>
+          )}
+
+          {/* Show message if no categories */}
+          {categories.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>
+              No categories available at the moment.
+            </div>
           )}
         </div>
       </div>
