@@ -1,15 +1,16 @@
 "use client"
 
-import React, { useState, useMemo } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import HomeSectionCard from '../../components/HomeSectionCard/HomeSectionCard'
+import React, { useMemo, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { ChevronDownIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline'
 import { useProduct } from '../../context/ProductContext'
-import { AdjustmentsHorizontalIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
+import HomeSectionCarosal from '../../components/HomeSectionCarosal/HomeSectionCarosal'
+import CategorySkeleton from '../../components/CategorySkeleton/CategorySkeleton'
 
 const sortOptions = [
-  { label: 'Newest', value: 'newest' },
-  { label: 'Price: Low to High', value: 'price_asc' },
-  { label: 'Price: High to Low', value: 'price_desc' },
+  { value: 'newest', label: 'Newest First' },
+  { value: 'price_asc', label: 'Price: Low to High' },
+  { value: 'price_desc', label: 'Price: High to Low' }
 ]
 
 export default function ShopPage() {
@@ -72,21 +73,28 @@ export default function ShopPage() {
     : 'All Products'
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-[#ffffff] via-[#fffaf3] to-[#fdf6ec]">
       {/* Page header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="relative w-full px-4 sm:px-6 lg:px-14 py-12 lg:py-16">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#f3e6cf]/20 via-transparent to-[#f3e6cf]/20" />
+        
+        <div className="relative">
           <nav className="flex items-center gap-2 text-sm text-gray-500 mb-3">
             <Link to="/" className="hover:text-[#ae0b0b] transition-colors">Home</Link>
             <span>/</span>
             <Link to="/shop" className="hover:text-[#ae0b0b] transition-colors">Shop</Link>
             {cat && <><span>/</span><span className="text-gray-900 font-medium">{title}</span></>}
           </nav>
+          
           <div className="flex items-end justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-serif font-bold text-gray-900">{title}</h1>
-              <p className="text-sm text-gray-500 mt-1">{products.length} product{products.length !== 1 ? 's' : ''}</p>
+              <h2 className="text-2xl lg:text-3xl font-semibold tracking-wide text-[#ae0b0b]">
+                {title}
+              </h2>
+              <span className="mt-3 block h-1 w-16 rounded-full bg-gradient-to-r from-[#b91c1c] to-[#d4af37]" />
+              <p className="text-sm text-gray-500 mt-2">{products.length} product{products.length !== 1 ? 's' : ''}</p>
             </div>
+            
             {/* Sort */}
             <div className="relative">
               <select
@@ -104,8 +112,8 @@ export default function ShopPage() {
         </div>
       </div>
 
-      {/* Products grid */}
-      <div className="max-w-7xl mx-auto px-4 py-10">
+      {/* Products carousel - Same as homepage */}
+      <div className="relative w-full px-4 sm:px-6 lg:px-14 pb-12 lg:pb-16">
         {loading ? (
           <div className="text-center py-20">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#ae0b0b]"></div>
@@ -121,13 +129,11 @@ export default function ShopPage() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
-            {products.map((p) => (
-              <Link key={p.id} to={`/product/${p.id}`}>
-                <HomeSectionCard product={p} />
-              </Link>
-            ))}
-          </div>
+          <HomeSectionCarosal 
+            data={products} 
+            sectionName={title}
+            showExploreButton={false}
+          />
         )}
       </div>
     </div>

@@ -7,10 +7,8 @@ import { Link } from 'react-router-dom'
 import { Button } from '@mui/material'
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft'
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight'
-import { chains } from '../../data/chains'
-import { bracelets } from '../../data/bracelet'
 
-const HomeSectionCarousel = ({ sectionName }) => {
+const HomeSectionCarousel = ({ data, sectionName, showExploreButton = true }) => {
   const [activeIndex, setActiveIndex] = useState(0)
   const carouselRef = useRef(null)
 
@@ -21,12 +19,7 @@ const HomeSectionCarousel = ({ sectionName }) => {
   }
 
   // ================= DATA =================
-  const baseProducts =
-    sectionName?.toLowerCase() === 'bracelets'
-      ? bracelets.slice(0, 10)
-      : chains.slice(0, 10)
-
-  const products = baseProducts.map((product, index) => ({
+  const products = (data || []).map((product, index) => ({
     ...product,
     isBestSeller: index === 1 || index === 4,
     isOnSale: index === 2 || index === 6,
@@ -95,12 +88,14 @@ const HomeSectionCarousel = ({ sectionName }) => {
             <span className="mt-3 block h-1 w-16 rounded-full bg-gradient-to-r from-[#b91c1c] to-[#d4af37]" />
         </div>
 
-        <Link
-          to={`/shop/${String(sectionName).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')}`}
-          className="text-sm font-medium text-[#ae0b0b] hidden sm:inline-flex"
-        >
-          Explore →
-        </Link>
+        {showExploreButton && (
+          <Link
+            to={`/shop/${String(sectionName).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')}`}
+            className="text-sm font-medium text-[#ae0b0b] hidden sm:inline-flex"
+          >
+            Explore →
+          </Link>
+        )}
       </div>
 
       {/* ================= CAROUSEL ================= */}

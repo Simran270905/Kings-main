@@ -17,17 +17,6 @@ const HomeSectionCard = ({ product }) => {
     isOnSale,
   } = product
 
-  // Debug logging
-  console.log('🛍️ HomeSectionCard Debug:', {
-    productId: product.id || product._id,
-    title,
-    price,
-    selling_price,
-    disscount,
-    formattedSellingPrice: `₹${parseFloat(selling_price || 0).toLocaleString('en-IN')}`,
-    formattedPrice: `₹${parseFloat(price || 0).toLocaleString('en-IN')}`
-  })
-
   const { addToCart } = useCart()
 
   return (

@@ -109,16 +109,7 @@ export const ProductProvider = ({ children }) => {
               const productId = product.id || product._id
               if (!seenIds.has(productId)) {
                 seenIds.add(productId)
-                const normalized = normalizeProduct(product)
-                console.log('🔄 Product Debug - Normalized:', {
-                  productId,
-                  title: normalized.title,
-                  price: normalized.price,
-                  selling_price: normalized.selling_price,
-                  formattedSellingPrice: `₹${parseFloat(normalized.selling_price || 0).toLocaleString('en-IN')}`,
-                  formattedPrice: `₹${parseFloat(normalized.price || 0).toLocaleString('en-IN')}`
-                })
-                uniqueProducts.push(normalized)
+                uniqueProducts.push(normalizeProduct(product))
               }
             }
             
@@ -159,19 +150,12 @@ export const ProductProvider = ({ children }) => {
     })
 
     const unsubscribeProductUpdated = dataSyncEvents.subscribe(EVENT_TYPES.PRODUCT_UPDATED, (data) => {
-      console.log('🔄 Real-time: Product updated by admin:', data)
+      console.log('🔄 Real-time: Product updated by admin')
       setProducts(prev => prev.map(product => {
         const productId = product.id || product._id
         const updatedProductId = data.id || data._id
         if (productId === updatedProductId) {
           const normalizedUpdated = normalizeProduct(data)
-          console.log('🔄 Real-time: Updating product prices:', {
-            old_price: product.price,
-            old_selling_price: product.selling_price,
-            new_price: normalizedUpdated.price,
-            new_selling_price: normalizedUpdated.selling_price,
-            raw_data: data
-          })
           return normalizedUpdated
         }
         return product
@@ -197,7 +181,6 @@ export const ProductProvider = ({ children }) => {
     const startRealTimeSync = () => {
       const syncInterval = setInterval(async () => {
         try {
-          console.log('🔄 Real-time sync: Checking for product updates...')
           const latestProducts = await fetchProductsFromAPI()
           const currentProductIds = new Set(products.map(p => p.id || p._id))
           
@@ -218,19 +201,7 @@ export const ProductProvider = ({ children }) => {
             const priceChanged = newPrice !== currentPrice
             const sellingPriceChanged = newSellingPrice !== currentSellingPrice
             
-            if (priceChanged || sellingPriceChanged) {
-              console.log('🔄 Real-time sync: Price changes detected for', {
-                productId,
-                old_price: currentPrice,
-                new_price: newPrice,
-                old_selling_price: currentSellingPrice,
-                new_selling_price: newSellingPrice,
-                raw_api_data: p
-              })
-              return true
-            }
-            
-            return false
+            return priceChanged || sellingPriceChanged
           })
           
           // Check for new products
@@ -239,7 +210,7 @@ export const ProductProvider = ({ children }) => {
           )
           
           if (updatedProducts.length > 0) {
-            console.log(`🔄 Real-time sync: Updating ${updatedProducts.length} products with price changes`)
+            console.log(`🔄 Real-time sync: Updating ${updatedProducts.length} products`)
             setProducts(prev => {
               return prev.map(product => {
                 const updatedProduct = updatedProducts.find(up => (up.id || up._id) === (product.id || product._id))
@@ -258,16 +229,11 @@ export const ProductProvider = ({ children }) => {
               const existingIds = new Set(prev.map(p => p.id || p._id))
               const trulyNew = newProducts.filter(p => !existingIds.has(p.id || p._id))
               if (trulyNew.length > 0) {
-                console.log(`🔄 Real-time sync: Adding ${trulyNew.length} truly new products`)
                 return [...prev, ...trulyNew.map(normalizeProduct)]
               }
               return prev
             })
             cache.invalidate('products')
-          }
-          
-          if (updatedProducts.length === 0 && newProducts.length === 0) {
-            console.log('🔄 Real-time sync: No updates found')
           }
         } catch (error) {
           console.error('❌ Real-time sync error:', error)
