@@ -13,7 +13,7 @@ const DEFAULT_FOOTER = {
     { label: 'Our Story', url: '/our-story' },
     { label: 'Cart', url: '/cart' },
   ],
-  contact: { address: '', phone: '', email: '' },
+  contact: { address: 'Mumbai,Maharashtra', phone: '+91 98765 43210', email: 'support@kkingsjewellery.com' },
   socialLinks: { instagram: '#', whatsapp: '#' },
   copyright: '© {year} KKings Jewellery. All rights reserved.',
 }

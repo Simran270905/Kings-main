@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import adminApi from '../utils/adminApiService'
 import { useAdminAuth } from './useAdminAuth'
 import { extractData, extractPagination, logApiCall, logApiResponse } from '../../utils/dataExtractionHelper.js'
+import { API_BASE_URL } from '../../config/api.js'
 
 export const OrderContext = createContext({
   orders: [],
@@ -99,10 +100,13 @@ export const OrderProvider = ({ children }) => {
   // CREATE ORDER (for customers)
   const createOrder = async (orderData) => {
     try {
-
-      const res = await fetch(API_URL, {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`${API_BASE_URL}/orders`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(orderData),
       })
 
@@ -112,8 +116,8 @@ export const OrderProvider = ({ children }) => {
       console.log('✅ Order created:', data)
 
       // Refresh orders if admin is logged in
-      const token = localStorage.getItem('kk_admin_token')
-      if (token && token !== 'undefined') {
+      const adminToken = localStorage.getItem('kk_admin_token')
+      if (adminToken && adminToken !== 'undefined') {
         fetchOrders(true) // silent refresh
       }
 
@@ -149,7 +153,7 @@ export const OrderProvider = ({ children }) => {
         return { success: false, error: 'Admin authentication required' }
       }
 
-      await fetch(`${API_URL}/${orderId}`, {
+      await fetch(`${API_BASE_URL}/orders/${orderId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
