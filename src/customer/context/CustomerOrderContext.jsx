@@ -39,12 +39,12 @@ export function CustomerOrderProvider({ children }) {
     setError(null)
 
     try {
-      logApiCall('/orders/my-orders', 'GET')
-      const response = await fetch(`${API_URL}/orders/my-orders`, {
+      logApiCall('/customers/orders/my-orders', 'GET')
+      const response = await fetch(`${API_URL}/customers/orders/my-orders`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       const body = await response.json()
-      logApiResponse('/orders/my-orders', body)
+      logApiResponse('/customers/orders/my-orders', body)
       
       console.log(" DEBUG: API Response status:", response.status)
       console.log(" DEBUG: API Response body:", body)
@@ -53,7 +53,7 @@ export function CustomerOrderProvider({ children }) {
         throw new Error(extractError(body))
       }
 
-      const ordersData = body.data?.orders || body.data || []
+      const ordersData = body.orders || body.data?.orders || []
       console.log(" DEBUG: Extracted orders data:", ordersData)
       console.log(" DEBUG: Orders count:", ordersData.length)
       setOrders(ordersData)
@@ -92,67 +92,48 @@ export function CustomerOrderProvider({ children }) {
   const createOrder = async (orderData, clearCartFn) => {
     const token = getToken()
     
-    // DEBUG: Check token status
-    console.log(" ORDER CREATION - TOKEN DEBUG:")
-    console.log(" Token exists:", !!token)
-    console.log(" Token length:", token?.length || 0)
-    console.log(" Token preview:", token ? token.substring(0, 20) + "..." : "null")
-    console.log(" localStorage keys:", Object.keys(localStorage))
-    console.log(" Order data items count:", orderData?.items?.length || 0)
+    console.log("📦 ORDER CREATION - TOKEN DEBUG:")
+    console.log("📦 Token exists:", !!token)
+    console.log("📦 Token length:", token?.length || 0)
+    console.log("📦 Token preview:", token ? token.substring(0, 20) + "..." : "null")
+    console.log("📦 localStorage keys:", Object.keys(localStorage))
+    console.log("📦 Order data items count:", orderData?.items?.length || 0)
     
     if (!orderData?.items?.length) return { success: false, error: 'Cart is empty' }
-
-    // ✅ NOTE: /orders endpoint is PUBLIC - no token validation needed
-    // But we still send token if available for user identification
-    console.log(' Creating order with data:', orderData)
+    if (!token) return { success: false, error: 'Authentication required to place order' }
 
     setLoading(true)
     setError(null)
 
     try {
-      // Get user data from localStorage to send with order
-      const userData = JSON.parse(localStorage.getItem('user') || '{}')
-      const orderDataWithUser = {
-        ...orderData,
-        user: userData
-      }
+      console.log("📦 Creating order with data:", orderData)
       
-      // ✅ Prepare headers - include token if available
       const headers = {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       }
       
-      // Only add Authorization header if token exists
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`
-        console.log(" Making order request with token:", token.substring(0, 20) + "...")
-      } else {
-        console.log(" Making order request without token (guest checkout)")
-      }
-      
-      const response = await fetch(`${API_URL}/orders`, {
+      const response = await fetch(`${API_URL}/customers/orders`, {
         method: 'POST',
         headers: headers,
-        body: JSON.stringify(orderDataWithUser),
+        body: JSON.stringify(orderData),
       })
 
-      console.log(' Order API response status:', response.status)
+      console.log("📦 Order API response status:", response.status)
       const body = await response.json()
-      console.log(' Order API response:', body)
+      console.log("📦 Order API response:", body)
 
       if (!response.ok) {
-        console.error(' Order creation failed:', body)
+        console.error("📦 Order creation failed:", body)
         
-        // ✅ CHECK IF TOKEN EXPIRED DURING REQUEST (only if token was sent)
-        if (token && (body.message === 'Invalid authorization token' || body.message === 'Token expired')) {
-          console.log(" TOKEN EXPIRED DURING REQUEST - CLEARING SESSION")
+        if (body.message === 'Invalid authorization token' || body.message === 'Token expired') {
+          console.log("📦 TOKEN EXPIRED DURING REQUEST - CLEARING SESSION")
           localStorage.removeItem('token')
           localStorage.removeItem('user')
           localStorage.removeItem('isAuthenticated')
           return { success: false, error: 'Your session has expired. Please log in again to continue.' }
         }
         
-        // ✅ PROVIDE FRIENDLY ERROR MESSAGES
         if (response.status === 400) {
           return { success: false, error: body.message || 'Please check your order details and try again.' }
         }
@@ -165,11 +146,11 @@ export function CustomerOrderProvider({ children }) {
           return { success: false, error: 'Too many requests. Please wait a moment and try again.' }
         }
         
-        // Default error message
         return { success: false, error: body?.message || 'Unable to place order. Please try again.' }
       }
 
-      setCurrentOrder(body.data)
+      const orderData = body.order || body.data
+      setCurrentOrder(orderData)
       await fetchUserOrders()
 
       if (typeof clearCartFn === 'function') {
@@ -178,10 +159,10 @@ export function CustomerOrderProvider({ children }) {
 
       window.dispatchEvent(new Event('ordersUpdated'))
 
-      console.log(' Order created successfully:', body.data)
-      return { success: true, order: body.data }
+      console.log("📦 Order created successfully:", orderData)
+      return { success: true, order: orderData }
     } catch (err) {
-      console.error(' Order creation error:', err)
+      console.error("📦 Order creation error:", err)
       return { success: false, error: 'Network error while placing order' }
     } finally {
       setLoading(false)
