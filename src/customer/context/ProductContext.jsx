@@ -169,7 +169,8 @@ export const ProductProvider = ({ children }) => {
             old_price: product.price,
             old_selling_price: product.selling_price,
             new_price: normalizedUpdated.price,
-            new_selling_price: normalizedUpdated.selling_price
+            new_selling_price: normalizedUpdated.selling_price,
+            raw_data: data
           })
           return normalizedUpdated
         }
@@ -209,16 +210,22 @@ export const ProductProvider = ({ children }) => {
             if (!currentProduct) return false
             
             // Check if prices changed
-            const priceChanged = parseFloat(p.price) !== parseFloat(currentProduct.price)
-            const sellingPriceChanged = parseFloat(p.selling_price) !== parseFloat(currentProduct.selling_price)
+            const currentPrice = parseFloat(currentProduct.price) || 0
+            const currentSellingPrice = parseFloat(currentProduct.selling_price) || 0
+            const newPrice = parseFloat(p.price) || 0
+            const newSellingPrice = parseFloat(p.selling_price) || 0
+            
+            const priceChanged = newPrice !== currentPrice
+            const sellingPriceChanged = newSellingPrice !== currentSellingPrice
             
             if (priceChanged || sellingPriceChanged) {
               console.log('🔄 Real-time sync: Price changes detected for', {
                 productId,
-                old_price: currentProduct.price,
-                new_price: p.price,
-                old_selling_price: currentProduct.selling_price,
-                new_selling_price: p.selling_price
+                old_price: currentPrice,
+                new_price: newPrice,
+                old_selling_price: currentSellingPrice,
+                new_selling_price: newSellingPrice,
+                raw_api_data: p
               })
               return true
             }
