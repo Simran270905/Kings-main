@@ -3,47 +3,29 @@
 import { memo } from 'react'
 import { useCart } from '../../context/useCart'
 import { optimizeCloudinaryUrl } from '../../../utils/cloudinary'
+// ✅ IMPORT SHARED HELPERS
+import {
+  getProductImage,
+  getSellingPrice,
+  getOriginalPrice,
+  getDiscountPercentage,
+  getProductName,
+  getProductBrand,
+  debugProductFields
+} from '../../../utils/productHelpers.js'
 
 const HomeSectionCard = ({ product }) => {
-  const {
-    image,
-    images,
-    id,
-    name,
-    title,
-    brand,
-    originalPrice,
-    sellingPrice,
-    price,
-    selling_price,
-    disscount,
-    isBestSeller,
-    isOnSale,
-  } = product
+  // 🔍 DEBUG: Log full product object
+  debugProductFields(product, 'HOME SECTION CARD');
 
-  // STRICT mapping using correct backend field names
-  const productName = name || title
-  const mainPrice = sellingPrice || price || selling_price  // Use sellingPrice, fallback to price, fallback to selling_price
-  const strikethroughPrice = originalPrice  // Use originalPrice directly
+  // ✅ FIXED: Use shared helpers for consistent field mapping
+  const productImage = optimizeCloudinaryUrl(getProductImage(product));
+  const productName = getProductName(product);
+  const brand = getProductBrand(product);
+  const sellingPrice = getSellingPrice(product);
+  const originalPrice = getOriginalPrice(product);
+  const discount = getDiscountPercentage(product);
   
-  // Add debug validation - simpler version
-  console.log("=== PRODUCT DEBUG ===")
-  console.log("Product ID:", product.id || product._id)
-  console.log("Name:", name)
-  console.log("Available Fields:", Object.keys(product))
-  console.log("Price Fields:", {
-    sellingPrice: product.sellingPrice,
-    originalPrice: product.originalPrice,
-    price: product.price,
-    selling_price: product.selling_price,
-    original_price: product.original_price
-  })
-  console.log("Mapped Prices:", {
-    mainPrice,      // sellingPrice || price || selling_price - MAIN PRICE
-    strikethroughPrice  // originalPrice - STRIKETHROUGH
-  })
-  console.log("===================")
-
   const { addToCart } = useCart()
 
   return (
@@ -51,115 +33,97 @@ const HomeSectionCard = ({ product }) => {
       className="
         group cursor-pointer
         w-full max-w-60 sm:max-w-none
-        rounded-2xl
-        bg-gradient-to-b
-        from-[#ffffff]
-        via-[#fffaf3]
-        to-[#fdf2e6]
-
-        p-2 sm:p-3
-        border border-transparent
-        hover:border-[#e7d6a7]
-
-        shadow-[0_4px_14px_rgba(180,140,90,0.12)]
-        sm:shadow-[0_6px_18px_rgba(180,140,90,0.12)]
-        sm:hover:shadow-[0_10px_28px_rgba(180,140,90,0.22)]
-
+        rounded-xl
+        bg-white
+        border border-gray-100
+        shadow-sm hover:shadow-lg
+        overflow-hidden
         transition-all duration-300
-        sm:hover:-translate-y-0.5
+        hover:-translate-y-1
       "
     >
       {/* ================= IMAGE ================= */}
       <div
         className="
           relative w-full
-          h-52 sm:h-68
-          rounded-xl
+          aspect-[3/4]
           overflow-hidden
-          border border-[#ead9ad]
-          bg-[#fffaf3]
+          bg-gray-50
         "
       >
-        {/* ✨ Inner highlight */}
-        <div className="absolute inset-0 pointer-events-none rounded-xl ring-1 ring-white/40" />
-
         {/* 🔥 BADGES */}
-        {isBestSeller && (
-          <span className="absolute top-2 left-2 sm:top-3 sm:left-3 z-20
+        {product.isBestSeller && (
+          <span className="absolute top-2 left-2 z-20
                            rounded-full bg-gradient-to-r from-[#d4af37] to-[#b8860b]
-                           px-2.5 py-0.5 text-[9px] sm:text-[10px]
-                           font-semibold tracking-wide text-white shadow-sm">
+                           px-2.5 py-0.5 text-[10px]
+                           font-bold tracking-wide text-white shadow-sm">
             BEST SELLER
           </span>
         )}
 
-        {isOnSale && (
-          <span className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20
+        {product.isOnSale && (
+          <span className="absolute top-2 right-2 z-20
                            rounded-full bg-[#b91c1c]
-                           px-2.5 py-0.5 text-[9px] sm:text-[10px]
-                           font-semibold tracking-wide text-white shadow-sm">
+                           px-2.5 py-0.5 text-[10px]
+                           font-bold tracking-wide text-white shadow-sm">
             ON SALE
           </span>
         )}
 
         <img
-          src={image}
-          alt={title}
+          src={productImage}
+          alt={productName}
           loading="lazy"
           className="
-            w-full h-full object-cover object-top
+            w-full h-full object-cover
             transition-transform duration-500
-            sm:group-hover:scale-[1.03]
+            group-hover:scale-105
           "
-        />
-
-        {/* ✨ Soft gold glow (desktop only) */}
-        <div
-          className="
-            absolute inset-0
-            bg-gradient-to-t from-[#f3e6cf]/25 via-transparent to-transparent
-            opacity-0 sm:group-hover:opacity-100
-            transition-opacity duration-300
-          "
+          onError={(e) => {
+            e.target.src = 'https://via.placeholder.com/400x400?text=No+Image';
+          }}
         />
       </div>
 
       {/* ================= CONTENT ================= */}
-      <div className="px-1.5 sm:px-2 pt-3 sm:pt-4 pb-2.5 sm:pb-3 text-center space-y-1">
-        <h3 className="text-[14px] sm:text-[15px] font-semibold tracking-wide text-[#3b1d1d]">
-          {brand}
+      <div className="p-4 text-center space-y-2">
+        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
+          {brand || 'KKINGS JEWELLERY'}
         </h3>
 
-        <p className="text-[13px] sm:text-sm text-[#5c3a2e] leading-snug sm:leading-relaxed line-clamp-2">
+        <p className="text-sm text-gray-600 line-clamp-2">
           {productName}
         </p>
 
-        <div className="flex items-center justify-center gap-1.5 sm:gap-2 pt-1.5 sm:pt-2">
-          {mainPrice && mainPrice > 0 ? (
+        <div className="flex items-center justify-center gap-2">
+          {sellingPrice && sellingPrice > 0 ? (
             <>
-              <span className="text-[#b91c1c] font-semibold text-sm sm:text-base">
-                ₹{parseFloat(mainPrice).toLocaleString('en-IN')}
+              <span className="text-red-700 font-bold text-base">
+                ₹{parseFloat(sellingPrice).toLocaleString('en-IN')}
               </span>
-              {strikethroughPrice && strikethroughPrice > 0 && strikethroughPrice !== mainPrice && (
-                <span className="text-[#9c7c4a] line-through text-xs sm:text-sm">
-                  ₹{parseFloat(strikethroughPrice).toLocaleString('en-IN')}
+              {originalPrice && originalPrice > 0 && originalPrice !== sellingPrice && (
+                <span className="text-gray-400 line-through text-sm">
+                  ₹{parseFloat(originalPrice).toLocaleString('en-IN')}
                 </span>
               )}
             </>
           ) : (
-            <span className="text-gray-500 text-sm sm:text-base">Price unavailable</span>
+            <span className="text-gray-500 text-sm">Price unavailable</span>
           )}
         </div>
 
-        <p className="text-green-700 text-[11px] sm:text-xs font-medium pt-0.5">
-          {disscount}
-        </p>
+        {discount > 0 && (
+          <p className="text-green-600 text-xs font-medium">
+            Save {discount}%
+          </p>
+        )}
+        
         <button
           onClick={(e) => {
             e.preventDefault()
             addToCart(product, 1)
           }}
-          className="mt-3 w-full rounded-md bg-[#ae0b0b] py-2 text-white font-medium hover:opacity-90"
+          className="w-full rounded-md bg-[#ae0b0b] py-2 text-white font-medium hover:bg-[#8f0a0a] transition-colors"
         >
           Add to Cart
         </button>
