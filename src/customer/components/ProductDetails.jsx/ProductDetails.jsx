@@ -24,7 +24,7 @@ import {
   formatPrice,
   formatProductDetails,
   debugProductFields
-} from '../../utils/productHelpers'
+} from '../../../utils/productHelpers.js'
 
 const API_URL = `${API_BASE_URL}/products`
 
