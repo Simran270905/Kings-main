@@ -15,6 +15,8 @@
  * Communicates with ProductContext for stock operations
  */
 
+import { getQuantity } from './formatPrice.js'
+
 /**
  * Validate all items in cart have sufficient stock
  * 

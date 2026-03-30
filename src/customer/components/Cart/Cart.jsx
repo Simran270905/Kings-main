@@ -6,7 +6,7 @@ import CartItem from './CartItem'
 import { ShoppingBagIcon, ArrowLeftIcon, ShieldCheckIcon, TruckIcon, TagIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 import PriceDisplay from '../Shared/PriceDisplay.jsx'
-import { formatPrice, getSellingPrice, getOriginalPrice, getQuantity, calculateCartTotal } from '../../utils/formatPrice.js'
+import { formatPrice, getSellingPrice, getOriginalPrice, getQuantity, calculateCartTotal } from '../utils/formatPrice.js'
 
 export default function Cart() {
   const { cartItems, increaseQty, decreaseQty, removeItem, totalPrice } = useCart()

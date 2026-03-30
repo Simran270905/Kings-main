@@ -3,7 +3,7 @@ import { useCustomerOrder } from '../../context/CustomerOrderContext'
 import { useAuth } from '../../context/useAuth'
 import { Link } from 'react-router-dom'
 import { TruckIcon, CheckCircleIcon, ClockIcon, XCircleIcon, EyeIcon, MapPinIcon } from '@heroicons/react/24/outline'
-import { formatPrice } from '../../utils/formatPrice.js'
+import { formatPrice } from '../utils/formatPrice.js'
 
 export default function Orders() {
   const { orders, loading, fetchUserOrders, fetchOrderDetails } = useCustomerOrder()

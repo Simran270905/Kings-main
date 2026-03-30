@@ -3,7 +3,7 @@ import React from 'react'
 import { MinusIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { optimizeCloudinaryUrlWithSize } from '../../../utils/cloudinary'
 import PriceDisplay from '../Shared/PriceDisplay.jsx'
-import { formatPrice, getSellingPrice, getOriginalPrice, getQuantity, calculateItemTotal } from '../../../utils/formatPrice.js'
+import { formatPrice, getSellingPrice, getOriginalPrice, getQuantity, calculateItemTotal } from '../../utils/formatPrice.js'
 
 export default function CartItem({
   item,

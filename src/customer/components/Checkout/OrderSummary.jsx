@@ -7,7 +7,7 @@ import { useOrder } from '../../context/useOrder'
 import { API_BASE_URL } from '@config/api.js'
 import { recordSale } from '../../../admin/utils/analyticsStorage'
 import toast from 'react-hot-toast'
-import { formatPrice, getSellingPrice, getQuantity, calculateItemTotal } from '../../utils/formatPrice.js'
+import { formatPrice, getSellingPrice, getQuantity, calculateItemTotal } from '../utils/formatPrice.js'
 
 const OrderSummary = ({ address = {} }) => {
   const { cartItems, totalPrice, clearCart } = useCart()

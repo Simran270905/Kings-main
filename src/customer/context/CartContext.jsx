@@ -1,5 +1,5 @@
 import React, { createContext, useEffect, useState } from 'react'
-import { getSellingPrice, getQuantity, calculateCartTotal } from '../utils/formatPrice.js'
+import { getSellingPrice, getQuantity, calculateCartTotal } from './utils/formatPrice.js'
 
 export const CartContext = createContext({
   cart: [],
