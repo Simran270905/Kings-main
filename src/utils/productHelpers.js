@@ -44,7 +44,6 @@ export const getSellingPrice = (product) => {
   return product.originalPrice ||  // Renamed field: Discounted Price
          product.sellingPrice || 
          product.selling_price || 
-         product.price || 
          product.discountedPrice || 
          product.salePrice || 
          0;
@@ -54,11 +53,9 @@ export const getOriginalPrice = (product) => {
   if (!product) return null;
   
   // This is now the ORIGINAL PRICE / MRP (strikethrough price)
-  return product.selling_price ||  // Renamed field: Original Price / MRP
-         product.sellingPrice || 
-         product.originalPrice || 
-         product.mrp || 
+  return product.originalPrice || 
          product.original_price || 
+         product.mrp || 
          null;
 };
 

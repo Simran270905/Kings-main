@@ -14,7 +14,7 @@ const formatPrice = (value) => {
 };
 
 const getSellingPrice = (item) => {
-  const num = Number(item.sellingPrice || item.selling_price || item.price || 0);
+  const num = Number(item.sellingPrice || item.selling_price || 0);
   return isNaN(num) ? 0 : num;
 };
 

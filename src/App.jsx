@@ -13,6 +13,7 @@ import { AdminProductProvider } from './admin/context/AdminProductContext'
 import Navbar from './customer/components/navigation/Navbar'
 import Footer from './customer/components/Footer/Footer'
 import DebugInfo from './components/DebugInfo'
+import RazorpayTest from './components/debug/RazorpayTest'
 
 import HomePage from './customer/pages/HomePage/HomePage'
 import OurStory from './customer/pages/OurStory/OurStory'
@@ -115,6 +116,9 @@ const App = () => {
                     <Route path="/order-success" element={<CustomerLayout><OrderSuccess /></CustomerLayout>} />
                     <Route path="/orders/track" element={<CustomerLayout><TrackOrderPage /></CustomerLayout>} />
                     <Route path="/orders/track/:orderId" element={<CustomerLayout><OrderTrack /></CustomerLayout>} />
+
+                    {/* ================= DEBUG ROUTES ================= */}
+                    <Route path="/debug/razorpay" element={<RazorpayTest />} />
 
                     {/* ================= ADMIN LOGIN ================= */}
                     <Route path="/admin-login" element={<AdminLogin />} />

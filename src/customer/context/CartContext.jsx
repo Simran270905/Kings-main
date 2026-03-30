@@ -65,13 +65,16 @@ export function CartProvider({ children }) {
       
       // FIXED: Ensure required fields are present with consistent field names
       const newItem = {
-        ...product,
         id: product.id || product._id, // Ensure id is set
+        name: product.name || product.title || 'Product',
+        image: product.image || product.images?.[0] || '',
         quantity: qty,
         // ✅ FIXED: Use consistent sellingPrice field
         sellingPrice: getSellingPrice(product),
         originalPrice: product.originalPrice || product.original_price || 0,
         selectedSize: product.selectedSize || null,
+        // ✅ FIXED: Explicitly exclude unwanted price fields
+        // Remove: price, purchasePrice, cost, wholesalePrice, etc.
       }
       
       return [...prev, newItem]

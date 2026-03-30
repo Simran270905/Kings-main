@@ -30,7 +30,7 @@ export const safeNum = (value, fallback = 0) => {
  * @returns {number} Safe selling price
  */
 export const getSellingPrice = (item) => {
-  return safeNum(item.sellingPrice || item.selling_price || item.price || 0);
+  return safeNum(item.sellingPrice || item.selling_price || 0);
 };
 
 /**
