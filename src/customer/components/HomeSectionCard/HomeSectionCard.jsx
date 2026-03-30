@@ -99,16 +99,16 @@ const HomeSectionCard = ({ product }) => {
           {sellingPrice && sellingPrice > 0 ? (
             <>
               <span className="text-red-700 font-bold text-base">
-                ₹{parseFloat(sellingPrice).toLocaleString('en-IN')}
+                ₹{(parseFloat(sellingPrice) || 0).toLocaleString('en-IN')}
               </span>
               {originalPrice && originalPrice > 0 && originalPrice !== sellingPrice && (
                 <span className="text-gray-400 line-through text-sm">
-                  ₹{parseFloat(originalPrice).toLocaleString('en-IN')}
+                  ₹{(parseFloat(originalPrice) || 0).toLocaleString('en-IN')}
                 </span>
               )}
             </>
           ) : (
-            <span className="text-gray-500 text-sm">Price unavailable</span>
+            <span className="text-gray-500 text-sm">Price not available</span>
           )}
         </div>
 

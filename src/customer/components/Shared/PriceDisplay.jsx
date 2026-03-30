@@ -11,9 +11,9 @@ const PriceDisplay = ({
   style = {}
 }) => {
   const formatPrice = (p) =>
-    typeof p === "number"
+    typeof p === "number" && !isNaN(p)
       ? `₹${p.toLocaleString('en-IN')}`
-      : String(p)
+      : p ? `₹${parseFloat(p).toLocaleString('en-IN')}` : '₹0'
 
   // If no discount applied, show single price
   if (!discount || discount <= 0 || !showOriginalPrice) {
@@ -29,10 +29,10 @@ const PriceDisplay = ({
     <>
       <div className="flex items-center gap-2" style={style}>
         <span className="text-red-700 font-bold text-base">
-          ₹{parseFloat(sellingPrice).toLocaleString('en-IN')}
+          ₹{(parseFloat(sellingPrice) || 0).toLocaleString('en-IN')}
         </span>
         <span className="text-gray-400 line-through text-sm">
-          ₹{parseFloat(originalPrice).toLocaleString('en-IN')}
+          ₹{(parseFloat(originalPrice) || 0).toLocaleString('en-IN')}
         </span>
       </div>
       {showDiscountBadge && discount > 0 && (
