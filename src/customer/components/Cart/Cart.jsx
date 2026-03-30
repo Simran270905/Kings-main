@@ -45,7 +45,8 @@ export default function Cart() {
     return sum + (originalPrice > price ? (originalPrice - price) * quantity : 0)
   }, 0)
   
-  const totalAmount = totalPrice - totalDiscount
+  // FIXED: totalPrice already uses sellingPrice, so totalAmount should be the same
+  const totalAmount = totalPrice
   const navigate = useNavigate()
 
   // FIXED: Add handler to prevent checkout with empty cart
