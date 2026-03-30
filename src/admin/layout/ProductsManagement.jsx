@@ -215,8 +215,8 @@ export default function ProductsManagement() {
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Product</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Purchase Price</th>
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Original Price</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">SELLING PRICE</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">MRP</th>
                   <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Stock</th>
                 <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
               </tr>
@@ -262,17 +262,17 @@ export default function ProductsManagement() {
                       </span>
                     </td>
 
-                    {/* Purchase Price */}
+                    {/* SELLING PRICE */}
                     <td className="px-6 py-4 text-right">
                       <span className="font-medium text-gray-700">
-                        ₹{(product.purchasePrice || 0).toLocaleString('en-IN')}
+                        ₹{(product.sellingPrice || 0).toLocaleString('en-IN')}
                       </span>
                     </td>
 
-                    {/* Original Price */}
+                    {/* MRP (Original Price) */}
                     <td className="px-6 py-4 text-right">
                       <span className="font-semibold text-gray-900">
-                        ₹{(product.price || 0).toLocaleString('en-IN')}
+                        ₹{(product.originalPrice || 0).toLocaleString('en-IN')}
                       </span>
                     </td>
 

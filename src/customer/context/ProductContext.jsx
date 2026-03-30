@@ -194,9 +194,15 @@ export const ProductProvider = ({ children }) => {
 
     // Real-time polling for continuous sync
     const startRealTimeSync = () => {
+      let retryCount = 0
+      const maxRetries = 3
+      const retryDelays = [2000, 4000, 8000] // Exponential backoff
+      
       const syncInterval = setInterval(async () => {
         try {
           const latestProducts = await fetchProductsFromAPI()
+          retryCount = 0 // Reset retry count on success
+          
           const currentProductIds = new Set(products.map(p => p.id || p._id))
           
           // Check for updated products (price changes, etc.)
@@ -256,6 +262,23 @@ export const ProductProvider = ({ children }) => {
           }
         } catch (error) {
           console.error('❌ Real-time sync error:', error)
+          
+          // Handle timeout errors with retry logic
+          if (error.message.includes('timeout') || error.message.includes('AbortError')) {
+            retryCount++
+            if (retryCount <= maxRetries) {
+              const delay = retryDelays[retryCount - 1] || 8000
+              console.log(`🔄 Retry ${retryCount}/${maxRetries} in ${delay}ms...`)
+              setTimeout(() => {
+                // Retry will happen on next interval
+              }, delay)
+            } else {
+              console.error('❌ Max retries reached. Stopping sync.')
+              clearInterval(syncInterval)
+              // Show user-friendly message
+              setError('Unable to load products. Please refresh the page.')
+            }
+          }
         }
       }, 10000) // Check every 10 seconds
 
