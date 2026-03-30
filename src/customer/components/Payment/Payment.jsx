@@ -1,16 +1,37 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useContext } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { loadRazorpay } from '@utils/razorpay'
 import { useCart } from '../../context/useCart'
 import { useOrder } from '../../context/useOrder'
-import { ShieldCheckIcon, LockClosedIcon, CreditCardIcon, TruckIcon } from '@heroicons/react/24/outline'
+import { AuthContext } from '../../context/AuthContext'
+import { useCustomerOrder } from '../../context/CustomerOrderContext'
+import { ShieldCheckIcon, LockClosedIcon, CreditCardIcon, TruckIcon, DevicePhoneMobileIcon, BanknotesIcon, TicketIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 import { API_BASE_URL } from '@config/api.js'
-import { formatPrice, getSellingPrice, getOriginalPrice, getQuantity } from '../utils/formatPrice.js'
 import { couponApi } from '../../../services/apiService'
 import { calculateTotalDiscount, getDiscountBadgeText, calculatePartialPayment, getPaymentPlanBadgeText } from '../../../utils/discountCalculator.js'
 import PaymentPlanSelector from './PaymentPlanSelector.jsx'
 import PriceDisplay from '../Shared/PriceDisplay.jsx'
+
+// Inline formatPrice functions to bypass import issues
+const formatPrice = (value) => {
+  const num = Number(value);
+  return `₹${(isNaN(num) ? 0 : num).toLocaleString("en-IN")}`;
+};
+
+const getSellingPrice = (item) => {
+  const num = Number(item.sellingPrice || item.selling_price || item.price || 0);
+  return isNaN(num) ? 0 : num;
+};
+
+const getOriginalPrice = (item) => {
+  const num = Number(item.originalPrice || item.original_price || 0);
+  return isNaN(num) ? 0 : num;
+};
+
+const getQuantity = (item) => {
+  const num = Number(item.quantity);
+  return isNaN(num) ? 1 : num;
+};
 
 const API_URL = API_BASE_URL
 

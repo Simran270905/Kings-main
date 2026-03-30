@@ -7,7 +7,26 @@ import { useOrder } from '../../context/useOrder'
 import { API_BASE_URL } from '@config/api.js'
 import { recordSale } from '../../../admin/utils/analyticsStorage'
 import toast from 'react-hot-toast'
-import { formatPrice, getSellingPrice, getQuantity, calculateItemTotal } from '../utils/formatPrice.js'
+
+// Inline formatPrice functions to bypass import issues
+const formatPrice = (value) => {
+  const num = Number(value);
+  return `₹${(isNaN(num) ? 0 : num).toLocaleString("en-IN")}`;
+};
+
+const getSellingPrice = (item) => {
+  const num = Number(item.sellingPrice || item.selling_price || item.price || 0);
+  return isNaN(num) ? 0 : num;
+};
+
+const getQuantity = (item) => {
+  const num = Number(item.quantity);
+  return isNaN(num) ? 1 : num;
+};
+
+const calculateItemTotal = (item) => {
+  return getSellingPrice(item) * getQuantity(item);
+};
 
 const OrderSummary = ({ address = {} }) => {
   const { cartItems, totalPrice, clearCart } = useCart()

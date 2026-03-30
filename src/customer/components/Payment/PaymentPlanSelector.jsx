@@ -1,6 +1,17 @@
 import React from 'react'
 import { CreditCardIcon, InformationCircleIcon } from '@heroicons/react/24/outline'
 
+// Inline formatPrice function to bypass import issues
+const formatPrice = (value) => {
+  const num = Number(value);
+  return `₹${(isNaN(num) ? 0 : num).toLocaleString("en-IN")}`;
+};
+
+const safeNum = (value, fallback = 0) => {
+  const num = Number(value);
+  return isNaN(num) ? fallback : num;
+};
+
 export default function PaymentPlanSelector({ 
   selectedPlan, 
   onPlanChange, 
@@ -53,13 +64,13 @@ export default function PaymentPlanSelector({
               </p>
             </div>
             <div className="text-right">
-              <p className="font-bold text-lg">₹{paymentCalculation.finalAmount.toLocaleString('en-IN')}</p>
+              <p className="font-bold text-lg">{formatPrice(paymentCalculation.finalAmount)}</p>
               <p className="text-xs text-gray-500">One-time payment</p>
               {paymentCalculation.hasDiscount && (
                 <p className="text-xs text-green-600">10% discount applied</p>
               )}
               {paymentCalculation.hasCODCharge && (
-                <p className="text-xs text-orange-600">+₹{paymentCalculation.codCharge} COD charge</p>
+                <p className="text-xs text-orange-600">+₹{safeNum(paymentCalculation.codCharge)} COD charge</p>
               )}
             </div>
           </div>
@@ -93,14 +104,14 @@ export default function PaymentPlanSelector({
               <div className="mt-2 space-y-1">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Pay Now ({paymentCalculation.advancePercent}%):</span>
-                  <span className="font-medium text-green-600">₹{paymentCalculation.advanceAmount.toLocaleString('en-IN')}</span>
+                  <span className="font-medium text-green-600">{formatPrice(paymentCalculation.advanceAmount)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Pay Later ({paymentCalculation.remainingPercent}%):</span>
-                  <span className="font-medium text-orange-600">₹{paymentCalculation.remainingAmount.toLocaleString('en-IN')}</span>
+                  <span className="font-medium text-orange-600">{formatPrice(paymentCalculation.remainingAmount)}</span>
                 </div>
                 {paymentCalculation.hasCODCharge && (
-                  <p className="text-xs text-orange-600 mt-1">Includes ₹{paymentCalculation.codCharge} COD charge</p>
+                  <p className="text-xs text-orange-600 mt-1">Includes ₹{safeNum(paymentCalculation.codCharge)} COD charge</p>
                 )}
               </div>
             </div>

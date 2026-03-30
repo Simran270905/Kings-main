@@ -12,8 +12,13 @@ import {
 import { Popover, Dialog, Transition } from '@headlessui/react'
 import { useAuth } from '../../context/useAuth'
 import { useCart } from '../../context/useCart'
-import { getQuantity } from '../utils/formatPrice.js'
 import { API_BASE_URL } from '@config/api.js' // Fixed import path
+
+// Inline formatPrice function to bypass import issues
+const getQuantity = (item) => {
+  const num = Number(item.quantity);
+  return isNaN(num) ? 1 : num;
+};
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)

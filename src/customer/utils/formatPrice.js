@@ -25,16 +25,6 @@ export const safeNum = (value, fallback = 0) => {
 };
 
 /**
- * Format price without currency symbol (for calculations)
- * @param {any} value - The price value to format
- * @returns {string} Formatted number string (e.g., "1,000")
- */
-export const formatNumber = (value) => {
-  const num = Number(value);
-  return (isNaN(num) ? 0 : num).toLocaleString("en-IN");
-};
-
-/**
  * Get the selling price from an item with fallback chain
  * @param {object} item - Product/cart item
  * @returns {number} Safe selling price

@@ -4,7 +4,12 @@ import { CheckCircleIcon, ClockIcon, TruckIcon, MapPinIcon, CubeIcon, HomeIcon, 
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid'
 import toast from 'react-hot-toast'
 import { API_BASE_URL } from '@config/api.js'
-import { formatPrice } from '../utils/formatPrice.js'
+
+// Inline formatPrice function to bypass import issues
+const formatPrice = (value) => {
+  const num = Number(value);
+  return `₹${(isNaN(num) ? 0 : num).toLocaleString("en-IN")}`;
+};
 
 const API_URL = API_BASE_URL
 

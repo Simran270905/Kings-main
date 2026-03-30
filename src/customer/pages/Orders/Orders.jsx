@@ -3,7 +3,12 @@ import { useCustomerOrder } from '../../context/CustomerOrderContext'
 import { useAuth } from '../../context/useAuth'
 import { Link } from 'react-router-dom'
 import { TruckIcon, CheckCircleIcon, ClockIcon, XCircleIcon, EyeIcon, MapPinIcon } from '@heroicons/react/24/outline'
-import { formatPrice } from '../utils/formatPrice.js'
+
+// Inline formatPrice function to bypass import issues
+const formatPrice = (value) => {
+  const num = Number(value);
+  return `₹${(isNaN(num) ? 0 : num).toLocaleString("en-IN")}`;
+};
 
 export default function Orders() {
   const { orders, loading, fetchUserOrders, fetchOrderDetails } = useCustomerOrder()

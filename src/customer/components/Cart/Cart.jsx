@@ -6,7 +6,33 @@ import CartItem from './CartItem'
 import { ShoppingBagIcon, ArrowLeftIcon, ShieldCheckIcon, TruckIcon, TagIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 import PriceDisplay from '../Shared/PriceDisplay.jsx'
-import { formatPrice, getSellingPrice, getOriginalPrice, getQuantity, calculateCartTotal } from '../utils/formatPrice.js'
+
+// Inline formatPrice functions to bypass import issues
+const formatPrice = (value) => {
+  const num = Number(value);
+  return `₹${(isNaN(num) ? 0 : num).toLocaleString("en-IN")}`;
+};
+
+const getSellingPrice = (item) => {
+  const num = Number(item.sellingPrice || item.selling_price || item.price || 0);
+  return isNaN(num) ? 0 : num;
+};
+
+const getOriginalPrice = (item) => {
+  const num = Number(item.originalPrice || item.original_price || 0);
+  return isNaN(num) ? 0 : num;
+};
+
+const getQuantity = (item) => {
+  const num = Number(item.quantity);
+  return isNaN(num) ? 1 : num;
+};
+
+const calculateCartTotal = (items) => {
+  return items.reduce((sum, item) => {
+    return sum + getSellingPrice(item) * getQuantity(item);
+  }, 0);
+};
 
 export default function Cart() {
   const { cartItems, increaseQty, decreaseQty, removeItem, totalPrice } = useCart()

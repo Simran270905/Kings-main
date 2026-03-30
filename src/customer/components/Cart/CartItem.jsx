@@ -3,7 +3,31 @@ import React from 'react'
 import { MinusIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { optimizeCloudinaryUrlWithSize } from '../../../utils/cloudinary'
 import PriceDisplay from '../Shared/PriceDisplay.jsx'
-import { formatPrice, getSellingPrice, getOriginalPrice, getQuantity, calculateItemTotal } from '../../utils/formatPrice.js'
+
+// Inline formatPrice functions to bypass import issues
+const formatPrice = (value) => {
+  const num = Number(value);
+  return `₹${(isNaN(num) ? 0 : num).toLocaleString("en-IN")}`;
+};
+
+const getSellingPrice = (item) => {
+  const num = Number(item.sellingPrice || item.selling_price || item.price || 0);
+  return isNaN(num) ? 0 : num;
+};
+
+const getOriginalPrice = (item) => {
+  const num = Number(item.originalPrice || item.original_price || 0);
+  return isNaN(num) ? 0 : num;
+};
+
+const getQuantity = (item) => {
+  const num = Number(item.quantity);
+  return isNaN(num) ? 1 : num;
+};
+
+const calculateItemTotal = (item) => {
+  return getSellingPrice(item) * getQuantity(item);
+};
 
 export default function CartItem({
   item,
