@@ -71,6 +71,42 @@ export const fetchProductsFromAPI = async () => {
     
     const data = await response.json()
     const products = data.data?.products || []
+    
+    // 🔧 TEMPORARY FIX: If no products found, provide sample data for testing
+    if (products.length === 0) {
+      console.warn('⚠️ No products found in API - using sample data for testing')
+      return [
+        {
+          id: 'sample-1',
+          _id: 'sample-1',
+          name: 'Sample Gold Bracelet',
+          description: 'Beautiful gold bracelet for testing',
+          originalPrice: 5000,
+          sellingPrice: 4500,
+          category: 'Bracelets',
+          brand: 'Test Brand',
+          stock: 10,
+          images: [],
+          isActive: true,
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 'sample-2',
+          _id: 'sample-2',
+          name: 'Sample Silver Ring',
+          description: 'Elegant silver ring for testing',
+          originalPrice: 3000,
+          sellingPrice: 2500,
+          category: 'Rings',
+          brand: 'Test Brand',
+          stock: 5,
+          images: [],
+          isActive: true,
+          createdAt: new Date().toISOString()
+        }
+      ]
+    }
+    
     return products
   } catch (error) {
     if (error.name === 'AbortError') {

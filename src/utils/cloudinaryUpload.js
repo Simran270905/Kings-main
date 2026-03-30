@@ -25,7 +25,14 @@ export const uploadToCloudinary = async (file) => {
     throw new Error(validation.error)
   }
 
-  const token = sessionStorage.getItem('kk_admin_token')
+  // Check for admin token first (for admin panel uploads)
+  let token = localStorage.getItem('kk_admin_token')
+  
+  // If no admin token, check for customer token (for customer uploads)
+  if (!token) {
+    token = localStorage.getItem('token')
+  }
+  
   if (!token) {
     throw new Error('Authentication required. Please login.')
   }
