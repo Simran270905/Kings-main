@@ -5,11 +5,18 @@ import { useNavigate, Link } from 'react-router-dom'
 import CartItem from './CartItem'
 import { ShoppingBagIcon, ArrowLeftIcon, ShieldCheckIcon, TruckIcon, TagIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
+import PriceDisplay from '../Shared/PriceDisplay.jsx'
 
 export default function Cart() {
   const { cartItems, increaseQty, decreaseQty, removeItem, totalPrice } = useCart()
 
-  const totalDiscount = 0 // discount logic not yet standardized across data
+  // Calculate total discount from cart items
+  const totalDiscount = cartItems.reduce((sum, item) => {
+    const price = item.selling_price || item.price || 0
+    const originalPrice = item.originalPrice || item.original_price || 0
+    return sum + (originalPrice > price ? (originalPrice - price) * item.quantity : 0)
+  }, 0)
+  
   const totalAmount = totalPrice - totalDiscount
   const navigate = useNavigate()
 
@@ -79,7 +86,15 @@ export default function Cart() {
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal ({totalItems} item{totalItems !== 1 ? 's' : ''})</span>
-                    <span className="font-medium text-gray-900">₹{totalPrice.toLocaleString()}</span>
+                    <div>
+                      <PriceDisplay 
+                        sellingPrice={totalAmount}
+                        originalPrice={totalAmount + totalDiscount}
+                        discount={totalAmount > 0 && totalDiscount > 0 ? Math.round((totalDiscount / (totalAmount + totalDiscount)) * 100) : 0}
+                        showOriginalPrice={totalDiscount > 0}
+                        showDiscountBadge={totalDiscount > 0}
+                      />
+                    </div>
                   </div>
 
                   {totalDiscount > 0 && (
@@ -99,7 +114,13 @@ export default function Cart() {
 
                   <div className="pt-3 border-t flex justify-between">
                     <span className="font-bold text-gray-900">Total</span>
-                    <span className="font-bold text-lg text-[#ae0b0b]">₹{totalAmount.toLocaleString()}</span>
+                    <PriceDisplay 
+                      sellingPrice={totalAmount}
+                      originalPrice={null} 
+                      discount={0}
+                      showOriginalPrice={false}
+                      showDiscountBadge={false}
+                    />
                   </div>
                 </div>
 

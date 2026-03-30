@@ -1,6 +1,7 @@
 import React from 'react'
 import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { CheckCircleIcon, ShoppingBagIcon, UserCircleIcon, TruckIcon, ClockIcon, MapPinIcon } from '@heroicons/react/24/outline'
+import PriceDisplay from '../../components/Shared/PriceDisplay.jsx'
 
 export default function OrderSuccess() {
   const location = useLocation()
@@ -47,6 +48,29 @@ export default function OrderSuccess() {
           <p className="text-gray-500 text-sm mb-6">
             Thank you for shopping with KKings Jewellery. Your order has been confirmed.
           </p>
+
+          {/* Tracking Confirmation Message */}
+          {orderId && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-8 h-8 bg-green-500 rounded-full">
+                  <CheckCircleIcon className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-green-800">Your order has been confirmed!</p>
+                  <p className="text-green-700 text-sm">
+                    You can track your shipment using your Order ID:{' '}
+                    <Link
+                      to={`/orders/track/${orderId}`}
+                      className="font-bold text-green-900 hover:underline underline"
+                    >
+                      #{String(orderId).slice(-12).toUpperCase()}
+                    </Link>
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Order Details */}
           {orderId && (
@@ -106,21 +130,54 @@ export default function OrderSuccess() {
                 <span className="font-medium">{orderData.items?.length || 0}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Total Amount:</span>
-                <span className="font-bold text-gray-900">₹{orderData.totalAmount?.toLocaleString('en-IN')}</span>
+                <span className="text-gray-600">Amount Paid:</span>
+                <PriceDisplay 
+                  sellingPrice={orderData.amountPaid || orderData.totalAmount}
+                  originalPrice={orderData.originalAmount}
+                  discount={orderData.discountPercent || 0}
+                  showOriginalPrice={!!orderData.originalAmount && orderData.originalAmount > (orderData.amountPaid || orderData.totalAmount)}
+                  showDiscountBadge={!!orderData.discountPercent}
+                />
               </div>
+              {orderData.paymentPlan === 'partial' && (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Advance Paid:</span>
+                    <span className="font-medium text-green-600">₹{orderData.advanceAmount?.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Remaining Due:</span>
+                    <span className="font-medium text-orange-600">₹{orderData.remainingAmount?.toLocaleString('en-IN')}</span>
+                  </div>
+                </>
+              )}
+              {orderData.discountAmount > 0 && (
+                <div className="text-xs text-green-600 font-medium mt-1">
+                  You saved ₹{orderData.discountAmount?.toLocaleString('en-IN')}
+                </div>
+              )}
             </div>
           )}
 
           {/* Action Buttons */}
           <div className="space-y-3">
-            <Link
-              to="/account/orders"
-              className="flex items-center justify-center gap-2 w-full py-3.5 bg-[#ae0b0b] text-white font-bold rounded-xl hover:bg-[#8f0a0a] transition-colors shadow-lg shadow-[#ae0b0b]/20"
-            >
-              <TruckIcon className="h-5 w-5" />
-              Track Your Order
-            </Link>
+            {orderId ? (
+              <Link
+                to={`/orders/track/${orderId}`}
+                className="flex items-center justify-center gap-2 w-full py-3.5 bg-[#ae0b0b] text-white font-bold rounded-xl hover:bg-[#8f0a0a] transition-colors shadow-lg shadow-[#ae0b0b]/20"
+              >
+                <TruckIcon className="h-5 w-5" />
+                Track Your Order
+              </Link>
+            ) : (
+              <Link
+                to="/orders/track"
+                className="flex items-center justify-center gap-2 w-full py-3.5 bg-[#ae0b0b] text-white font-bold rounded-xl hover:bg-[#8f0a0a] transition-colors shadow-lg shadow-[#ae0b0b]/20"
+              >
+                <TruckIcon className="h-5 w-5" />
+                Track Your Order
+              </Link>
+            )}
             <Link
               to="/shop"
               className="flex items-center justify-center gap-2 w-full py-3.5 border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors"

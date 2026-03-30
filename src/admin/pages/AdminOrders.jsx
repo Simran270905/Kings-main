@@ -15,7 +15,9 @@ import {
   TruckIcon,
   CheckCircleIcon,
   XCircleIcon,
-  FunnelIcon
+  FunnelIcon,
+  CreditCardIcon,
+  CurrencyDollarIcon
 } from '@heroicons/react/24/outline'
 import {
   safeArray,
@@ -33,6 +35,7 @@ const AdminOrders = () => {
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [selectedOrderId, setSelectedOrderId] = useState(null)
   const [error, setError] = useState('')
+  const [updatingPayment, setUpdatingPayment] = useState(false)
 
   // Safe data handling
   const safeOrders = safeArray(orders)
@@ -50,6 +53,39 @@ const AdminOrders = () => {
     if (!result.success) {
       setError(result.error)
       setTimeout(() => setError(''), 3000)
+    }
+  }
+
+  // Handle remaining payment update
+  const handleMarkRemainingAsPaid = async (orderId) => {
+    if (!confirm('Are you sure you want to mark the remaining payment as received?')) {
+      return
+    }
+
+    setUpdatingPayment(true)
+    try {
+      const token = localStorage.getItem('adminToken')
+      const response = await fetch(`/api/orders/${orderId}/remaining-payment`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const result = await response.json()
+      
+      if (result.success) {
+        alert('Remaining payment marked as paid successfully!')
+        forceRefresh() // Refresh orders to show updated status
+      } else {
+        alert('Error: ' + (result.message || 'Failed to update payment status'))
+      }
+    } catch (error) {
+      console.error('Error updating remaining payment:', error)
+      alert('Error: Failed to update payment status')
+    } finally {
+      setUpdatingPayment(false)
     }
   }
 
@@ -293,6 +329,112 @@ const AdminOrders = () => {
               </div>
             </div>
           </div>
+
+          {/* Payment Plan Information */}
+          {selectedOrder.paymentPlan === 'partial' && (
+            <div className="mb-6">
+              <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">
+                <CreditCardIcon className="inline h-4 w-4 mr-1" />
+                Payment Plan Details
+              </h4>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <p className="text-xs text-blue-600 font-medium uppercase">Payment Method</p>
+                    <p className="text-sm font-bold text-blue-900 capitalize">{selectedOrder.paymentMethod}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-blue-600 font-medium uppercase">Payment Plan</p>
+                    <p className="text-sm font-bold text-blue-900 capitalize">{selectedOrder.paymentPlan}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600 font-medium uppercase">Original Amount</p>
+                    <p className="text-sm font-bold text-gray-900">{formatPrice(selectedOrder.originalAmount)}</p>
+                  </div>
+                  {selectedOrder.codCharge > 0 && (
+                    <div>
+                      <p className="text-xs text-orange-600 font-medium uppercase">COD Charge</p>
+                      <p className="text-sm font-bold text-orange-900">{formatPrice(selectedOrder.codCharge)}</p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-xs text-green-600 font-medium uppercase">Discount Applied</p>
+                    <p className="text-sm font-bold text-green-900">
+                      {selectedOrder.discountApplied ? `Yes (${selectedOrder.discountPercent}%)` : 'No'}
+                    </p>
+                  </div>
+                  {selectedOrder.discountApplied && (
+                    <>
+                      <div>
+                        <p className="text-xs text-green-600 font-medium uppercase">Discounted Total</p>
+                        <p className="text-sm font-bold text-green-900">{formatPrice(selectedOrder.discountedTotal)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-green-600 font-medium uppercase">Discount Amount</p>
+                        <p className="text-sm font-bold text-green-900">-{formatPrice(selectedOrder.paymentMethodDiscount)}</p>
+                      </div>
+                    </>
+                  )}
+                  <div>
+                    <p className="text-xs text-green-600 font-medium uppercase">Advance Paid ({selectedOrder.advancePercent}%)</p>
+                    <p className="text-sm font-bold text-green-900">{formatPrice(selectedOrder.advanceAmount)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-orange-600 font-medium uppercase">Remaining Due ({selectedOrder.remainingPercent}%)</p>
+                    <p className="text-sm font-bold text-orange-900">{formatPrice(selectedOrder.remainingAmount)}</p>
+                  </div>
+                </div>
+                
+                {/* Final Total */}
+                <div className="flex items-center justify-between pt-3 border-t border-blue-200">
+                  <div>
+                    <p className="text-sm font-bold text-gray-900 uppercase">Final Total</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-gray-900">{formatPrice(selectedOrder.totalAmount)}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between pt-3 border-t border-blue-200">
+                  <div>
+                    <p className="text-xs text-gray-600">Remaining Payment Status:</p>
+                    <p className={`text-sm font-bold ${
+                      selectedOrder.remainingPaymentStatus === 'paid' 
+                        ? 'text-green-600' 
+                        : 'text-orange-600'
+                    }`}>
+                      {selectedOrder.remainingPaymentStatus === 'paid' ? '✓ Paid' : '⏳ Pending'}
+                    </p>
+                    {selectedOrder.remainingPaymentDate && (
+                      <p className="text-xs text-gray-500">
+                        Paid on: {new Date(selectedOrder.remainingPaymentDate).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                  
+                  {selectedOrder.remainingPaymentStatus === 'pending' && (
+                    <button
+                      onClick={() => handleMarkRemainingAsPaid(selectedOrder._id)}
+                      disabled={updatingPayment}
+                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {updatingPayment ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Updating...
+                        </>
+                      ) : (
+                        <>
+                          <CurrencyDollarIcon className="h-4 w-4" />
+                          Mark Remaining as Paid
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Shipping Address */}
           <div className="mb-6">

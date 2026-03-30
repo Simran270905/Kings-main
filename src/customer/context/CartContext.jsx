@@ -70,6 +70,7 @@ export function CartProvider({ children }) {
         // Add default values if missing
         selling_price: product.selling_price || product.price || 0,
         price: product.price || 0,
+        originalPrice: product.originalPrice || product.original_price || product.selling_price || product.price || 0,
         selectedSize: product.selectedSize || null,
       }
       

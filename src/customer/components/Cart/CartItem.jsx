@@ -2,6 +2,7 @@
 import React from 'react'
 import { MinusIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { optimizeCloudinaryUrlWithSize } from '../../../utils/cloudinary'
+import PriceDisplay from '../Shared/PriceDisplay.jsx'
 
 export default function CartItem({
   item,
@@ -9,11 +10,10 @@ export default function CartItem({
   onDecrease,
   onRemove,
 }) {
-  // Use the new pricing structure with proper discount display
-  const price = item.price || 0
-  const originalPrice = item.originalPrice || 0
-  const discountPercentage = item.discountPercentage || 0
-  const isOnSale = item.isOnSale || false
+  // Use the correct field names from MongoDB schema
+  const price = item.selling_price || item.price || 0
+  const originalPrice = item.originalPrice || item.original_price || 0
+  const discountPercentage = originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0
   const itemTotal = price * item.quantity
 
   return (
@@ -53,17 +53,15 @@ export default function CartItem({
           <p className="text-xs text-gray-500 mt-1">Size: {item.selectedSize}</p>
         )}
 
-        {/* PRICE */}
-        <div className="mt-2 flex items-center gap-2 flex-wrap">
-          <span className="text-base font-bold text-[#ae0b0b]">₹{price.toLocaleString()}</span>
-          {originalPrice > price && (
-            <span className="text-xs text-gray-400 line-through">₹{originalPrice.toLocaleString()}</span>
-          )}
-          {isOnSale && discountPercentage > 0 && (
-            <span className="text-xs bg-red-100 text-red-700 font-semibold px-1.5 py-0.5 rounded">
-              💸 -{discountPercentage}%
-            </span>
-          )}
+        {/* PRICE - Use exact product card pattern */}
+        <div className="mt-2">
+          <PriceDisplay
+            sellingPrice={price}
+            originalPrice={originalPrice}
+            discount={discountPercentage}
+            showOriginalPrice={originalPrice > price}
+            showDiscountBadge={originalPrice > price}
+          />
         </div>
 
         {/* QTY CONTROLS + SUBTOTAL */}

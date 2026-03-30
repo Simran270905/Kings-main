@@ -2,7 +2,7 @@
 import { API_BASE_URL } from '../config/api'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-const MAX_SIZE_MB = 5
+const MAX_SIZE_MB = 10
 
 export const validateImageFile = (file) => {
   if (!ALLOWED_TYPES.includes(file.type)) {

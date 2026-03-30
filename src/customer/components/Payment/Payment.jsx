@@ -8,6 +8,9 @@ import toast from 'react-hot-toast'
 import { CreditCardIcon, BanknotesIcon, DevicePhoneMobileIcon, TicketIcon } from '@heroicons/react/24/outline'
 import { API_BASE_URL } from '@config/api.js'
 import { couponApi } from '../../../services/apiService'
+import { calculateTotalDiscount, getDiscountBadgeText, calculatePartialPayment, getPaymentPlanBadgeText } from '../../../utils/discountCalculator.js'
+import PaymentPlanSelector from './PaymentPlanSelector.jsx'
+import PriceDisplay from '../Shared/PriceDisplay.jsx'
 
 const API_URL = API_BASE_URL
 
@@ -47,6 +50,16 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
     cvv: ''
   })
 
+  // Payment plan state
+  const [paymentPlan, setPaymentPlan] = useState('full')
+
+  // Calculate payment amounts using new logic (10/90 split with discount consideration)
+  const paymentCalculation = calculatePartialPayment(totalPrice, selectedMethod, paymentPlan)
+  
+  // For partial payments, use advance amount for payment processing
+  const paymentAmount = paymentCalculation.payNowAmount
+  const finalAmount = paymentCalculation.payNowAmount
+
   // Reset coupon when cart changes
   useEffect(() => {
     setCouponCode('')
@@ -66,6 +79,12 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
       name: 'UPI Payment',
       icon: DevicePhoneMobileIcon,
       description: 'Direct UPI Transfer'
+    },
+    {
+      id: 'netbanking',
+      name: 'NetBanking',
+      icon: CreditCardIcon,
+      description: 'Direct Bank Transfer'
     },
     {
       id: 'cod',
@@ -145,8 +164,6 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
     toast.success('Coupon removed')
   }
 
-  const finalAmount = totalPrice - discount
-
   const handlePayment = async () => {
     setError(null)
 
@@ -211,9 +228,22 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
         subtotal: totalPrice,
         discount: discount,
         couponCode: appliedCoupon ? appliedCoupon.code : null,
-        totalAmount: finalAmount,
+        totalAmount: paymentCalculation.finalAmount, // ✅ UPDATED: Use final amount with COD charge and discount
         paymentMethod: selectedMethod,
-        upiId: paymentDetails.upiId || null
+        upiId: paymentDetails.upiId || null,
+        // Add payment plan information
+        paymentPlan: paymentPlan,
+        advanceAmount: paymentPlan === 'partial' ? paymentCalculation.advanceAmount : null,
+        remainingAmount: paymentPlan === 'partial' ? paymentCalculation.remainingAmount : null,
+        // ✅ NEW: Add COD charge and discount breakdown
+        originalAmount: paymentCalculation.originalAmount,
+        codCharge: paymentCalculation.codCharge,
+        discountApplied: paymentCalculation.hasDiscount,
+        discountPercent: paymentCalculation.hasDiscount ? 10 : 0,
+        discountAmount: paymentCalculation.discountAmount,
+        advancePercent: paymentPlan === 'partial' ? 10 : null,
+        remainingPercent: paymentPlan === 'partial' ? 90 : null,
+        remainingPaymentStatus: paymentPlan === 'partial' ? 'pending' : null
       }
 
       if (selectedMethod === 'cod') {
@@ -254,6 +284,25 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           setError(error.message || 'Failed to create order. Please try again.')
           toast.error(error.message || 'Failed to create order. Please try again.')
         }
+      } else if (selectedMethod === 'netbanking') {
+        // For NetBanking, create order directly (no payment gateway)
+        console.log('🏦 Creating NetBanking order with data:', orderData)
+        try {
+          const result = await createOrder(orderData, propClearCart || clearCart)
+          console.log('📦 NetBanking order result:', result)
+          if (result && result.success) {
+            toast.success('Order placed successfully! Please complete NetBanking payment.')
+            navigate('/order-success', { state: { orderId: result.order._id || result.order.id, paymentMethod: selectedMethod } })
+          } else {
+            console.error('❌ NetBanking order failed:', result.error)
+            setError(result.error || 'Failed to create order. Please try again.')
+            toast.error(result.error || 'Failed to create order. Please try again.')
+          }
+        } catch (error) {
+          console.error('❌ NetBanking order error:', error)
+          setError(error.message || 'Failed to create order. Please try again.')
+          toast.error(error.message || 'Failed to create order. Please try again.')
+        }
       } else if (selectedMethod === 'razorpay') {
         // Process Razorpay payment
         await processRazorpayPayment(orderData, token)
@@ -277,7 +326,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          amount: orderData.totalAmount,
+          amount: paymentCalculation.finalAmount, // ✅ UPDATED: Use final amount with COD charge and discount
           currency: 'INR',
           receipt: `order-${Date.now()}`
         })
@@ -300,7 +349,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
       // Step 3: Open Razorpay checkout
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID || orderResult.data.key_id,
-        amount: orderData.totalAmount * 100, // Convert to paise
+        amount: paymentCalculation.finalAmount * 100, // ✅ UPDATED: Use final amount with COD charge and discount
         currency: 'INR',
         name: 'KKings Jewellery',
         description: `Order for ${orderData.items.length} items`,
@@ -320,7 +369,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
                 razorpaySignature: response.razorpay_signature,
                 cartItems: orderData.items,
                 customer: orderData.shippingAddress,
-                totalAmount: orderData.totalAmount
+                totalAmount: paymentCalculation.finalAmount // ✅ UPDATED: Use final amount with COD charge and discount
               })
             })
 
@@ -409,7 +458,13 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
               <div key={index} className="flex flex-col gap-1 text-sm">
                 <div className="flex justify-between">
                   <span>{item.title || item.name} x {item.quantity}</span>
-                  <span>₹{(item.selling_price || item.price) * item.quantity}</span>
+                  <PriceDisplay 
+                    sellingPrice={(item.selling_price || item.price) * item.quantity}
+                    originalPrice={(item.originalPrice || item.purchasePrice) * item.quantity}
+                    discount={item.discountPercentage || 0}
+                    showOriginalPrice={!!(item.originalPrice || item.purchasePrice)}
+                    showDiscountBadge={!!(item.discountPercentage || 0)}
+                  />
                 </div>
                 {item.selectedSize && (
                   <div className="text-xs text-gray-500">
@@ -421,7 +476,13 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
             <div className="border-t pt-2 mt-2 space-y-2">
               <div className="flex justify-between">
                 <span>Subtotal:</span>
-                <span>₹{totalPrice}</span>
+                <PriceDisplay 
+                  sellingPrice={totalPrice}
+                  originalPrice={null}
+                  discount={0}
+                  showOriginalPrice={false}
+                  showDiscountBadge={false}
+                />
               </div>
               {discount > 0 && (
                 <div className="flex justify-between text-green-600">
@@ -429,10 +490,60 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
                   <span>-₹{discount}</span>
                 </div>
               )}
-              <div className="flex justify-between font-semibold text-lg border-t pt-2">
-                <span>Total Amount:</span>
-                <span className="text-[#ae0b0b]">₹{finalAmount}</span>
+              {paymentCalculation.hasDiscount && (
+                <div className="flex justify-between text-green-600">
+                  <span>Discount (10%):</span>
+                  <span>-₹{paymentCalculation.discountAmount.toLocaleString('en-IN')}</span>
+                </div>
+              )}
+              {paymentCalculation.hasCODCharge && (
+                <div className="flex justify-between text-orange-600">
+                  <span>COD Charge:</span>
+                  <span>+₹{paymentCalculation.codCharge.toLocaleString('en-IN')}</span>
+                </div>
+              )}
+              {paymentCalculation.hasCODCharge && (
+                <div className="text-xs text-gray-500 mt-1">
+                  {paymentCalculation.codMessage}
+                </div>
+              )}
+              {paymentPlan === 'partial' && (
+                <>
+                  <div className="flex justify-between text-blue-600">
+                    <span>Pay Now (10%):</span>
+                    <span>₹{paymentCalculation.advanceAmount.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="flex justify-between text-orange-600">
+                    <span>Pay Later (90%):</span>
+                    <span>₹{paymentCalculation.remainingAmount.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Remaining amount to be paid before shipping
+                  </div>
+                </>
+              )}
+              <div className="flex justify-between">
+                <span>Item Total:</span>
+                <PriceDisplay 
+                  sellingPrice={paymentCalculation.originalAmount}
+                  originalPrice={null}
+                  discount={0}
+                  showOriginalPrice={false}
+                  showDiscountBadge={false}
+                />
               </div>
+              {paymentPlan === 'full' && (
+                <div className="flex justify-between font-semibold text-lg border-t pt-2">
+                  <span>Total Payable:</span>
+                  <PriceDisplay 
+                    sellingPrice={paymentCalculation.finalAmount}
+                    originalPrice={paymentCalculation.originalAmount}
+                    discount={paymentCalculation.hasDiscount ? 10 : 0}
+                    showOriginalPrice={paymentCalculation.hasDiscount}
+                    showDiscountBadge={false}
+                  />
+                </div>
+              )}
               {error && (
                 <div className="mt-2 text-red-600 font-medium">
                   {error}
@@ -501,7 +612,38 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
         {/* Payment Methods */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Select Payment Method</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          
+          {/* Discount Badge */}
+          {paymentCalculation.hasDiscount && (
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center gap-3">
+                <div className="bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg">
+                  🎉
+                </div>
+                <div>
+                  <p className="font-bold text-green-800 text-lg">🎉 Extra 10% OFF on UPI/Netbanking!</p>
+                  <p className="text-green-600">You saved ₹{paymentCalculation.discountAmount} on this order</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Payment Plan Badge */}
+          {paymentPlan === 'partial' && (
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg">
+                  💳
+                </div>
+                <div>
+                  <p className="font-bold text-blue-800 text-lg">💳 Pay just 10% now, rest 90% later!</p>
+                  <p className="text-blue-600">Pay ₹{paymentCalculation.advanceAmount.toLocaleString('en-IN')} now, ₹{paymentCalculation.remainingAmount.toLocaleString('en-IN')} later</p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {paymentMethods.map((method) => {
               const Icon = method.icon
               const selected = selectedMethod === method.id
@@ -524,24 +666,39 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           </div>
         </div>
 
-        {/* UPI Payment Details */}
-        {(selectedMethod === 'razorpay' || selectedMethod === 'upi') && (
+        {/* Payment Plan Selector */}
+        <PaymentPlanSelector
+          selectedPlan={paymentPlan}
+          onPlanChange={setPaymentPlan}
+          totalAmount={totalPrice}
+          paymentMethod={selectedMethod}
+          paymentCalculation={paymentCalculation}
+          disabled={loading}
+        />
+
+        {/* UPI/NetBanking Payment Details */}
+        {(selectedMethod === 'razorpay' || selectedMethod === 'upi' || selectedMethod === 'netbanking') && (
           <div className="bg-gray-50 p-6 rounded-lg mb-8">
-            <h2 className="text-xl font-semibold mb-4">UPI Payment Details</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              {selectedMethod === 'netbanking' ? 'NetBanking Payment Details' : 'UPI Payment Details'}
+            </h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  UPI ID (Optional)
+                  {selectedMethod === 'netbanking' ? 'Account Number (Optional)' : 'UPI ID (Optional)'}
                 </label>
                 <input
                   type="text"
                   value={paymentDetails.upiId}
                   onChange={(e) => setPaymentDetails(prev => ({ ...prev, upiId: e.target.value }))}
-                  placeholder="Enter your UPI ID (e.g., 9876543210@upi)"
+                  placeholder={selectedMethod === 'netbanking' ? 'Enter your account number' : 'Enter your UPI ID (e.g., 9876543210@upi)'}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#ae0b0b]"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Enter your UPI ID for direct UPI payment (optional)
+                  {selectedMethod === 'netbanking' 
+                    ? 'Enter your account number for direct bank transfer (optional)'
+                    : 'Enter your UPI ID for direct UPI payment (optional)'
+                  }
                 </p>
               </div>
               {selectedMethod === 'upi' && (
@@ -552,6 +709,17 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
                     <li>Click "Pay Now" to create your order</li>
                     <li>You will receive order details with payment link</li>
                     <li>Complete payment using any UPI app</li>
+                  </ol>
+                </div>
+              )}
+              {selectedMethod === 'netbanking' && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-800 mb-2">NetBanking Payment Instructions:</h4>
+                  <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
+                    <li>Enter your account number above (optional)</li>
+                    <li>Click "Pay Now" to create your order</li>
+                    <li>You will receive order details with payment details</li>
+                    <li>Complete payment using your bank\'s net banking portal</li>
                   </ol>
                 </div>
               )}
@@ -572,7 +740,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
             disabled={loading}
             className="w-full bg-[#ae0b0b] text-white py-4 rounded-lg font-semibold text-lg hover:bg-[#8a0909] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? 'Processing...' : `Pay ₹${finalAmount}`}
+            {loading ? 'Processing...' : `Pay ₹${finalAmount.toLocaleString('en-IN')}`}
           </button>
         </div>
       </div>

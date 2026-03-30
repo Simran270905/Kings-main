@@ -25,6 +25,8 @@ import Account from './customer/components/Account/Account'
 import Payment from './customer/components/Payment/Payment'
 import OrderSuccess from './customer/pages/OrderSuccess/OrderSuccess'
 import Orders from './customer/pages/Orders/Orders'
+import OrderTrack from './customer/pages/OrderTrack/OrderTrack'
+import TrackOrderPage from './customer/pages/TrackOrder/TrackOrderPage'
 
 import AdminLogin from './admin/AdminLogin'
 import { AdminRoute } from './admin/AdminRoute'
@@ -111,6 +113,8 @@ const App = () => {
                     <Route path="/account" element={<CustomerLayout><ProtectedRoute><Account /></ProtectedRoute></CustomerLayout>} />
                     <Route path="/orders" element={<CustomerLayout><ProtectedRoute><Orders /></ProtectedRoute></CustomerLayout>} />
                     <Route path="/order-success" element={<CustomerLayout><OrderSuccess /></CustomerLayout>} />
+                    <Route path="/orders/track" element={<CustomerLayout><TrackOrderPage /></CustomerLayout>} />
+                    <Route path="/orders/track/:orderId" element={<CustomerLayout><OrderTrack /></CustomerLayout>} />
 
                     {/* ================= ADMIN LOGIN ================= */}
                     <Route path="/admin-login" element={<AdminLogin />} />

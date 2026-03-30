@@ -113,6 +113,7 @@ const ProductUpload = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [failedImages, setFailedImages] = useState(new Set()) // Track failed images
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -130,8 +131,15 @@ const ProductUpload = () => {
 
     setIsUploading(true)
     setError('')
+    setSuccess('')
 
     try {
+      console.log(`📤 Uploading image ${index + 1}:`, {
+        name: file.name,
+        size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
+        type: file.type
+      })
+      
       const imageUrl = await uploadToCloudinary(file)
       
       // Update specific image in the images array
@@ -141,11 +149,45 @@ const ProductUpload = () => {
         return { ...prev, images: newImages }
       })
       
+      // Remove from failed images set if it was there
+      setFailedImages(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(index)
+        return newSet
+      })
+      
       setSuccess(`Image ${index + 1} uploaded successfully!`)
-    } catch {
-      setError(`Image ${index + 1} upload failed. Try again.`)
+      console.log(`✅ Image ${index + 1} uploaded successfully:`, imageUrl)
+    } catch (error) {
+      console.error(`❌ Image ${index + 1} upload failed:`, error)
+      const errorMessage = error.message || 'Unknown error occurred'
+      
+      // Add to failed images set
+      setFailedImages(prev => new Set(prev).add(index))
+      
+      // Provide specific error messages
+      if (errorMessage.includes('smaller than')) {
+        setError(`Image ${index + 1} is too large. Max size is 10MB.`)
+      } else if (errorMessage.includes('Only')) {
+        setError(`Image ${index + 1} format not supported. Use JPEG, PNG, WebP, or GIF.`)
+      } else if (errorMessage.includes('Authentication')) {
+        setError(`Authentication required. Please login again.`)
+      } else if (errorMessage.includes('Cloudinary')) {
+        setError(`Cloudinary service error. Please try again.`)
+      } else {
+        setError(`Image ${index + 1} upload failed: ${errorMessage}`)
+      }
     } finally {
       setIsUploading(false)
+    }
+  }
+
+  const handleRetryImage = async (index) => {
+    // Clear the file input and trigger a new upload
+    const fileInput = document.getElementById(`image-input-${index}`)
+    if (fileInput) {
+      fileInput.value = ''
+      fileInput.click()
     }
   }
 
@@ -671,27 +713,43 @@ const ProductUpload = () => {
               {formData.images.map((image, index) => (
                 <div key={index}>
                   {!image ? (
-                    <label className="group relative block aspect-square border-2 border-dashed border-gray-300 rounded-xl hover:border-[#ae0b0b] cursor-pointer transition-all overflow-hidden">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(e, index)}
-                        disabled={isUploading}
-                        className="hidden"
-                      />
-                      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-gray-50 group-hover:bg-red-50 transition-colors">
-                        <PhotoIcon className="w-8 h-8 text-gray-400 group-hover:text-[#ae0b0b] mb-2" />
-                        <span className="text-xs font-medium text-gray-500 group-hover:text-[#ae0b0b] text-center">
-                          {isUploading ? 'Uploading...' : `Image ${index + 1}`}
-                        </span>
-                      </div>
-                    </label>
+                    <div>
+                      <label className="group relative block aspect-square border-2 border-dashed border-gray-300 rounded-xl hover:border-[#ae0b0b] cursor-pointer transition-all overflow-hidden">
+                        <input
+                          id={`image-input-${index}`}
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, index)}
+                          disabled={isUploading}
+                          className="hidden"
+                        />
+                        <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-gray-50 group-hover:bg-red-50 transition-colors">
+                          <PhotoIcon className="w-8 h-8 text-gray-400 group-hover:text-[#ae0b0b] mb-2" />
+                          <span className="text-xs font-medium text-gray-500 group-hover:text-[#ae0b0b] text-center">
+                            {isUploading ? 'Uploading...' : `Image ${index + 1}`}
+                          </span>
+                        </div>
+                      </label>
+                      
+                      {/* Retry button for failed images */}
+                      {failedImages.has(index) && (
+                        <div className="mt-2">
+                          <button
+                            type="button"
+                            onClick={() => handleRetryImage(index)}
+                            className="w-full text-xs bg-orange-500 text-white px-2 py-1 rounded hover:bg-orange-600 transition-colors"
+                          >
+                            🔄 Retry Image {index + 1}
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <div className="relative group aspect-square">
                       <img
                         src={image}
                         alt={`Product ${index + 1}`}
-                        className="w-full h-full object-cover rounded-xl border-2 border-gray-200"
+                        className="w-full h-full object-cover rounded-xl border-2 border-green-200"
                       />
                       <button
                         type="button"
@@ -700,8 +758,8 @@ const ProductUpload = () => {
                       >
                         <XMarkIcon className="w-4 h-4" />
                       </button>
-                      <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs font-medium px-2 py-1 rounded">
-                        Image {index + 1}
+                      <div className="absolute bottom-2 left-2 bg-green-600/80 text-white text-xs font-medium px-2 py-1 rounded">
+                        ✅ Image {index + 1}
                       </div>
                     </div>
                   )}
