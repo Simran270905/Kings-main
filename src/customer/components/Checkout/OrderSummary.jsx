@@ -82,14 +82,14 @@ const OrderSummary = ({ address = {} }) => {
         items: cartItems.map(item => ({
           id: item.id,
           name: item.name || item.title,
-          price: item.price || 0, // This should already be the correct selling price from cart
-          originalPrice: item.originalPrice || item.price || 0,
+          price: getSellingPrice(item) || 0, // Use correct selling price
+          originalPrice: getOriginalPrice(item) || getSellingPrice(item) || 0,
           discountPercentage: item.discountPercentage || 0,
           isOnSale: item.isOnSale || false,
           quantity: item.quantity,
           selectedSize: item.selectedSize || null,
           image: item.image || null,
-          subtotal: (item.price || 0) * item.quantity
+          subtotal: (getSellingPrice(item) || 0) * item.quantity
         })),
         shippingAddress: {
           firstName: address.firstName,

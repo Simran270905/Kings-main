@@ -40,9 +40,8 @@ export const getProductImages = (product) => {
 export const getSellingPrice = (product) => {
   if (!product) return 0;
   
-  // This is now the DISCOUNTED PRICE (what customer actually pays)
-  return product.originalPrice ||  // Renamed field: Discounted Price
-         product.sellingPrice || 
+  // This is the ACTUAL SELLING PRICE (what customer actually pays)
+  return product.sellingPrice || 
          product.selling_price || 
          product.discountedPrice || 
          product.salePrice || 

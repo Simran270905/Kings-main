@@ -10,6 +10,11 @@ const formatPrice = (value) => {
   return `₹${(isNaN(num) ? 0 : num).toLocaleString("en-IN")}`;
 };
 
+const getSellingPrice = (item) => {
+  const num = Number(item.sellingPrice || item.selling_price || 0);
+  return isNaN(num) ? 0 : num;
+};
+
 export default function Orders() {
   const { orders, loading, fetchUserOrders, fetchOrderDetails } = useCustomerOrder()
   const { isAuthenticated } = useAuth()
@@ -287,7 +292,7 @@ export default function Orders() {
                                         />
                                         <div className="flex-1">
                                           <p className="font-medium text-sm">{item.name}</p>
-                                          <p className="text-xs text-gray-600">Qty: {item.quantity} × {formatPrice(item.price)}</p>
+                                          <p className="text-xs text-gray-600">Qty: {item.quantity} × {formatPrice(getSellingPrice(item))}</p>
                                         </div>
                                       </div>
                                     ))}
@@ -400,7 +405,7 @@ export default function Orders() {
                                         />
                                         <div className="flex-1">
                                           <p className="font-medium text-sm">{item.name}</p>
-                                          <p className="text-xs text-gray-600">Qty: {item.quantity} × {formatPrice(item.price)}</p>
+                                          <p className="text-xs text-gray-600">Qty: {item.quantity} × {formatPrice(getSellingPrice(item))}</p>
                                         </div>
                                       </div>
                                     ))}
