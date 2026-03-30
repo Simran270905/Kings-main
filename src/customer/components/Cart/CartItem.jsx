@@ -14,7 +14,7 @@ export default function CartItem({
   const price = item.sellingPrice || item.selling_price || item.price || 0
   const originalPrice = item.originalPrice || item.original_price || 0
   const discountPercentage = originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0
-  const itemTotal = price * item.quantity
+  const itemTotal = price * (item.quantity || 1)
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-4 flex gap-4 shadow-sm hover:shadow-md transition-shadow">
@@ -83,7 +83,7 @@ export default function CartItem({
             </button>
           </div>
 
-          <span className="font-bold text-gray-900">₹{itemTotal.toLocaleString()}</span>
+          <span className="font-bold text-gray-900">₹{(itemTotal || 0).toLocaleString()}</span>
         </div>
       </div>
     </div>

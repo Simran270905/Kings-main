@@ -150,7 +150,7 @@ const Account = () => {
                     <div>
                       <p className="font-medium text-gray-900">Order #{order._id.slice(-8)}</p>
                       <p className="text-sm text-gray-500">
-                        {new Date(order.createdAt).toLocaleDateString()} • ₹{order.totalAmount?.toLocaleString() || '0'}
+                        {new Date(order.createdAt).toLocaleDateString()} • ₹{(order.totalAmount || 0).toLocaleString()}
                       </p>
                     </div>
                   </div>

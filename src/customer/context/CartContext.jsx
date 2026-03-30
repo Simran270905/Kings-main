@@ -122,7 +122,7 @@ export function CartProvider({ children }) {
   // FIXED: Calculate total price with consistent sellingPrice field
   const totalPrice = cartItems.reduce((sum, item) => {
     const itemPrice = item.sellingPrice || item.selling_price || item.price || 0
-    return sum + itemPrice * item.quantity
+    return sum + itemPrice * (item.quantity || 1)
   }, 0)
 
   // FIXED: Listen for global add-to-cart events from other components

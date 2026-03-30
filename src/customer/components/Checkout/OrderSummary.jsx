@@ -153,8 +153,8 @@ const OrderSummary = ({ address = {} }) => {
           {/* FIXED: Display items with consistent pricing */}
           <ul className="space-y-3 pb-4 border-b">
             {cartItems.map((it) => {
-              const price = it.selling_price || it.price || 0
-              const itemTotal = price * it.quantity
+              const price = it.sellingPrice || it.selling_price || it.price || 0
+              const itemTotal = price * (it.quantity || 1)
               return (
                 <li key={it.id} className="flex justify-between text-sm">
                   <div>
@@ -165,8 +165,8 @@ const OrderSummary = ({ address = {} }) => {
                     )}
                   </div>
                   <div className="text-right">
-                    <p className="text-sm">₹{price.toLocaleString()}</p>
-                    <p className="text-xs text-gray-500">₹{itemTotal.toLocaleString()}</p>
+                    <p className="text-sm">₹{(price || 0).toLocaleString()}</p>
+                    <p className="text-xs text-gray-500">₹{(itemTotal || 0).toLocaleString()}</p>
                   </div>
                 </li>
               )
@@ -177,11 +177,11 @@ const OrderSummary = ({ address = {} }) => {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-600">Subtotal</span>
-              <span className="font-medium">₹{subtotal.toLocaleString()}</span>
+              <span className="font-medium">₹{(subtotal || 0).toLocaleString()}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Tax (18% GST)</span>
-              <span className="font-medium">₹{tax.toLocaleString()}</span>
+              <span className="font-medium">₹{(tax || 0).toLocaleString()}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Shipping</span>
@@ -189,7 +189,7 @@ const OrderSummary = ({ address = {} }) => {
             </div>
             <div className="border-t pt-2 flex justify-between font-semibold text-base">
               <span>Total Amount</span>
-              <span className="text-green-700">₹{totalAmount.toLocaleString()}</span>
+              <span className="text-green-700">₹{(totalAmount || 0).toLocaleString()}</span>
             </div>
           </div>
 

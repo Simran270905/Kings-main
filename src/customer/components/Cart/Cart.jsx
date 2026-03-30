@@ -100,7 +100,7 @@ export default function Cart() {
                   {totalDiscount > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Discount</span>
-                      <span className="font-medium">-₹{totalDiscount.toLocaleString()}</span>
+                      <span className="font-medium">-₹{(totalDiscount || 0).toLocaleString()}</span>
                     </div>
                   )}
 
@@ -127,7 +127,7 @@ export default function Cart() {
                 {totalDiscount > 0 && (
                   <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2">
                     <TagIcon className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <p className="text-xs text-green-700 font-medium">You save ₹{totalDiscount.toLocaleString()} on this order!</p>
+                    <p className="text-xs text-green-700 font-medium">You save ₹{(totalDiscount || 0).toLocaleString()} on this order!</p>
                   </div>
                 )}
 
