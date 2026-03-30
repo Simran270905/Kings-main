@@ -61,7 +61,7 @@ export default function Navbar() {
       {/* Announcement */}
       <header>
         <p className="flex h-10 items-center justify-center bg-[#ae0b0b] text-sm font-medium text-white">
-          Get 10% off on First Purchase
+          Get 10% off on Prepaid Payments
         </p>
       </header>
 
