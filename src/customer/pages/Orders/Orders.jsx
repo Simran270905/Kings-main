@@ -3,6 +3,7 @@ import { useCustomerOrder } from '../../context/CustomerOrderContext'
 import { useAuth } from '../../context/useAuth'
 import { Link } from 'react-router-dom'
 import { TruckIcon, CheckCircleIcon, ClockIcon, XCircleIcon, EyeIcon, MapPinIcon } from '@heroicons/react/24/outline'
+import { formatPrice } from '../../utils/formatPrice.js'
 
 export default function Orders() {
   const { orders, loading, fetchUserOrders, fetchOrderDetails } = useCustomerOrder()
@@ -281,7 +282,7 @@ export default function Orders() {
                                         />
                                         <div className="flex-1">
                                           <p className="font-medium text-sm">{item.name}</p>
-                                          <p className="text-xs text-gray-600">Qty: {item.quantity} × ₹{item.price}</p>
+                                          <p className="text-xs text-gray-600">Qty: {item.quantity} × {formatPrice(item.price)}</p>
                                         </div>
                                       </div>
                                     ))}
@@ -394,7 +395,7 @@ export default function Orders() {
                                         />
                                         <div className="flex-1">
                                           <p className="font-medium text-sm">{item.name}</p>
-                                          <p className="text-xs text-gray-600">Qty: {item.quantity} × ₹{item.price}</p>
+                                          <p className="text-xs text-gray-600">Qty: {item.quantity} × {formatPrice(item.price)}</p>
                                         </div>
                                       </div>
                                     ))}

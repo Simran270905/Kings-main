@@ -7,6 +7,7 @@ import { useOrder } from '../../context/useOrder'
 import { API_BASE_URL } from '@config/api.js'
 import { recordSale } from '../../../admin/utils/analyticsStorage'
 import toast from 'react-hot-toast'
+import { formatPrice, getSellingPrice, getQuantity, calculateItemTotal } from '../../utils/formatPrice.js'
 
 const OrderSummary = ({ address = {} }) => {
   const { cartItems, totalPrice, clearCart } = useCart()
@@ -153,20 +154,21 @@ const OrderSummary = ({ address = {} }) => {
           {/* FIXED: Display items with consistent pricing */}
           <ul className="space-y-3 pb-4 border-b">
             {cartItems.map((it) => {
-              const price = it.sellingPrice || it.selling_price || it.price || 0
-              const itemTotal = price * (it.quantity || 1)
+              const price = getSellingPrice(it)
+              const quantity = getQuantity(it)
+              const itemTotal = calculateItemTotal(it)
               return (
                 <li key={it.id} className="flex justify-between text-sm">
                   <div>
                     <p className="font-medium">{it.title || it.name}</p>
-                    <p className="text-xs text-gray-500">Qty: {it.quantity}</p>
+                    <p className="text-xs text-gray-500">Qty: {quantity}</p>
                     {it.selectedSize && (
                       <p className="text-xs text-gray-500">Size: {it.selectedSize}</p>
                     )}
                   </div>
                   <div className="text-right">
-                    <p className="text-sm">₹{(price || 0).toLocaleString()}</p>
-                    <p className="text-xs text-gray-500">₹{(itemTotal || 0).toLocaleString()}</p>
+                    <p className="text-sm">{formatPrice(price)}</p>
+                    <p className="text-xs text-gray-500">{formatPrice(itemTotal)}</p>
                   </div>
                 </li>
               )
@@ -177,11 +179,11 @@ const OrderSummary = ({ address = {} }) => {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-600">Subtotal</span>
-              <span className="font-medium">₹{(subtotal || 0).toLocaleString()}</span>
+              <span className="font-medium">{formatPrice(subtotal)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Tax (18% GST)</span>
-              <span className="font-medium">₹{(tax || 0).toLocaleString()}</span>
+              <span className="font-medium">{formatPrice(tax)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Shipping</span>
@@ -189,7 +191,7 @@ const OrderSummary = ({ address = {} }) => {
             </div>
             <div className="border-t pt-2 flex justify-between font-semibold text-base">
               <span>Total Amount</span>
-              <span className="text-green-700">₹{(totalAmount || 0).toLocaleString()}</span>
+              <span className="text-green-700">{formatPrice(totalAmount)}</span>
             </div>
           </div>
 

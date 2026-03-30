@@ -12,6 +12,7 @@ import {
 import { Popover, Dialog, Transition } from '@headlessui/react'
 import { useAuth } from '../../context/useAuth'
 import { useCart } from '../../context/useCart'
+import { getQuantity } from '../../utils/formatPrice.js'
 import { API_BASE_URL } from '@config/api.js' // Fixed import path
 
 export default function Navbar() {
@@ -44,7 +45,7 @@ export default function Navbar() {
     }
     fetchCategories()
   }, [])
-  const cartCount = cartItems?.reduce((sum, item) => sum + (item.quantity || 1), 0) || 0
+  const cartCount = cartItems?.reduce((sum, item) => sum + getQuantity(item), 0) || 0
 
   const handleAccountClick = () => {
     if (isAuthenticated) {

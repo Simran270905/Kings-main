@@ -4,7 +4,7 @@ import { CheckCircleIcon, ClockIcon, TruckIcon, MapPinIcon, CubeIcon, HomeIcon, 
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid'
 import toast from 'react-hot-toast'
 import { API_BASE_URL } from '@config/api.js'
-import PriceDisplay from '../../components/Shared/PriceDisplay.jsx'
+import { formatPrice } from '../../utils/formatPrice.js'
 
 const API_URL = API_BASE_URL
 
@@ -293,7 +293,7 @@ export default function OrderTrack() {
                 )}
                 <div className="flex-1">
                   <p className="font-medium text-gray-900">{item.name}</p>
-                  <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                  <p className="text-sm text-gray-600">Quantity: {item.quantity || 1}</p>
                 </div>
               </div>
             ))}

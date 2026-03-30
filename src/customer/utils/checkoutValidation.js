@@ -24,33 +24,40 @@
  */
 export const validateCartStock = (cartItems, productContext) => {
   const errors = []
+  const warnings = []
 
   if (!cartItems || cartItems.length === 0) {
     return { valid: false, errors: ['Cart is empty'] }
   }
 
   cartItems.forEach(cartItem => {
-    const itemId = cartItem.productId || cartItem.id || cartItem._id
-    const product = productContext?.getProductById?.(itemId)
+    try {
+      const itemId = cartItem.productId || cartItem.id || cartItem._id
+      const requestedQuantity = getQuantity(cartItem)
+      const product = productContext?.getProductById?.(itemId)
 
-    if (!product) {
-      errors.push(`Product ${itemId || 'undefined'} not found`)
-      return
-    }
+      if (!product) {
+        errors.push(`Product ${itemId} not found`)
+        return
+      }
 
-    const requestedQuantity = cartItem.quantity || 1
-    const availableStock = product.stock || 0
+      const availableStock = product.stock || 0
 
-    if (availableStock === 0) {
-      errors.push(`${product.name}: Out of stock`)
-    } else if (availableStock < requestedQuantity) {
-      errors.push(`${product.name}: Only ${availableStock} available, ${requestedQuantity} requested`)
+      if (availableStock === 0) {
+        errors.push(`${product.name} is out of stock`)
+      } else if (requestedQuantity > availableStock) {
+        warnings.push(`Only ${availableStock} ${product.name} available (requested: ${requestedQuantity})`)
+      }
+    } catch (error) {
+      console.error('Error validating cart item:', error)
+      errors.push('Error validating cart items')
     }
   })
 
   return {
     valid: errors.length === 0,
-    errors
+    errors,
+    warnings
   }
 }
 
@@ -72,46 +79,35 @@ export const processOrderAndDecrementStock = async (cartItems, productContext) =
     }
   }
 
-  const processedItems = []
   const failedItems = []
+  const processedItems = []
 
-  // Process each item
   for (const cartItem of cartItems) {
     try {
       const itemId = cartItem.productId || cartItem.id || cartItem._id
-      const result = productContext.decreaseStock(itemId, cartItem.quantity || 1)
+      const result = productContext.decreaseStock(itemId, getQuantity(cartItem))
       
       if (!result.success) {
         failedItems.push({
-          productId: cartItem.productId,
+          itemId,
+          productName: cartItem.name || cartItem.title,
           error: result.error
         })
-        continue
       }
 
       processedItems.push({
         productId: cartItem.productId,
-        quantity: cartItem.quantity || 1,
+        quantity: getQuantity(cartItem),
         product: result.product
       })
 
-      console.log(`✅ Stock decreased for product ${cartItem.productId}`)
     } catch (error) {
-      console.error(`❌ Failed to process stock for product ${cartItem.productId}:`, error.message)
+      console.error('Error processing cart item:', error)
       failedItems.push({
-        productId: cartItem.productId,
-        error: error.message
+        itemId: cartItem.productId || cartItem.id || cartItem._id,
+        productName: cartItem.name || cartItem.title,
+        error: 'Failed to process item'
       })
-    }
-  }
-
-  // If any items failed, return error
-  if (failedItems.length > 0) {
-    console.error('❌ Order processing failed for some items:', failedItems)
-    return {
-      success: false,
-      error: `Failed to process ${failedItems.length} item(s)`,
-      failedItems
     }
   }
 
@@ -243,7 +239,7 @@ export const generateOrderSummary = (cartItems, productContext, deliveryInfo = {
     const product = productContext?.getProductById?.(cartItem.productId)
     if (!product) return
 
-    const quantity = cartItem.quantity || 1
+    const quantity = getQuantity(cartItem)
     const itemTotal = (product.sellingPrice || 0) * quantity
 
     items.push({
@@ -271,7 +267,7 @@ export const generateOrderSummary = (cartItems, productContext, deliveryInfo = {
     deliveryInfo,
     summary: {
       itemCount: items.length,
-      totalQuantity: cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0)
+      totalQuantity: cartItems.reduce((sum, item) => sum + getQuantity(item), 0)
     }
   }
 }

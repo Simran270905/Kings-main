@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { loadRazorpay } from '@utils/razorpay'
 import { useCart } from '../../context/useCart'
-import { useCustomerOrder } from '../../context/CustomerOrderContext'
-import { useContext } from 'react'
-import { AuthContext } from '../../context/AuthContext'
+import { useOrder } from '../../context/useOrder'
+import { ShieldCheckIcon, LockClosedIcon, CreditCardIcon, TruckIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
-import { CreditCardIcon, BanknotesIcon, DevicePhoneMobileIcon, TicketIcon } from '@heroicons/react/24/outline'
 import { API_BASE_URL } from '@config/api.js'
+import { formatPrice, getSellingPrice, getOriginalPrice, getQuantity } from '../../utils/formatPrice.js'
 import { couponApi } from '../../../services/apiService'
 import { calculateTotalDiscount, getDiscountBadgeText, calculatePartialPayment, getPaymentPlanBadgeText } from '../../../utils/discountCalculator.js'
 import PaymentPlanSelector from './PaymentPlanSelector.jsx'
@@ -200,14 +200,14 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
         items: cartItems.map(item => ({
           productId: item.id || item._id,
           name: item.title || item.name,
-          price: item.price || 0, // This should already be the correct price from cart
-          originalPrice: item.originalPrice || item.price || 0,
+          price: getSellingPrice(item), // Use safe selling price
+          originalPrice: getOriginalPrice(item),
           discountPercentage: item.discountPercentage || 0,
           isOnSale: item.isOnSale || false,
-          quantity: item.quantity,
+          quantity: getQuantity(item),
           selectedSize: item.selectedSize,
           image: item.image || item.images?.[0] || '',
-          subtotal: (item.price || 0) * item.quantity
+          subtotal: getSellingPrice(item) * getQuantity(item)
         })),
         // Add customer data directly for better storage
         user: {
@@ -457,12 +457,12 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
             {cartItems.map((item, index) => (
               <div key={index} className="flex flex-col gap-1 text-sm">
                 <div className="flex justify-between">
-                  <span>{item.title || item.name} x {item.quantity}</span>
+                  <span>{item.title || item.name} x {getQuantity(item)}</span>
                   <PriceDisplay 
-                    sellingPrice={(item.selling_price || item.price) * item.quantity}
-                    originalPrice={(item.originalPrice || item.purchasePrice) * item.quantity}
+                    sellingPrice={getSellingPrice(item) * getQuantity(item)}
+                    originalPrice={getOriginalPrice(item) * getQuantity(item)}
                     discount={item.discountPercentage || 0}
-                    showOriginalPrice={!!(item.originalPrice || item.purchasePrice)}
+                    showOriginalPrice={!!getOriginalPrice(item)}
                     showDiscountBadge={!!(item.discountPercentage || 0)}
                   />
                 </div>

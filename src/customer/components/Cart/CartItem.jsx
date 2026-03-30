@@ -3,6 +3,7 @@ import React from 'react'
 import { MinusIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { optimizeCloudinaryUrlWithSize } from '../../../utils/cloudinary'
 import PriceDisplay from '../Shared/PriceDisplay.jsx'
+import { formatPrice, getSellingPrice, getOriginalPrice, getQuantity, calculateItemTotal } from '../../../utils/formatPrice.js'
 
 export default function CartItem({
   item,
@@ -10,11 +11,12 @@ export default function CartItem({
   onDecrease,
   onRemove,
 }) {
-  // Use the correct field names from MongoDB schema
-  const price = item.sellingPrice || item.selling_price || item.price || 0
-  const originalPrice = item.originalPrice || item.original_price || 0
+  // Use safe price utilities
+  const price = getSellingPrice(item)
+  const originalPrice = getOriginalPrice(item)
+  const quantity = getQuantity(item)
   const discountPercentage = originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0
-  const itemTotal = price * (item.quantity || 1)
+  const itemTotal = calculateItemTotal(item)
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-4 flex gap-4 shadow-sm hover:shadow-md transition-shadow">
@@ -69,12 +71,12 @@ export default function CartItem({
           <div className="flex items-center gap-1 border-2 border-gray-200 rounded-xl overflow-hidden">
             <button
               onClick={() => onDecrease()}
-              disabled={item.quantity <= 1}
+              disabled={quantity <= 1}
               className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 disabled:opacity-30 transition-colors"
             >
               <MinusIcon className="h-3.5 w-3.5" />
             </button>
-            <span className="px-3 py-1.5 font-semibold text-sm min-w-[2rem] text-center">{item.quantity}</span>
+            <span className="px-3 py-1.5 font-semibold text-sm min-w-[2rem] text-center">{quantity}</span>
             <button
               onClick={() => onIncrease()}
               className="px-3 py-1.5 text-[#ae0b0b] hover:bg-red-50 transition-colors"
@@ -83,7 +85,7 @@ export default function CartItem({
             </button>
           </div>
 
-          <span className="font-bold text-gray-900">₹{(itemTotal || 0).toLocaleString()}</span>
+          <span className="font-bold text-gray-900">{formatPrice(itemTotal)}</span>
         </div>
       </div>
     </div>

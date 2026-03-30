@@ -6,15 +6,17 @@ import CartItem from './CartItem'
 import { ShoppingBagIcon, ArrowLeftIcon, ShieldCheckIcon, TruckIcon, TagIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 import PriceDisplay from '../Shared/PriceDisplay.jsx'
+import { formatPrice, getSellingPrice, getOriginalPrice, getQuantity, calculateCartTotal } from '../../utils/formatPrice.js'
 
 export default function Cart() {
   const { cartItems, increaseQty, decreaseQty, removeItem, totalPrice } = useCart()
 
-  // Calculate total discount from cart items
+  // Calculate total discount from cart items using safe utilities
   const totalDiscount = cartItems.reduce((sum, item) => {
-    const price = item.sellingPrice || item.selling_price || item.price || 0
-    const originalPrice = item.originalPrice || item.original_price || 0
-    return sum + (originalPrice > price ? (originalPrice - price) * item.quantity : 0)
+    const price = getSellingPrice(item)
+    const originalPrice = getOriginalPrice(item)
+    const quantity = getQuantity(item)
+    return sum + (originalPrice > price ? (originalPrice - price) * quantity : 0)
   }, 0)
   
   const totalAmount = totalPrice - totalDiscount
@@ -29,7 +31,7 @@ export default function Cart() {
     navigate('/checkout?step=1')
   }
 
-  const totalItems = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0)
+  const totalItems = cartItems.reduce((sum, item) => sum + getQuantity(item), 0)
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -100,7 +102,7 @@ export default function Cart() {
                   {totalDiscount > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Discount</span>
-                      <span className="font-medium">-₹{(totalDiscount || 0).toLocaleString()}</span>
+                      <span className="font-medium">-{formatPrice(totalDiscount)}</span>
                     </div>
                   )}
 
@@ -127,7 +129,7 @@ export default function Cart() {
                 {totalDiscount > 0 && (
                   <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2">
                     <TagIcon className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <p className="text-xs text-green-700 font-medium">You save ₹{(totalDiscount || 0).toLocaleString()} on this order!</p>
+                    <p className="text-xs text-green-700 font-medium">You save {formatPrice(totalDiscount)} on this order!</p>
                   </div>
                 )}
 

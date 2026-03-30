@@ -1,4 +1,5 @@
 import React, { createContext, useEffect, useState } from 'react'
+import { getSellingPrice, getQuantity, calculateCartTotal } from '../utils/formatPrice.js'
 
 export const CartContext = createContext({
   cart: [],
@@ -57,7 +58,7 @@ export function CartProvider({ children }) {
         return prev.map((p) =>
           String(p.id || p._id) === String(product.id || product._id) && 
           (p.selectedSize || null) === (product.selectedSize || null)
-            ? { ...p, quantity: p.quantity + qty }
+            ? { ...p, quantity: getQuantity(p) + qty }
             : p
         )
       }
@@ -68,7 +69,7 @@ export function CartProvider({ children }) {
         id: product.id || product._id, // Ensure id is set
         quantity: qty,
         // ✅ FIXED: Use consistent sellingPrice field
-        sellingPrice: product.sellingPrice || product.selling_price || product.price || 0,
+        sellingPrice: getSellingPrice(product),
         originalPrice: product.originalPrice || product.original_price || 0,
         selectedSize: product.selectedSize || null,
       }
@@ -82,7 +83,7 @@ export function CartProvider({ children }) {
     setCartItems((prev) =>
       prev.map((p) =>
         String(p.id || p._id) === String(id)
-          ? { ...p, quantity: Math.max(1, p.quantity + 1) }
+          ? { ...p, quantity: getQuantity(p) + 1 }
           : p
       )
     )
@@ -92,23 +93,19 @@ export function CartProvider({ children }) {
   const decreaseQty = (id) => {
     setCartItems((prev) =>
       prev.map((p) =>
-        String(p.id || p._id) === String(id) && p.quantity > 1
-          ? { ...p, quantity: p.quantity - 1 }
+        String(p.id || p._id) === String(id)
+          ? { ...p, quantity: Math.max(1, getQuantity(p) - 1) }
           : p
       )
     )
   }
 
-  // FIXED: Remove item from cart safely (considering size)
-  const removeItem = (id, size = null) => {
-    setCartItems((prev) => 
-      prev.filter((p) => 
-        !(String(p.id || p._id) === String(id) && (p.selectedSize || null) === (size || null))
-      )
-    )
+  // FIXED: Remove item with proper ID matching
+  const removeItem = (id) => {
+    setCartItems((prev) => prev.filter((p) => String(p.id || p._id) !== String(id)))
   }
 
-  // FIXED: Clear entire cart
+  // FIXED: Clear cart with localStorage cleanup
   const clearCart = () => {
     setCartItems([])
     // Also clear checkout data when cart is cleared
@@ -119,11 +116,8 @@ export function CartProvider({ children }) {
     }
   }
 
-  // FIXED: Calculate total price with consistent sellingPrice field
-  const totalPrice = cartItems.reduce((sum, item) => {
-    const itemPrice = item.sellingPrice || item.selling_price || item.price || 0
-    return sum + itemPrice * (item.quantity || 1)
-  }, 0)
+  // FIXED: Calculate total price with consistent sellingPrice field using safe utilities
+  const totalPrice = calculateCartTotal(cartItems)
 
   // FIXED: Listen for global add-to-cart events from other components
   useEffect(() => {
