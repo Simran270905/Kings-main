@@ -143,17 +143,17 @@ export default function OrderSuccess() {
                 <>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Advance Paid:</span>
-                    <span className="font-medium text-green-600">₹{orderData.advanceAmount?.toLocaleString('en-IN')}</span>
+                    <span className="font-medium text-green-600">₹{(orderData.advanceAmount || 0).toLocaleString('en-IN')}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Remaining Due:</span>
-                    <span className="font-medium text-orange-600">₹{orderData.remainingAmount?.toLocaleString('en-IN')}</span>
+                    <span className="font-medium text-orange-600">₹{(orderData.remainingAmount || 0).toLocaleString('en-IN')}</span>
                   </div>
                 </>
               )}
               {orderData.discountAmount > 0 && (
                 <div className="text-xs text-green-600 font-medium mt-1">
-                  You saved ₹{orderData.discountAmount?.toLocaleString('en-IN')}
+                  You saved ₹{(orderData.discountAmount || 0).toLocaleString('en-IN')}
                 </div>
               )}
             </div>

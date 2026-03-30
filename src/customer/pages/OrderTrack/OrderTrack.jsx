@@ -315,12 +315,12 @@ export default function OrderTrack() {
               <>
                 <div className="flex justify-between items-center mt-2">
                   <span className="font-medium text-gray-600">Advance Paid:</span>
-                  <span className="font-medium text-green-600">₹{orderData.advanceAmount?.toLocaleString('en-IN')} ✅</span>
+                  <span className="font-medium text-green-600">₹{(orderData.advanceAmount || 0).toLocaleString('en-IN')} ✅</span>
                 </div>
                 <div className="flex justify-between items-center mt-2">
                   <span className="font-medium text-gray-600">Remaining:</span>
                   <span className="font-medium text-orange-600">
-                    ₹{orderData.remainingAmount?.toLocaleString('en-IN')} 
+                    ₹{(orderData.remainingAmount || 0).toLocaleString('en-IN')} 
                     {orderData.remainingPaymentStatus === 'paid' ? ' ✅ Paid' : ' (Pending)'}
                   </span>
                 </div>

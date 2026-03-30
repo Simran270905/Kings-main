@@ -166,7 +166,7 @@ export const getProductStock = (product) => {
 
 // ✅ FORMATTING HELPERS
 export const formatPrice = (price) => {
-  if (typeof price !== "number" || isNaN(price)) {
+  if (typeof price !== "number" || isNaN(price) || price === null || price === undefined) {
     return "₹0";
   }
   

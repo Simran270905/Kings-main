@@ -255,7 +255,7 @@ export default function Orders() {
                       </div>
 
                       <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                        <span>Total: ₹{order.totalAmount?.toLocaleString('en-IN') || '0'}</span>
+                        <span>Total: ₹{(order.totalAmount || 0).toLocaleString('en-IN')}</span>
                         <span>Payment: {order.paymentMethod?.toUpperCase()}</span>
                       </div>
 
@@ -368,7 +368,7 @@ export default function Orders() {
                       </div>
 
                       <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                        <span>Total: ₹{order.totalAmount?.toLocaleString('en-IN') || '0'}</span>
+                        <span>Total: ₹{(order.totalAmount || 0).toLocaleString('en-IN')}</span>
                         <span>Payment: {order.paymentMethod?.toUpperCase()}</span>
                       </div>
 
