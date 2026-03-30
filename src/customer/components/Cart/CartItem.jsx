@@ -11,7 +11,7 @@ export default function CartItem({
   onRemove,
 }) {
   // Use the correct field names from MongoDB schema
-  const price = item.selling_price || item.price || 0
+  const price = item.sellingPrice || item.selling_price || item.price || 0
   const originalPrice = item.originalPrice || item.original_price || 0
   const discountPercentage = originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0
   const itemTotal = price * item.quantity

@@ -1,6 +1,7 @@
 'use client'
 
 import { memo } from 'react'
+import { Link } from 'react-router-dom'
 import { useCart } from '../../context/useCart'
 import { optimizeCloudinaryUrl } from '../../../utils/cloudinary'
 // ✅ IMPORT SHARED HELPERS
@@ -29,19 +30,20 @@ const HomeSectionCard = ({ product }) => {
   const { addToCart } = useCart()
 
   return (
-    <div
-      className="
-        group cursor-pointer
-        w-full max-w-60 sm:max-w-none
-        rounded-xl
-        bg-white
-        border border-gray-100
-        shadow-sm hover:shadow-lg
-        overflow-hidden
-        transition-all duration-300
-        hover:-translate-y-1
-      "
-    >
+    <Link to={`/product/${product._id || product.id}`} className="block">
+      <div
+        className="
+          group cursor-pointer
+          w-full max-w-60 sm:max-w-none
+          rounded-xl
+          bg-white
+          border border-gray-100
+          shadow-sm hover:shadow-lg
+          overflow-hidden
+          transition-all duration-300
+          hover:-translate-y-1
+        "
+      >
       {/* ================= IMAGE ================= */}
       <div
         className="
@@ -121,6 +123,7 @@ const HomeSectionCard = ({ product }) => {
         <button
           onClick={(e) => {
             e.preventDefault()
+            e.stopPropagation() // Prevent navigation when clicking Add to Cart
             addToCart(product, 1)
           }}
           className="w-full rounded-md bg-[#ae0b0b] py-2 text-white font-medium hover:bg-[#8f0a0a] transition-colors"
@@ -129,6 +132,7 @@ const HomeSectionCard = ({ product }) => {
         </button>
       </div>
     </div>
+    </Link>
   )
 }
 

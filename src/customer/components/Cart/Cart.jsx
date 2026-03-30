@@ -12,7 +12,7 @@ export default function Cart() {
 
   // Calculate total discount from cart items
   const totalDiscount = cartItems.reduce((sum, item) => {
-    const price = item.selling_price || item.price || 0
+    const price = item.sellingPrice || item.selling_price || item.price || 0
     const originalPrice = item.originalPrice || item.original_price || 0
     return sum + (originalPrice > price ? (originalPrice - price) * item.quantity : 0)
   }, 0)

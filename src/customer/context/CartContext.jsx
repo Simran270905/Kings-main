@@ -62,15 +62,14 @@ export function CartProvider({ children }) {
         )
       }
       
-      // FIXED: Ensure required fields are present
+      // FIXED: Ensure required fields are present with consistent field names
       const newItem = {
         ...product,
         id: product.id || product._id, // Ensure id is set
         quantity: qty,
-        // Add default values if missing
-        selling_price: product.selling_price || product.price || 0,
-        price: product.price || 0,
-        originalPrice: product.originalPrice || product.original_price || product.selling_price || product.price || 0,
+        // ✅ FIXED: Use consistent sellingPrice field
+        sellingPrice: product.sellingPrice || product.selling_price || product.price || 0,
+        originalPrice: product.originalPrice || product.original_price || 0,
         selectedSize: product.selectedSize || null,
       }
       
@@ -120,9 +119,9 @@ export function CartProvider({ children }) {
     }
   }
 
-  // FIXED: Calculate total price with consistent pricing
+  // FIXED: Calculate total price with consistent sellingPrice field
   const totalPrice = cartItems.reduce((sum, item) => {
-    const itemPrice = item.selling_price || item.price || 0
+    const itemPrice = item.sellingPrice || item.selling_price || item.price || 0
     return sum + itemPrice * item.quantity
   }, 0)
 
