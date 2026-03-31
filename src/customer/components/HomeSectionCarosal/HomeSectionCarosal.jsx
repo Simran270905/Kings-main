@@ -1,22 +1,30 @@
 'use client'
 
-import React, { useRef, useState, useCallback } from 'react'
-import AliceCarousel from 'react-alice-carousel'
+import React, { useRef } from 'react'
 import HomeSectionCard from '../HomeSectionCard/HomeSectionCard'
 import CategoryHeader from '../CategoryHeader/CategoryHeader'
 import { Link } from 'react-router-dom'
-import { Button } from '@mui/material'
-import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft'
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight'
 
 const HomeSectionCarousel = ({ data, sectionName, showExploreButton = true }) => {
-  const [activeIndex, setActiveIndex] = useState(0)
-  const carouselRef = useRef(null)
+  const scrollRef = useRef(null)
 
-  const responsive = {
-    0: { items: 2 },
-    640: { items: 3 },
-    1024: { items: 4 },
+  // Scroll functions for manual navigation
+  const scrollLeft = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({
+        left: -300,
+        behavior: "smooth"
+      })
+    }
+  }
+
+  const scrollRight = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({
+        left: 300,
+        behavior: "smooth"
+      })
+    }
   }
 
   // ================= DATA =================
@@ -26,126 +34,96 @@ const HomeSectionCarousel = ({ data, sectionName, showExploreButton = true }) =>
     isOnSale: index === 2 || index === 6,
   }))
 
-  const items = products.map((item, index) => (
-    <div key={index} className="px-3 lg:px-4">
-      <Link to={`/product/${item.id}`}> 
-        <HomeSectionCard product={item} />
-      </Link>
-    </div>
-  ))
-
   // Grid layout for small counts (avoids AliceCarousel stretch)
   if (products.length <= 3) {
     return (
-      <section className="relative w-full px-4 sm:px-6 lg:px-14 py-12 lg:py-16 bg-gradient-to-b from-[#ffffff] via-[#fffaf3] to-[#fdf6ec]">
+      <section className="relative w-full px-3 sm:px-4 md:px-6 lg:px-8 xl:px-14 py-12 lg:py-16 bg-gradient-to-b from-[#ffffff] via-[#fffaf3] to-[#fdf6ec]">
         <div className="mb-8 lg:mb-12 flex items-center justify-between">
           <Link to={`/shop/${String(sectionName).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')}`} className="text-sm font-medium text-[#ae0b0b] hidden sm:inline-flex">Explore →</Link>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 lg:gap-6">
-          {products.map((item, index) => (
-            <Link key={index} to={`/product/${item.id}`}>
-              <HomeSectionCard product={item} />
-            </Link>
-          ))}
+        <div className="relative">
+          {/* LEFT BUTTON */}
+          <button
+            onClick={scrollLeft}
+            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg p-2 rounded-full hover:bg-gray-100 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          {/* SCROLLABLE ROW */}
+          <div
+            ref={scrollRef}
+            className="flex overflow-x-auto gap-4 scroll-smooth snap-x snap-mandatory scrollbar-hide pb-2"
+          >
+            {products.map((item, index) => (
+              <div key={index} className="flex-shrink-0 w-[50%] sm:w-[50%] md:w-[33.33%] lg:w-[25%] snap-start">
+                <Link to={`/product/${item.id}`}>
+                  <HomeSectionCard product={item} />
+                </Link>
+              </div>
+            ))}
+          </div>
+
+          {/* RIGHT BUTTON */}
+          <button
+            onClick={scrollRight}
+            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg p-2 rounded-full hover:bg-gray-100 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
       </section>
     )
   }
 
-  // ================= HANDLERS =================
-  const handleNext = useCallback(() => {
-    carouselRef.current?.slideNext()
-  }, [])
-
-  const handlePrev = useCallback(() => {
-    carouselRef.current?.slidePrev()
-  }, [])
-
-  // ================= KEYBOARD SUPPORT =================
-  const handleKeyDown = useCallback(
-    (e) => {
-      if (e.key === 'ArrowRight') {
-        handleNext()
-      }
-      if (e.key === 'ArrowLeft') {
-        handlePrev()
-      }
-    },
-    [handleNext, handlePrev]
-  )
-
   return (
     <section
-      className="relative w-full px-4 sm:px-6 lg:px-14 py-12 lg:py-16 bg-gradient-to-b from-[#ffffff] via-[#fffaf3] to-[#fdf6ec]"
+      className="relative w-full px-3 sm:px-4 md:px-6 lg:px-8 xl:px-14 py-12 lg:py-16 bg-gradient-to-b from-[#ffffff] via-[#fffaf3] to-[#fdf6ec]"
     >
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#f3e6cf]/20 via-transparent to-[#f3e6cf]/20" />
 
       {/* ================= HEADING ================= */}
       <CategoryHeader title={sectionName} showExploreButton={showExploreButton} />
 
-      {/* ================= CAROUSEL ================= */}
-      <div
-        className="relative outline-none"
-        tabIndex={0}                // ✅ focusable
-        onKeyDown={handleKeyDown}   // ✅ keyboard arrows
-        aria-label={`${sectionName} product carousel`}
-      >
-        <AliceCarousel
-          ref={carouselRef}
-          items={items}
-          disableButtonsControls
-          disableDotsControls
-          responsive={responsive}
-          activeIndex={activeIndex}
-          onSlideChanged={(e) => setActiveIndex(e.item)}
-          stagePadding={{ paddingLeft: 16, paddingRight: 16 }}
-        />
-
-        {/* NEXT */}
-        <Button
-          onClick={handleNext}
-          aria-label="Next products"
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            right: '-2.5rem',
-            transform: 'translateY(-50%)',
-            minWidth: 48,
-            width: 48,
-            height: 48,
-            borderRadius: '50%',
-            backgroundColor: 'rgba(255,250,240,0.95)',
-            backdropFilter: 'blur(8px)',
-            boxShadow: '0 12px 28px rgba(180,140,90,0.25)',
-            color: '#7a2e2e',
-            '&:hover': { backgroundColor: '#b91c1c', color: '#fff' },
-          }}
+      {/* ================= HORIZONTAL SCROLL CAROUSEL ================= */}
+      <div className="relative outline-none">
+        {/* LEFT BUTTON */}
+        <button
+          onClick={scrollLeft}
+          className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg p-2 rounded-full hover:bg-gray-100 transition-colors"
         >
-          <KeyboardArrowRightIcon />
-        </Button>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
 
-        {/* PREV */}
-        <Button
-          onClick={handlePrev}
-          aria-label="Previous products"
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '-2.5rem',
-            transform: 'translateY(-50%)',
-            minWidth: 48,
-            width: 48,
-            height: 48,
-            borderRadius: '50%',
-            backgroundColor: 'rgba(255,250,240,0.95)',
-            backdropFilter: 'blur(8px)',
-            boxShadow: '0 12px 28px rgba(0,0,0,0.25)',
-            color: '#7a2e2e',
-            '&:hover': { backgroundColor: '#b91c1c', color: '#fff' },
-          }}
+        {/* SCROLLABLE ROW */}
+        <div
+          ref={scrollRef}
+          className="flex overflow-x-auto gap-4 scroll-smooth snap-x snap-mandatory scrollbar-hide pb-2"
         >
-          <KeyboardArrowLeftIcon />
-        </Button>
+          {products.map((item, index) => (
+            <div key={index} className="flex-shrink-0 w-[50%] sm:w-[50%] md:w-[33.33%] lg:w-[25%] snap-start">
+              <Link to={`/product/${item.id}`}>
+                <HomeSectionCard product={item} />
+              </Link>
+            </div>
+          ))}
+        </div>
+
+        {/* RIGHT BUTTON */}
+        <button
+          onClick={scrollRight}
+          className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg p-2 rounded-full hover:bg-gray-100 transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
       </div>
     </section>
   )

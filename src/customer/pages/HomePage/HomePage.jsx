@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, lazy, Suspense, useEffect, useState, useMemo } from 'react'
+import { memo, lazy, Suspense, useEffect, useState, useMemo, useRef } from 'react'
 import MainCarosal from '../../components/HomeCarosal/MainCarosal'
 import HomeSectionCarosal from '../../components/HomeSectionCarosal/HomeSectionCarosal'
 import HomeSectionCard from '../../components/HomeSectionCard/HomeSectionCard'
@@ -18,6 +18,28 @@ function HomePage() {
   const [categories, setCategories] = useState([])
   const [productsByCategory, setProductsByCategory] = useState({})
   const [loading, setLoading] = useState(true)
+  const scrollRefs = useRef({})
+
+  // Scroll functions for manual navigation
+  const scrollLeft = (categoryId) => {
+    const scrollRef = scrollRefs.current[categoryId]
+    if (scrollRef) {
+      scrollRef.scrollBy({
+        left: -300,
+        behavior: "smooth"
+      })
+    }
+  }
+
+  const scrollRight = (categoryId) => {
+    const scrollRef = scrollRefs.current[categoryId]
+    if (scrollRef) {
+      scrollRef.scrollBy({
+        left: 300,
+        behavior: "smooth"
+      })
+    }
+  }
 
   // Fetch categories and their products
   useEffect(() => {
@@ -98,7 +120,7 @@ function HomePage() {
   // Show loading state
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>
+      <div className="text-center py-8 sm:py-10 md:py-12 text-gray-500">
         Loading collections...
       </div>
     )
@@ -110,65 +132,63 @@ function HomePage() {
       <MainCarosal />
 
       {/* ================= DYNAMIC CATEGORY SECTIONS ================= */}
-      <div className="bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto space-y-8">
+      <div className="bg-gray-50 py-8 sm:py-10 md:py-12 px-2 sm:px-4 md:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
           {categories.map(cat => {
             const catProducts = productsByCategory[cat._id];
             if (!catProducts || catProducts.length === 0) return null;
 
             return (
-              <div key={cat._id} style={{
-                background: '#faf9f6',
-                borderRadius: '16px',
-                padding: '30px 20px',
-                marginBottom: '40px'
-              }}>
+              <div key={cat._id} className="bg-[#faf9f6] rounded-2xl p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 md:mb-10">
                 {/* Category Heading Row */}
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  marginBottom: '24px'
-                }}>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-0 mb-4 sm:mb-6">
                   <div>
-                    <h2 style={{
-                      fontSize: '28px',
-                      fontWeight: '700',
-                      color: '#c0392b',
-                      margin: '0 0 8px 0',
-                      textTransform: 'capitalize'
-                    }}>
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#c0392b] mb-2 capitalize">
                       {cat.name}
                     </h2>
-                    <div style={{
-                      width: '50px',
-                      height: '3px',
-                      backgroundColor: '#c0392b',
-                      borderRadius: '2px'
-                    }} />
+                    <div className="w-12 h-0.5 sm:w-16 sm:h-1 bg-[#c0392b] rounded-sm" />
                   </div>
                   <a 
                     href={`/shop?category=${cat._id}`}
-                    style={{
-                      color: '#c0392b',
-                      fontWeight: '500',
-                      fontSize: '15px',
-                      textDecoration: 'none'
-                    }}
+                    className="text-[#c0392b] font-medium text-sm hover:underline self-start sm:self-auto"
                   >
                     Explore →
                   </a>
                 </div>
 
                 {/* Products Grid */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-                  gap: '20px'
-                }}>
-                  {catProducts.map(product => (
-                    <HomeSectionCard key={product._id || product.id} product={product} />
-                  ))}
+                <div className="relative">
+                  {/* LEFT BUTTON */}
+                  <button
+                    onClick={() => scrollLeft(cat._id)}
+                    className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  {/* SCROLLABLE ROW */}
+                  <div
+                    ref={el => scrollRefs.current[cat._id] = el}
+                    className="flex overflow-x-auto gap-4 scroll-smooth snap-x snap-mandatory scrollbar-hide pb-2"
+                  >
+                    {catProducts.map(product => (
+                      <div key={product._id || product.id} className="flex-shrink-0 w-[50%] sm:w-[50%] md:w-[33.33%] lg:w-[25%] snap-start">
+                        <HomeSectionCard product={product} />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* RIGHT BUTTON */}
+                  <button
+                    onClick={() => scrollRight(cat._id)}
+                    className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
                 </div>
               </div>
             );
@@ -176,14 +196,14 @@ function HomePage() {
 
           {/* Show message if no categories have products */}
           {categories.length > 0 && Object.keys(productsByCategory).length === 0 && (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>
+            <div className="text-center py-8 sm:py-10 md:py-12 text-gray-500">
               No products available in any category at the moment.
             </div>
           )}
 
           {/* Show message if no categories */}
           {categories.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>
+            <div className="text-center py-8 sm:py-10 md:py-12 text-gray-500">
               No categories available at the moment.
             </div>
           )}
