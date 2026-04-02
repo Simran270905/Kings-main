@@ -29,6 +29,15 @@ import Orders from './customer/pages/Orders/Orders'
 import OrderTrack from './customer/pages/OrderTrack/OrderTrack'
 import TrackOrderPage from './customer/pages/TrackOrder/TrackOrderPage'
 
+// Legal Pages
+import PrivacyPolicy from './customer/pages/Legal/PrivacyPolicy'
+import TermsAndConditions from './customer/pages/Legal/TermsAndConditions'
+import RefundPolicy from './customer/pages/Legal/RefundPolicy'
+import ShippingPolicy from './customer/pages/Legal/ShippingPolicy'
+
+// Contact Page
+import Contact from './customer/pages/Contact/Contact'
+
 import AdminLogin from './admin/AdminLogin'
 import { AdminRoute } from './admin/AdminRoute'
 import ProtectedRoute from './customer/components/ProtectedRoute'
@@ -65,6 +74,7 @@ const HomePageEditor = lazy(() => import('./admin/layout/HomePageEditor'))
 const FooterEditor = lazy(() => import('./admin/layout/FooterEditor'))
 const OurStoryEditor = lazy(() => import('./admin/layout/OurStoryEditor'))
 const Pages = lazy(() => import('./admin/layout/Pages'))
+const ContactMessages = lazy(() => import('./admin/pages/ContactMessages'))
 const BrandsManagement = lazy(() => import('./admin/layout/BrandsManagement'))
 const CategoriesManagement = lazy(() => import('./admin/layout/CategoriesManagement'))
 const PaymentTracking = lazy(() => import('./admin/pages/PaymentTracking'))
@@ -116,6 +126,15 @@ const App = () => {
                     <Route path="/order-success" element={<CustomerLayout><OrderSuccess /></CustomerLayout>} />
                     <Route path="/orders/track" element={<CustomerLayout><TrackOrderPage /></CustomerLayout>} />
                     <Route path="/orders/track/:orderId" element={<CustomerLayout><OrderTrack /></CustomerLayout>} />
+
+                    {/* Legal Pages */}
+                    <Route path="/privacy-policy" element={<CustomerLayout><PrivacyPolicy /></CustomerLayout>} />
+                    <Route path="/terms-and-conditions" element={<CustomerLayout><TermsAndConditions /></CustomerLayout>} />
+                    <Route path="/refund-policy" element={<CustomerLayout><RefundPolicy /></CustomerLayout>} />
+                    <Route path="/shipping-policy" element={<CustomerLayout><ShippingPolicy /></CustomerLayout>} />
+
+                    {/* Contact Page */}
+                    <Route path="/contact" element={<CustomerLayout><Contact /></CustomerLayout>} />
 
                     {/* ================= DEBUG ROUTES ================= */}
                     <Route path="/debug/razorpay" element={<RazorpayTest />} />
@@ -209,6 +228,12 @@ const App = () => {
                     <Route
                       path="/admin/pages"
                       element={<AdminRoute><PagesWrapper /></AdminRoute>}
+                    />
+
+                    {/* Contact Messages */}
+                    <Route
+                      path="/admin/contact-messages"
+                      element={<AdminRoute><ContactMessagesWrapper /></AdminRoute>}
                     />
 
                     {/* Customers */}
@@ -356,6 +381,14 @@ const PagesWrapper = () => (
   <Suspense fallback={<LoadingFallback />}>
     <AdminOnlyLayout>
       <Pages />
+    </AdminOnlyLayout>
+  </Suspense>
+)
+
+const ContactMessagesWrapper = () => (
+  <Suspense fallback={<LoadingFallback />}>
+    <AdminOnlyLayout>
+      <ContactMessages />
     </AdminOnlyLayout>
   </Suspense>
 )

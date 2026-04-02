@@ -93,13 +93,15 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
       id: 'razorpay',
       name: 'Online Payment',
       icon: CreditCardIcon,
-      description: 'Credit Card, Debit Card, NetBanking'
+      description: 'Credit Card, Debit Card, NetBanking, UPI',
+      badge: 'Secure'
     },
     {
       id: 'upi',
       name: 'UPI Payment',
       icon: DevicePhoneMobileIcon,
-      description: 'Direct UPI Transfer'
+      description: 'Google Pay, PhonePe, Paytm & more',
+      badge: 'Instant'
     },
     {
       id: 'netbanking',
@@ -663,66 +665,80 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
               </div>
             </div>
           )}
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {paymentMethods.map((method) => {
-              const Icon = method.icon
-              const selected = selectedMethod === method.id
-              return (
-                <button
-                  key={method.id}
-                  onClick={() => setSelectedMethod(method.id)}
-                  className={`p-4 border-2 rounded-lg text-left transition-all shadow-sm ${
-                    selected
-                      ? 'border-[#ae0b0b] bg-[#ffe9e9] text-[#950000]' 
-                      : 'border-gray-200 bg-white text-gray-900 hover:border-[#ae0b0b] hover:text-[#ae0b0b]'
-                  }`}
-                >
-                  <Icon className={`h-8 w-8 mb-2 ${selected ? 'text-[#ae0b0b]' : 'text-[#ae0b0b]'}`} />
-                  <h3 className="font-bold text-lg">{method.name}</h3>
-                  <p className="text-sm font-medium">{method.description}</p>
-                </button>
-              )
-            })}
-          </div>
+
+        {/* Payment Methods */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {paymentMethods.map((method) => {
+            const Icon = method.icon
+            const selected = selectedMethod === method.id
+            return (
+              <button
+                key={method.id}
+                onClick={() => setSelectedMethod(method.id)}
+                className={`relative p-4 border-2 rounded-lg text-left transition-all ${
+                  selected
+                    ? 'border-[#ae0b0b] bg-[#fffaf3] shadow-md'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                }`}
+              >
+                <div className="flex items-start space-x-3">
+                  <Icon className="h-6 w-6 text-[#ae0b0b] mt-1" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">{method.name}</h3>
+                    <p className="text-sm text-gray-600 mt-1">{method.description}</p>
+                  </div>
+                  {method.badge && (
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      method.badge === 'Secure' 
+                        ? 'bg-green-100 text-green-800' 
+                        : method.badge === 'Instant'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {method.badge}
+                    </span>
+                  )}
+                </div>
+                {selected && (
+                  <div className="absolute top-2 right-2">
+                    <div className="w-4 h-4 bg-[#ae0b0b] rounded-full flex items-center justify-center">
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                )}
+              </button>
+            )
+          })}
         </div>
 
-        {/* Payment Plan Selector */}
-        <PaymentPlanSelector
-          selectedPlan={paymentPlan}
-          onPlanChange={setPaymentPlan}
-          totalAmount={totalPrice}
-          paymentMethod={selectedMethod}
-          paymentCalculation={paymentCalculation}
-          disabled={loading}
+{/* UPI/NetBanking Payment Details */}
+{(selectedMethod === 'razorpay' || selectedMethod === 'upi' || selectedMethod === 'netbanking') && (
+  <div className="bg-gray-50 p-6 rounded-lg mb-8">
+    <h2 className="text-xl font-semibold mb-4">
+      {selectedMethod === 'netbanking' ? 'NetBanking Payment Details' : 'UPI Payment Details'}
+    </h2>
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          {selectedMethod === 'netbanking' ? 'Account Number (Optional)' : 'UPI ID (Optional)'}
+        </label>
+        <input
+          type="text"
+          value={paymentDetails.upiId}
+          onChange={(e) => setPaymentDetails(prev => ({ ...prev, upiId: e.target.value }))}
+          placeholder={selectedMethod === 'netbanking' ? 'Enter your account number' : 'Enter your UPI ID (e.g., 9876543210@upi)'}
+          className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#ae0b0b]"
         />
-
-        {/* UPI/NetBanking Payment Details */}
-        {(selectedMethod === 'razorpay' || selectedMethod === 'upi' || selectedMethod === 'netbanking') && (
-          <div className="bg-gray-50 p-6 rounded-lg mb-8">
-            <h2 className="text-xl font-semibold mb-4">
-              {selectedMethod === 'netbanking' ? 'NetBanking Payment Details' : 'UPI Payment Details'}
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {selectedMethod === 'netbanking' ? 'Account Number (Optional)' : 'UPI ID (Optional)'}
-                </label>
-                <input
-                  type="text"
-                  value={paymentDetails.upiId}
-                  onChange={(e) => setPaymentDetails(prev => ({ ...prev, upiId: e.target.value }))}
-                  placeholder={selectedMethod === 'netbanking' ? 'Enter your account number' : 'Enter your UPI ID (e.g., 9876543210@upi)'}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#ae0b0b]"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {selectedMethod === 'netbanking' 
-                    ? 'Enter your account number for direct bank transfer (optional)'
-                    : 'Enter your UPI ID for direct UPI payment (optional)'
-                  }
-                </p>
-              </div>
-              {selectedMethod === 'upi' && (
+        <p className="text-xs text-gray-500 mt-1">
+          {selectedMethod === 'netbanking' 
+            ? 'Enter your account number for direct bank transfer (optional)'
+            : 'Enter your UPI ID for direct UPI payment (optional)'
+          }
+        </p>
+      </div>
+      {selectedMethod === 'upi' && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h4 className="font-semibold text-blue-800 mb-2">UPI Payment Instructions:</h4>
                   <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
@@ -748,6 +764,48 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           </div>
         )}
 
+        {/* Trust Badges & Security */}
+        <div className="bg-gray-50 p-6 rounded-lg mb-8">
+          <div className="text-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Secure & Trusted Payments</h3>
+            <p className="text-sm text-gray-600">Your payment information is encrypted and secure</p>
+          </div>
+          
+          <div className="flex flex-wrap justify-center items-center gap-6">
+            {/* Razorpay Badge */}
+            <div className="flex flex-col items-center">
+              <div className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold text-sm mb-1">
+                Powered by Razorpay
+              </div>
+              <p className="text-xs text-gray-500">PCI DSS Compliant</p>
+            </div>
+
+            {/* Security Indicators */}
+            <div className="flex items-center space-x-2">
+              <ShieldCheckIcon className="h-6 w-6 text-green-600" />
+              <span className="text-sm text-gray-700">256-bit SSL</span>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <LockClosedIcon className="h-6 w-6 text-green-600" />
+              <span className="text-sm text-gray-700">Encrypted</span>
+            </div>
+
+            {/* Payment Methods */}
+            <div className="flex items-center space-x-2">
+              <CreditCardIcon className="h-6 w-6 text-blue-600" />
+              <span className="text-sm text-gray-700">All Cards</span>
+            </div>
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <p className="text-xs text-center text-gray-500">
+              KKings Jewellery follows all RBI guidelines for digital payments. 
+              Your transactions are 100% secure and protected.
+            </p>
+          </div>
+        </div>
+
         {/* Action Buttons */}
         <div className="flex gap-4">
           <button
@@ -766,5 +824,6 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
         </div>
       </div>
     </div>
+  </div>
   )
 }

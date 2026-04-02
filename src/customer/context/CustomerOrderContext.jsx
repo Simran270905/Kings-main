@@ -40,10 +40,28 @@ export function CustomerOrderProvider({ children }) {
 
     try {
       logApiCall('/customers/orders/my-orders', 'GET')
+      
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 25000) // 25 second timeout
+      
       const response = await fetch(`${API_URL}/customers/orders/my-orders`, {
         headers: { Authorization: `Bearer ${token}` },
+        signal: controller.signal
       })
-      const body = await response.json()
+      
+      clearTimeout(timeoutId)
+      
+      // Handle empty response
+      const text = await response.text()
+      let body
+      try {
+        body = JSON.parse(text)
+      } catch (parseError) {
+        console.error(" DEBUG: Failed to parse JSON response:", text)
+        throw new Error('Invalid server response')
+      }
+      
       logApiResponse('/customers/orders/my-orders', body)
       
       console.log(" DEBUG: API Response status:", response.status)
@@ -59,7 +77,16 @@ export function CustomerOrderProvider({ children }) {
       setOrders(ordersData)
     } catch (err) {
       console.error(" DEBUG: Error fetching orders:", err)
-      setError(extractError(err) || 'Network error while loading orders')
+      
+      // Handle specific error types
+      if (err.name === 'AbortError') {
+        setError('Request timed out. Please try again.')
+      } else if (err.message && err.message.includes('Failed to fetch')) {
+        setError('Network connection failed. Please check your internet connection.')
+      } else {
+        setError(extractError(err) || 'Network error while loading orders')
+      }
+      
       setOrders([]) // Clear orders on error
     } finally {
       setLoading(false)
@@ -99,8 +126,21 @@ export function CustomerOrderProvider({ children }) {
     console.log("📦 localStorage keys:", Object.keys(localStorage))
     console.log("📦 Order data items count:", orderData?.items?.length || 0)
     
-    if (!orderData?.items?.length) return { success: false, error: 'Cart is empty' }
-    if (!token) return { success: false, error: 'Authentication required to place order' }
+    // Enhanced validation
+    if (!orderData) {
+      console.error("📦 Order creation error: No order data provided")
+      return { success: false, error: 'Order data is required' }
+    }
+    
+    if (!orderData?.items?.length) {
+      console.error("📦 Order creation error: Cart is empty")
+      return { success: false, error: 'Cart is empty' }
+    }
+    
+    if (!token) {
+      console.error("📦 Order creation error: No authentication token")
+      return { success: false, error: 'Authentication required to place order' }
+    }
 
     setLoading(true)
     setError(null)
@@ -113,14 +153,31 @@ export function CustomerOrderProvider({ children }) {
         'Authorization': `Bearer ${token}`
       }
       
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+      
       const response = await fetch(`${API_URL}/customers/orders`, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(orderData),
+        signal: controller.signal
       })
+      
+      clearTimeout(timeoutId)
 
       console.log("📦 Order API response status:", response.status)
-      const body = await response.json()
+      
+      // Handle empty response
+      const text = await response.text()
+      let body
+      try {
+        body = JSON.parse(text)
+      } catch (parseError) {
+        console.error("📦 Failed to parse JSON response:", text)
+        body = { message: 'Invalid server response' }
+      }
+      
       console.log("📦 Order API response:", body)
 
       if (!response.ok) {
@@ -149,9 +206,18 @@ export function CustomerOrderProvider({ children }) {
         return { success: false, error: body?.message || 'Unable to place order. Please try again.' }
       }
 
-      const orderData = body.order || body.data
-      setCurrentOrder(orderData)
-      await fetchUserOrders()
+      const createdOrder = body.order || body.data
+      if (!createdOrder) {
+        console.error("📦 No order data in response:", body)
+        return { success: false, error: 'Order was created but data is missing. Please contact support.' }
+      }
+      
+      setCurrentOrder(createdOrder)
+      
+      // Fetch orders in background without blocking
+      fetchUserOrders().catch(err => {
+        console.warn("📦 Failed to refresh orders after creation:", err)
+      })
 
       if (typeof clearCartFn === 'function') {
         clearCartFn()
@@ -159,11 +225,21 @@ export function CustomerOrderProvider({ children }) {
 
       window.dispatchEvent(new Event('ordersUpdated'))
 
-      console.log("📦 Order created successfully:", orderData)
-      return { success: true, order: orderData }
+      console.log("📦 Order created successfully:", createdOrder)
+      return { success: true, order: createdOrder }
     } catch (err) {
       console.error("📦 Order creation error:", err)
-      return { success: false, error: 'Network error while placing order' }
+      
+      // Handle specific error types
+      if (err.name === 'AbortError') {
+        return { success: false, error: 'Request timed out. Please try again.' }
+      }
+      
+      if (err.message && err.message.includes('Failed to fetch')) {
+        return { success: false, error: 'Network connection failed. Please check your internet connection.' }
+      }
+      
+      return { success: false, error: err.message || 'Network error while placing order' }
     } finally {
       setLoading(false)
     }

@@ -51,7 +51,7 @@ class ApiServiceErrorHandler {
     try {
       // Create AbortController for timeout
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 25000) // Increased to 25 second timeout
 
       const response = await fetch(url, {
         ...options,

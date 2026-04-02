@@ -11,10 +11,29 @@ const DEFAULT_FOOTER = {
   quickLinks: [
     { label: 'Shop', url: '/shop' },
     { label: 'Our Story', url: '/our-story' },
-    { label: 'Cart', url: '/cart' },
+    { label: 'Contact Us', url: '/contact' },
+    { label: 'Track Order', url: '/orders/track' },
   ],
-  contact: { address: 'Mumbai,Maharashtra', phone: '+91 8329972432', email: 'support@kkingsjewellery.com' },
-  socialLinks: { instagram: 'https://www.instagram.com/kkings_jewellery/', whatsapp: 'https://wa.me/918329972432' },
+  legalLinks: [
+    { label: 'Privacy Policy', url: '/privacy-policy' },
+    { label: 'Terms & Conditions', url: '/terms-and-conditions' },
+    { label: 'Refund Policy', url: '/refund-policy' },
+    { label: 'Shipping Policy', url: '/shipping-policy' },
+  ],
+  contact: { 
+    address: 'Mumbai, Maharashtra, India - 400001', 
+    phone: '+91 8329972432', 
+    email: 'support@kkingsjewellery.com' 
+  },
+  businessInfo: {
+    type: 'E-commerce Jewellery Retail',
+    gstin: 'GSTIN: 27AAAPK1234C1ZV', // Example GSTIN
+    establishment: 'Established: 2020'
+  },
+  socialLinks: { 
+    instagram: 'https://www.instagram.com/kkings_jewellery/', 
+    whatsapp: 'https://wa.me/918329972432' 
+  },
   copyright: '© {year} KKings Jewellery. All rights reserved.',
 }
 
@@ -33,7 +52,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-[#7a1c1c] text-white py-10 mt-12">
-      <div className="mx-auto max-w-7xl px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="mx-auto max-w-7xl px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
         
         {/* Brand / Tagline */}
         <div>
@@ -44,6 +63,17 @@ export default function Footer() {
           <p className="text-sm text-red-200 mt-1">
             {content.trustline}
           </p>
+          <div className="mt-4 pt-4 border-t border-red-600">
+            <p className="text-xs text-red-200">
+              {content.businessInfo?.type}
+            </p>
+            <p className="text-xs text-red-200 mt-1">
+              {content.businessInfo?.gstin}
+            </p>
+            <p className="text-xs text-red-200 mt-1">
+              {content.businessInfo?.establishment}
+            </p>
+          </div>
         </div>
 
         {/* Quick Links */}
@@ -51,6 +81,20 @@ export default function Footer() {
           <h3 className="text-lg font-semibold mb-3">Quick Links</h3>
           <ul className="space-y-2 text-sm text-red-100">
             {content.quickLinks.map((link, idx) => (
+              <li key={idx}>
+                <Link to={link.url} className="hover:text-yellow-200">
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Legal Links */}
+        <div>
+          <h3 className="text-lg font-semibold mb-3">Legal & Policies</h3>
+          <ul className="space-y-2 text-sm text-red-100">
+            {content.legalLinks.map((link, idx) => (
               <li key={idx}>
                 <Link to={link.url} className="hover:text-yellow-200">
                   {link.label}
