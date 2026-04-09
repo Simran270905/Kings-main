@@ -68,9 +68,6 @@ export default function Footer() {
               {content.businessInfo?.type}
             </p>
             <p className="text-xs text-red-200 mt-1">
-              {content.businessInfo?.gstin}
-            </p>
-            <p className="text-xs text-red-200 mt-1">
               {content.businessInfo?.establishment}
             </p>
           </div>

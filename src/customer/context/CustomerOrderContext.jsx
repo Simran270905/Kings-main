@@ -25,9 +25,6 @@ export function CustomerOrderProvider({ children }) {
 
   const fetchUserOrders = async () => {
     const token = getToken()
-    console.log(" DEBUG: Fetching user orders")
-    console.log(" DEBUG: Token exists:", !!token)
-    console.log(" DEBUG: Token preview:", token ? token.substring(0, 20) + "..." : "null")
     
     if (!token) {
       setOrders([])
@@ -58,26 +55,19 @@ export function CustomerOrderProvider({ children }) {
       try {
         body = JSON.parse(text)
       } catch (parseError) {
-        console.error(" DEBUG: Failed to parse JSON response:", text)
+        console.error("Failed to parse JSON response:", text)
         throw new Error('Invalid server response')
       }
       
       logApiResponse('/customers/orders/my-orders', body)
-      
-      console.log(" DEBUG: API Response status:", response.status)
-      console.log(" DEBUG: API Response body:", body)
 
       if (!response.ok) {
         throw new Error(extractError(body))
       }
 
       const ordersData = body.orders || body.data?.orders || []
-      console.log(" DEBUG: Extracted orders data:", ordersData)
-      console.log(" DEBUG: Orders count:", ordersData.length)
       setOrders(ordersData)
     } catch (err) {
-      console.error(" DEBUG: Error fetching orders:", err)
-      
       // Handle specific error types
       if (err.name === 'AbortError') {
         setError('Request timed out. Please try again.')
@@ -95,7 +85,6 @@ export function CustomerOrderProvider({ children }) {
 
   const fetchOrderDetails = async (orderId) => {
     const token = getToken()
-    console.log(" DEBUG: Fetching order details")
     console.log(" DEBUG: Token exists:", !!token)
     console.log(" DEBUG: Token preview:", token ? token.substring(0, 20) + "..." : "null")
     
@@ -266,10 +255,11 @@ export function CustomerOrderProvider({ children }) {
   }
 
   useEffect(() => {
-    if (getToken()) {
+    const token = getToken()
+    if (token && !loading) {
       fetchUserOrders()
     }
-  }, [])
+  }, []) // Empty dependency array - only run once on mount
 
   return (
     <CustomerOrderContext.Provider

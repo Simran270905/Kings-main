@@ -274,7 +274,11 @@ export function AuthProvider({ children }) {
         }
       }
 
+      // Update local state with fresh data from backend
       setUser(result.data)
+      
+      // Also update localStorage to keep in sync
+      localStorage.setItem('user', JSON.stringify(result.data))
 
       return {
         success: true,
@@ -289,7 +293,29 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // ✅ LOGOUT
+  // ✅ REFRESH USER PROFILE - Helper function to fetch latest data
+  const refetchUserProfile = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) return
+
+      const res = await fetch(`${API_BASE_URL}/customers/profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      const result = await res.json()
+      if (res.ok && result.data) {
+        setUser(result.data)
+        localStorage.setItem('user', JSON.stringify(result.data))
+      }
+    } catch (error) {
+      console.error('Failed to refetch user profile:', error)
+    }
+  }
+
+  // LOGOUT
   const logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')

@@ -9,6 +9,7 @@ import { AdminAuthProvider } from './admin/context/AdminAuthContext'
 import { OrderProvider } from './admin/context/OrderContext'
 import { EnhancedOrderProvider } from './admin/context/EnhancedOrderContext'
 import { AdminProductProvider } from './admin/context/AdminProductContext'
+import ScrollToTop from './components/ScrollToTop'
 
 import Navbar from './customer/components/navigation/Navbar'
 import Footer from './customer/components/Footer/Footer'
@@ -91,6 +92,7 @@ const CustomerLayout = ({ children }) => (
 const App = () => {
   return (
     <Router>
+      <ScrollToTop />
       <AdminAuthProvider>
         <OrderProvider>
           <EnhancedOrderProvider>
