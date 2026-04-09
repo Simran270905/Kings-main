@@ -10,182 +10,77 @@ const TermsAndConditions = () => {
           
           <div className="prose prose-sm max-w-none text-gray-600 space-y-6">
             <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">Acceptance of Terms</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">Introduction</h2>
               <p>
-                By accessing and using KKings Jewellery's website and services, you accept and 
-                agree to be bound by the terms and conditions of this Agreement. If you do not 
-                agree to abide by the above, please do not use this service.
-              </p>
-              <p className="text-sm text-gray-500">
-                Last updated: {new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}
+                These Terms and Conditions govern your use of this website and the purchase of products or services offered herein. By accessing or using this website, you agree to be bound by these terms.
               </p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">About KKings Jewellery</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">1. General Use</h2>
               <p>
-                KKings Jewellery is an Indian e-commerce platform specializing in premium jewellery 
-                products. We operate through our website kkingsjewellery.com and offer a curated 
-                collection of jewellery items including chains, rings, pendants, bracelets, and more.
+                By using this website, you confirm that you are at least 18 years old or are using the website under the supervision of a parent or legal guardian. All content on this website is for informational purposes only and is subject to change without notice.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">2. User Responsibilities</h2>
+              <p>
+                Users agree not to misuse the website by knowingly introducing viruses, trojans, or other malicious material. You must not attempt to gain unauthorized access to the server, database, or any part of the site.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">3. Product & Service Descriptions</h2>
+              <p>
+                All efforts are made to ensure accuracy in product descriptions, images, pricing, and availability. However, we do not warrant that product descriptions or other content are complete, current, or error-free.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">4. Order Acceptance & Cancellation</h2>
+              <p>
+                Placing an order does not constitute a confirmed order. We reserve the right to refuse or cancel any order for reasons including product availability, pricing errors, or suspected fraud. Orders may not be canceled or modified once placed unless stated in the return policy.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">5. Pricing and Payment</h2>
+              <p>
+                All prices are displayed in INR and are inclusive or exclusive of taxes as indicated. Payments must be made through secure and approved payment gateways. The website is not liable for payment gateway errors.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Intellectual Property</h2>
+              <p>
+                All text, graphics, logos, and images are the intellectual property of their respective owners. Unauthorized use or duplication is strictly prohibited.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">7. Limitation of Liability</h2>
+              <p>
+                Liability is limited to the value of the product purchased. We are not responsible for indirect or consequential damages arising from the use of this website.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">8. Governing Law</h2>
+              <p>
+                These terms shall be governed by and construed in accordance with the laws of India.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">9. Contact Information</h2>
+              <p>
+                For any queries regarding these Terms, please contact:
               </p>
               <div className="bg-gray-50 p-4 rounded mt-3">
-                <p><strong>Business Details:</strong></p>
-                <p>Company Name: KKings Jewellery</p>
-                <p>Business Type: E-commerce Jewellery Retail</p>
-                <p>Registered Address: Mumbai, Maharashtra, India</p>
-                <p>Email: support@kkingsjewellery.com</p>
-                <p>Phone: +91 8329972432</p>
-              </div>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">Products and Services</h2>
-              
-              <h3 className="text-lg font-medium text-gray-800 mb-2">Product Information</h3>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>All products are described with accurate specifications</li>
-                <li>Prices are inclusive of applicable taxes</li>
-                <li>Product images are for representation purposes</li>
-                <li>We reserve the right to modify product specifications without prior notice</li>
-              </ul>
-
-              <h3 className="text-lg font-medium text-gray-800 mb-2 mt-4">Pricing</h3>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>All prices are listed in Indian Rupees (INR)</li>
-                <li>Prices are subject to change without notice</li>
-                <li>We offer secure payment processing through Razorpay</li>
-                <li>Additional charges may apply for shipping and handling</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">User Account</h2>
-              
-              <h3 className="text-lg font-medium text-gray-800 mb-2">Registration</h3>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>You must provide accurate and complete information</li>
-                <li>You are responsible for maintaining account security</li>
-                <li>You must be at least 18 years old to create an account</li>
-                <li>One person or entity may hold only one account</li>
-              </ul>
-
-              <h3 className="text-lg font-medium text-gray-800 mb-2 mt-4">Account Responsibilities</h3>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Maintain confidentiality of account credentials</li>
-                <li>Provide accurate and up-to-date information</li>
-                <li>Accept responsibility for all activities under your account</li>
-                <li>Notify us immediately of unauthorized use</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">Orders and Payment</h2>
-              
-              <h3 className="text-lg font-medium text-gray-800 mb-2">Order Process</h3>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Orders are subject to product availability</li>
-                <li>We reserve the right to refuse or cancel orders</li>
-                <li>Order confirmation will be sent via email</li>
-                <li>Order details can be accessed through your account</li>
-              </ul>
-
-              <h3 className="text-lg font-medium text-gray-800 mb-2 mt-4">Payment Terms</h3>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Payment must be made in full at time of purchase</li>
-                <li>We accept payments through Razorpay secure gateway</li>
-                <li>All payment information is encrypted and secure</li>
-                <li>We do not store credit card information</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">Shipping and Delivery</h2>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>We ship to all major cities in India</li>
-                <li>Delivery timelines are estimates and not guaranteed</li>
-                <li>Shipping charges may apply based on location</li>
-                <li>We are not liable for delays beyond our control</li>
-                <li>Order tracking information will be provided</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">Returns and Refunds</h2>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Returns are accepted within 7 days of delivery</li>
-                <li>Products must be unused and in original packaging</li>
-                <li>Refunds will be processed to original payment method</li>
-                <li>Shipping charges for returns are non-refundable</li>
-                <li>Customized items are not eligible for return</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">Intellectual Property</h2>
-              <p>
-                All content on this website, including logos, images, text, and designs, 
-                is the property of KKings Jewellery and is protected by intellectual property laws. 
-                You may not use, reproduce, or distribute any content without our written permission.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">Prohibited Activities</h2>
-              <p>You agree not to:</p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Use the website for illegal purposes</li>
-                <li>Attempt to gain unauthorized access to our systems</li>
-                <li>Interfere with the proper working of the website</li>
-                <li>Post or transmit harmful or offensive content</li>
-                <li>Violate any applicable laws or regulations</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">Limitation of Liability</h2>
-              <p>
-                KKings Jewellery shall not be liable for any direct, indirect, incidental, or 
-                consequential damages arising from your use of our website or products. Our total 
-                liability shall not exceed the amount paid for the specific product in question.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">Dispute Resolution</h2>
-              <p>
-                Any disputes arising from these terms or your use of our services shall be governed 
-                by the laws of India and subject to the exclusive jurisdiction of courts in Mumbai, Maharashtra.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">Termination</h2>
-              <p>
-                We reserve the right to terminate or suspend your account and access to our services 
-                at our sole discretion, without notice, for conduct that we believe violates these 
-                terms or is harmful to other users or us.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">Changes to Terms</h2>
-              <p>
-                We reserve the right to modify these terms at any time. Changes will be effective 
-                immediately upon posting on our website. Your continued use of our services constitutes 
-                acceptance of any modified terms.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">Contact Information</h2>
-              <p>
-                If you have any questions about these Terms & Conditions, please contact us:
-              </p>
-              <div className="bg-gray-50 p-4 rounded mt-3">
-                <p><strong>KKings Jewellery</strong></p>
-                <p>Email: support@kkingsjewellery.com</p>
-                <p>Phone: +91 8329972432</p>
-                <p>Address: Mumbai, Maharashtra, India</p>
+                <p><strong>Name:</strong> K Kings Jewellery by Harsh Manoj Rawal</p>
+                <p><strong>Mobile:</strong> 9307229289</p>
+                <p><strong>Email:</strong> <a href="mailto:kkingsjewellery@gmail.com" className="text-[#ae0b0b] hover:text-[#8f0a0a]">kkingsjewellery@gmail.com</a></p>
               </div>
             </section>
           </div>

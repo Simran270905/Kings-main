@@ -10,127 +10,47 @@ const PrivacyPolicy = () => {
           
           <div className="prose prose-sm max-w-none text-gray-600 space-y-6">
             <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">Introduction</h2>
-              <p>
-                KKings Jewellery ("we," "our," or "us") is committed to protecting your privacy. 
-                This Privacy Policy explains how we collect, use, disclose, and safeguard your information 
-                when you visit our website kkingsjewellery.com and use our services.
-              </p>
-              <p className="text-sm text-gray-500">
-                Last updated: {new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}
-              </p>
-            </section>
-
-            <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-3">Information We Collect</h2>
-              
-              <h3 className="text-lg font-medium text-gray-800 mb-2">Personal Information</h3>
               <ul className="list-disc pl-6 space-y-1">
-                <li>Name and contact details (email, phone number)</li>
-                <li>Shipping and billing address</li>
-                <li>Payment information (processed securely by Razorpay)</li>
-                <li>Account credentials and authentication tokens</li>
-              </ul>
-
-              <h3 className="text-lg font-medium text-gray-800 mb-2 mt-4">Technical Information</h3>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>IP address and browser information</li>
-                <li>Device information and browsing behavior</li>
-                <li>Cookies and similar tracking technologies</li>
-                <li>Usage data and analytics</li>
+                <li><strong>Personal Information:</strong> Name, phone number, email, and shipping address.</li>
+                <li><strong>Payment Information:</strong> Processed securely via third-party gateways.</li>
+                <li><strong>Technical Data:</strong> IP address, browser type, and cookies.</li>
               </ul>
             </section>
 
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-3">How We Use Your Information</h2>
               <ul className="list-disc pl-6 space-y-1">
-                <li>Process and fulfill your orders</li>
-                <li>Provide customer support and respond to inquiries</li>
-                <li>Send transactional emails and order updates</li>
-                <li>Improve our website and services</li>
-                <li>Prevent fraud and ensure security</li>
-                <li>Comply with legal obligations</li>
+                <li>To process and deliver orders and send transactional updates.</li>
+                <li>To respond to customer service requests.</li>
+                <li>To improve website functionality and user experience.</li>
+                <li>For marketing (only with your explicit consent).</li>
               </ul>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">Information Sharing</h2>
-              <p>We do not sell, trade, or rent your personal information to third parties. We only share information:</p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>With payment processors (Razorpay) for secure payment processing</li>
-                <li>With shipping partners for order delivery</li>
-                <li>As required by law or to protect our rights</li>
-                <li>With trusted service providers under strict confidentiality agreements</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">Data Security</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">Data Sharing & Security</h2>
               <p>
-                We implement appropriate security measures to protect your information, including:
+                We do not sell or rent your data. Information is shared only with necessary partners (delivery/payment providers) to fulfill orders. While we implement security measures, no online transmission is 100% secure.
               </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>SSL encryption for data transmission</li>
-                <li>Secure payment processing through Razorpay</li>
-                <li>Regular security audits and updates</li>
-                <li>Restricted access to personal information</li>
-              </ul>
             </section>
 
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-3">Your Rights</h2>
-              <p>You have the right to:</p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Access and update your personal information</li>
-                <li>Request deletion of your account and data</li>
-                <li>Opt-out of marketing communications</li>
-                <li>Know what data we collect and how it's used</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">Cookies</h2>
               <p>
-                We use cookies to enhance your experience, analyze site traffic, and personalize content. 
-                You can control cookie settings through your browser preferences.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">Third-Party Links</h2>
-              <p>
-                Our website may contain links to third-party websites. We are not responsible for 
-                their privacy practices. Please review their privacy policies.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">Children's Privacy</h2>
-              <p>
-                Our services are not intended for children under 18. We do not knowingly collect 
-                personal information from children.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">Changes to This Policy</h2>
-              <p>
-                We may update this Privacy Policy from time to time. We will notify you of any 
-                material changes by posting the new policy on our website and updating the "last updated" date.
+                You may request access to or correction of your personal data and opt out of marketing communications at any time.
               </p>
             </section>
 
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-3">Contact Us</h2>
               <p>
-                If you have questions about this Privacy Policy or want to exercise your rights, 
-                please contact us:
+                If you have questions about your privacy or data, please reach out:
               </p>
               <div className="bg-gray-50 p-4 rounded mt-3">
-                <p><strong>KKings Jewellery</strong></p>
-                <p>Email: support@kkingsjewellery.com</p>
-                <p>Phone: +91 8329972432</p>
-                <p>Address: Mumbai, Maharashtra, India</p>
+                <p><strong>Name:</strong> K Kings Jewellery by Harsh Manoj Rawal</p>
+                <p><strong>Mobile:</strong> 9307229289</p>
+                <p><strong>Email:</strong> <a href="mailto:kkingsjewellery@gmail.com" className="text-[#ae0b0b] hover:text-[#8f0a0a]">kkingsjewellery@gmail.com</a></p>
               </div>
             </section>
           </div>
