@@ -1,12 +1,13 @@
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { AdminAuthContext } from './AdminAuthContextObject'
+import { useOrder } from './OrderContext'
 import adminApi from '../utils/adminApiService'
 
 export function AdminAuthProvider({ children }) {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false)
   const [adminLoading, setAdminLoading] = useState(true)
-  const [orderRefreshCallback, setOrderRefreshCallback] = useState(null)
+  const { setOrderRefreshCallback } = useOrder()
 
   // Production-ready: verify token on mount and on storage change
   useEffect(() => {

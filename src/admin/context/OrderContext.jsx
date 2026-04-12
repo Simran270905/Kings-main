@@ -1,6 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import adminApi from '../utils/adminApiService'
-import { useAdminAuth } from './useAdminAuth'
 import { extractData, extractPagination, logApiCall, logApiResponse } from '../../utils/dataExtractionHelper.js'
 import { API_BASE_URL } from '../../config/api.js'
 
@@ -19,7 +18,7 @@ const [orders, setOrders] = useState([])
 const [loading, setLoading] = useState(false)
 const [error, setError] = useState(null)
 const [lastFetch, setLastFetch] = useState(null)
-const { setOrderRefreshCallback } = useAdminAuth() || {}
+const [orderRefreshCallback, setOrderRefreshCallback] = useState(null)
 
 useEffect(() => {
   const token = localStorage.getItem('kk_admin_token')
@@ -120,6 +119,8 @@ orders,
 loading,
 error,
 lastFetch,
+orderRefreshCallback,
+setOrderRefreshCallback,
 fetchOrders,
 createOrder,
 updateOrderStatus,
