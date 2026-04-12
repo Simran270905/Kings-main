@@ -1,10 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-<<<<<<< HEAD
-import { useAuth } from "../../../context/useAuth";
-=======
 import { useAuth } from "../../context/useAuth";
->>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 import { ExclamationCircleIcon, UserIcon } from "@heroicons/react/24/outline";
 
 const Login = () => {

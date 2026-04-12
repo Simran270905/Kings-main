@@ -1,9 +1,5 @@
 import { Navigate } from 'react-router-dom'
-<<<<<<< HEAD
-import { useAuth } from '../../context/useAuth'
-=======
 import { useAuth } from '../context/useAuth'
->>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 
 export default function ProtectedRoute({ children, redirectTo = '/login' }) {
   const { isAuthenticated, loading } = useAuth()

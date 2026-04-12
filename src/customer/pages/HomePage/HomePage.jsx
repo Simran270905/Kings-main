@@ -4,13 +4,8 @@ import { memo, lazy, Suspense, useEffect, useState, useMemo, useRef } from 'reac
 import MainCarosal from '../../components/HomeCarosal/MainCarosal'
 import HomeSectionCarosal from '../../components/HomeSectionCarosal/HomeSectionCarosal'
 import HomeSectionCard from '../../components/HomeSectionCard/HomeSectionCard'
-<<<<<<< HEAD
-import { useProduct } from '../../../context/ProductContext'
-import { API_BASE_URL } from '../../../config/api.js'
-=======
 import { useProduct } from '../../context/ProductContext'
 import { API_BASE_URL } from '@config/api.js'
->>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 import { HomePageSkeleton, CategorySkeleton } from '../../../components/LoadingSkeletons.jsx'
 
 // Lazy-load non-critical sections

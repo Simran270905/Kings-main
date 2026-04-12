@@ -22,102 +22,88 @@ const [lastFetch, setLastFetch] = useState(null)
 const { setOrderRefreshCallback } = useAdminAuth() || {}
 
 useEffect(() => {
-const token = localStorage.getItem('kk_admin_token')
-if (token && token !== 'undefined') {
-fetchOrders()
-}
+  const token = localStorage.getItem('kk_admin_token')
+  if (token && token !== 'undefined') {
+    fetchOrders()
+  }
 
-```
-if (setOrderRefreshCallback) {
-  setOrderRefreshCallback(() => fetchOrders)
-}
-```
+  if (setOrderRefreshCallback) {
+    setOrderRefreshCallback(() => fetchOrders)
+  }
 
 }, [])
 
 const fetchOrders = async (silent = false) => {
-try {
-if (!silent) setLoading(true)
+  try {
+    if (!silent) setLoading(true)
 
-```
-  logApiCall('/orders', 'GET')
-  const data = await adminApi.getOrders()
-  logApiResponse('/orders', data)
+    logApiCall('/orders', 'GET')
+    const data = await adminApi.getOrders()
+    logApiResponse('/orders', data)
 
-  const newOrders = extractData(data)
+    const newOrders = extractData(data)
 
-  setOrders(newOrders)
-  setLastFetch(new Date())
-} catch (err) {
-  setError(err.message)
-  if (!silent) setOrders([])
-} finally {
-  if (!silent) setLoading(false)
-}
-```
-
+    setOrders(newOrders)
+    setLastFetch(new Date())
+  } catch (err) {
+    setError(err.message)
+    if (!silent) setOrders([])
+  } finally {
+    if (!silent) setLoading(false)
+  }
 }
 
 const createOrder = async (orderData) => {
-try {
-const token = localStorage.getItem('token')
+  try {
+    const token = localStorage.getItem('token')
 
-```
-  const res = await fetch(`${API_BASE_URL}/orders`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify(orderData)
-  })
+    const res = await fetch(`${API_BASE_URL}/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(orderData)
+    })
 
-  const data = await res.json()
-  if (!res.ok) throw new Error(data.message)
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.message)
 
-  return { success: true, order: data.data }
-} catch (err) {
-  return { success: false, error: err.message }
-}
-```
-
+    return { success: true, order: data.data }
+  } catch (err) {
+    return { success: false, error: err.message }
+  }
 }
 
 const updateOrderStatus = async (orderId, status) => {
-try {
-const res = await adminApi.updateOrderStatus(orderId, status)
+  try {
+    const res = await adminApi.updateOrderStatus(orderId, status)
 
-```
-  setOrders(prev =>
-    prev.map(o => (o._id === orderId ? res.data : o))
-  )
+    setOrders(prev =>
+      prev.map(o => (o._id === orderId ? res.data : o))
+    )
 
-  return { success: true }
-} catch (err) {
-  return { success: false, error: err.message }
-}
-```
-
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: err.message }
+  }
 }
 
 const deleteOrder = async (orderId) => {
-try {
-const token = localStorage.getItem('kk_admin_token')
+  try {
+    const token = localStorage.getItem('kk_admin_token')
 
-```
-  await fetch(`${API_BASE_URL}/orders/${orderId}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` }
-  })
+    await fetch(`${API_BASE_URL}/orders/${orderId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    })
 
-  setOrders(prev => prev.filter(o => o._id !== orderId))
+    setOrders(prev => prev.filter(o => o._id !== orderId))
 
-  return { success: true }
-} catch (err) {
-  return { success: false, error: err.message }
-}
-```
-
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: err.message }
+  }
 }
 
 const getStats = () => {

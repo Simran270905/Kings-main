@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Grid, TextField, Button, Box, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import toast from 'react-hot-toast';
-<<<<<<< HEAD
-import { API_BASE_URL } from '../../../config/api.js';
-=======
 import { API_BASE_URL } from '@config/api.js';
->>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 
 const API_URL = API_BASE_URL;
 
-// ✅ LOCALSTORAGE ADDRESS MANAGEMENT
+// LOCALSTORAGE ADDRESS MANAGEMENT
 const saveAddressToLocalStorage = (address) => {
     localStorage.setItem('savedAddress', JSON.stringify(address));
 };

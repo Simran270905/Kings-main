@@ -5,13 +5,8 @@ import toast from 'react-hot-toast'
 
 import { getAvailableSizes } from '../../utils/productSchemaNormalizer'
 import HomeSectionCard from '../HomeSectionCard/HomeSectionCard'
-<<<<<<< HEAD
-import { useCart } from '../../../context/useCart'
-import { API_BASE_URL } from '../../../config/api.js'
-=======
 import { useCart } from '../../context/useCart'
 import { API_BASE_URL } from '@config/api.js'
->>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 // ✅ IMPORT SHARED HELPERS
 import {
   getProductImage,

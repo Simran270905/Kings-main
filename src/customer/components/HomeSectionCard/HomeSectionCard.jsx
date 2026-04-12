@@ -2,11 +2,7 @@
 
 import { memo } from 'react'
 import { Link } from 'react-router-dom'
-<<<<<<< HEAD
-import { useCart } from '../../../context/useCart'
-=======
 import { useCart } from '../../context/useCart'
->>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 import { optimizeCloudinaryUrl } from '../../../utils/cloudinary'
 // ✅ IMPORT SHARED HELPERS
 import {

@@ -37,11 +37,7 @@ import {
 } from '@mui/material'
 
 // Import data extraction helper
-<<<<<<< HEAD
-import { extractData, logApiCall, logApiResponse } from '../../../utils/dataExtractionHelper.js'
-=======
-import { extractData, logApiCall, logApiResponse } from '../../utils/dataExtractionHelper.js'
->>>>>>> 4969c802b413d50e828a9e734372265fe263f995
+import { extractData, extractError, isSuccess, logApiCall, logApiResponse } from '../../utils/dataExtractionHelper.js'
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -97,6 +93,10 @@ export default function EnhancedOrders() {
     sortOrder: 'desc'
   })
 
+  // State for order details modal
+  const [selectedOrder, setSelectedOrder] = useState(null)
+  const [detailsLoading, setDetailsLoading] = useState(false)
+
   // Calculate stats from orders
   const stats = getStats()
 
@@ -129,10 +129,13 @@ export default function EnhancedOrders() {
   // Handle order details
   const handleViewDetails = async (orderId) => {
     try {
+      setDetailsLoading(true)
       const order = await getOrderDetails(orderId)
-      console.log(order)
+      setSelectedOrder(order)
     } catch (error) {
       console.error('Failed to fetch order details:', error)
+    } finally {
+      setDetailsLoading(false)
     }
   }
 
@@ -153,11 +156,35 @@ export default function EnhancedOrders() {
   // Handle export
   const handleExport = () => {
     try {
-      exportPaymentReports({
-        ...filters,
-        startDate: filters.startDate || '',
-        endDate: filters.endDate || ''
-      })
+      // Create CSV data from orders
+      const csvData = orders.map(order => ({
+        orderId: order._id,
+        customerName: `${order.customer?.firstName || ''} ${order.customer?.lastName || ''}`,
+        email: order.customer?.email || '',
+        totalAmount: order.totalAmount || 0,
+        paymentMethod: order.paymentMethod || 'unknown',
+        paymentStatus: order.paymentStatus || 'pending',
+        status: order.status || 'unknown',
+        createdAt: formatDate(order.createdAt)
+      }))
+      
+      // Convert to CSV
+      const headers = Object.keys(csvData[0] || {}).join(',')
+      const rows = csvData.map(row => 
+        Object.values(row).map(value => 
+          typeof value === 'string' && value.includes(',') ? `"${value}"` : value
+        ).join(',')
+      )
+      const csv = [headers, ...rows].join('\n')
+      
+      // Download CSV
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `orders-report-${new Date().toISOString().split('T')[0]}.csv`
+      a.click()
+      window.URL.revokeObjectURL(url)
     } catch (error) {
       console.error('Failed to export reports:', error)
       alert('Failed to export reports. Please try again.')
@@ -242,7 +269,7 @@ export default function EnhancedOrders() {
           </Paper>
           
           <Paper sx={{ p: 2, textAlign: 'center' }}>
-            < Typography variant="h6" color="text.gray-600">
+            <Typography variant="h6" color="text.gray-600">
               Pending Orders
             </Typography>
             <Typography variant="h4" color="warning.main">

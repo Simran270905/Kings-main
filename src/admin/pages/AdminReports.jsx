@@ -1,10 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import useRealAnalytics from '../hooks/useRealAnalytics'
-<<<<<<< HEAD
-import { useProduct } from '../../context/ProductContext'
-=======
-import { useProduct } from '../../customer/context/ProductContext'
->>>>>>> 4969c802b413d50e828a9e734372265fe263f995
+import { extractData, logApiCall, logApiResponse } from '../../utils/dataExtractionHelper.js'
 import { useOrder } from '../context/OrderContext'
 import AdminCard from '../layout/AdminCard'
 import AdminButton from '../layout/AdminButton'

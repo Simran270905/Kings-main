@@ -10,15 +10,9 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { Popover, Dialog, Transition } from '@headlessui/react'
-<<<<<<< HEAD
-import { useAuth } from '../../../context/useAuth'
-import { useCart } from '../../../context/useCart'
-import { API_BASE_URL } from '../../../config/api.js' // Fixed import path
-=======
 import { useAuth } from '../../context/useAuth'
 import { useCart } from '../../context/useCart'
-import { API_BASE_URL } from '@config/api.js' // Fixed import path
->>>>>>> 4969c802b413d50e828a9e734372265fe263f995
+import { API_BASE_URL } from '@config/api.js'
 
 // Inline formatPrice function to bypass import issues
 const getQuantity = (item) => {

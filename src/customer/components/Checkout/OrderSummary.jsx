@@ -1,19 +1,10 @@
 import React, { useState } from 'react'
-<<<<<<< HEAD
-import { useCart } from '../../../context/useCart'
-import { useNavigate } from 'react-router-dom'
-import { useProduct } from '../../../context/ProductContext'
-import { validateCartStock, processOrderAndDecrementStock } from '../../utils/checkoutValidation'
-import { useOrder } from '../../../context/useOrder'
-import { API_BASE_URL } from '../../../config/api.js'
-=======
 import { useCart } from '../../context/useCart'
 import { useNavigate } from 'react-router-dom'
 import { useProduct } from '../../context/ProductContext'
 import { validateCartStock, processOrderAndDecrementStock } from '../../utils/checkoutValidation'
 import { useOrder } from '../../context/useOrder'
 import { API_BASE_URL } from '@config/api.js'
->>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 import { recordSale } from '../../../admin/utils/analyticsStorage'
 import toast from 'react-hot-toast'
 

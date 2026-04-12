@@ -1,9 +1,5 @@
 // 🔐 Admin API Service - Centralized API integration with JWT authentication
-<<<<<<< HEAD
-import { API_BASE_URL } from '../../config/api.js'
-=======
 import { API_BASE_URL } from '@config/api.js'
->>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 import { events } from '../../utils/eventSystem.js'
 import { cache } from '../../utils/cacheManager.js'
 

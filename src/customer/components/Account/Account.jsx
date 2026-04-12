@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-<<<<<<< HEAD
-import { useAuth } from "../../../context/useAuth";
-import { useCustomerOrder } from "../../../context/CustomerOrderContext";
-=======
 import { useAuth } from "../../context/useAuth";
 import { useCustomerOrder } from "../../context/CustomerOrderContext";
->>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 import { UserCircleIcon, EnvelopeIcon, PhoneIcon, ShoppingBagIcon, ArrowRightOnRectangleIcon, ClockIcon, CheckCircleIcon, TruckIcon, XCircleIcon } from "@heroicons/react/24/outline";
 
 const Account = () => {

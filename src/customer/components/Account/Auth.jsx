@@ -1,14 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-<<<<<<< HEAD
-import { useAuth } from "../../../context/useAuth";
-import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
-import { API_BASE_URL } from "../../../config/api.js";
-=======
 import { useAuth } from "../../context/useAuth";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { API_BASE_URL } from "@config/api.js";
->>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 
 const Auth = () => {
   const navigate = useNavigate();

@@ -1,9 +1,5 @@
 import { useState, useEffect } from 'react'
-<<<<<<< HEAD
 import { useProduct } from '../../context/ProductContext'
-=======
-import { useProduct } from '../../customer/context/ProductContext'
->>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 import useRealAnalytics from '../hooks/useRealAnalytics'
 import AdminCard from './AdminCard'
 import AdminButton from './AdminButton'
