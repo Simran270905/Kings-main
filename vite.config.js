@@ -45,8 +45,8 @@ export default defineConfig({
           ],
           // Separate customer chunks
           customer: [
-            './src/customer/context/AuthContext.jsx',
-            './src/customer/context/ProductContext.jsx'
+            './src/context/AuthContext.jsx',
+            './src/context/ProductContext.jsx'
           ]
         }
       }
