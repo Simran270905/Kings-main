@@ -220,4 +220,3 @@ export const AdminProductProvider = ({ children }) => {
   )
 }
 
-export default AdminProductProvider
