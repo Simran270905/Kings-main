@@ -7,7 +7,7 @@ import { CustomerOrderProvider } from './context/CustomerOrderContext'
 import { AuthProvider } from './context/AuthContext'
 import { AdminAuthProvider } from './admin/context/AdminAuthContext'
 import { OrderProvider } from './admin/context/OrderContext'
-import { AdminProductProvider } from './admin/context/AdminProductContext'
+import AdminProductProvider from './admin/context/AdminProductContext' // ✅ FIXED IMPORT
 import { EnhancedOrderProvider } from './admin/context/EnhancedOrderContext'
 import ScrollToTop from './components/ScrollToTop'
 
@@ -90,9 +90,11 @@ const CustomerLayout = ({ children }) => (
 )
 
 const App = () => {
-  return (
-    <Router>
-      <ScrollToTop />
+return (
+  <Router>
+    <ScrollToTop />
+
+    <AuthProvider> 
       <AdminAuthProvider>
         <OrderProvider>
           <EnhancedOrderProvider>
@@ -264,18 +266,19 @@ const App = () => {
                           <Route path="*" element={<CustomerLayout><HomePage /></CustomerLayout>} />
                         </Routes>
                       </Suspense>
-                    </CartProvider>
-                  </ProductProvider>
-                </CustomerOrderProvider>
-              </AdminProductProvider>
-            </EnhancedOrderProvider>
-          </OrderProvider>
-        </AdminAuthProvider>
-      </Router>
-  )
-}
 
-export default App
+                  </CartProvider>
+                </ProductProvider>
+              </CustomerOrderProvider>
+            </AdminProductProvider>
+          </EnhancedOrderProvider>
+        </OrderProvider>
+      </AdminAuthProvider>
+    </AuthProvider>
+
+  </Router>
+)
+}
 
 // ================= WRAPPERS (CLEAN FIX) =================
 
@@ -422,3 +425,5 @@ const CategoriesWrapper = () => (
     </AdminOnlyLayout>
   </Suspense>
 )
+
+export default App
