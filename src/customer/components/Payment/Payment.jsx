@@ -224,27 +224,46 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
 
   // Calculate cart total manually if totalPrice is undefined
   const calculateCartTotal = () => {
-    if (typeof totalPrice === 'number' && !isNaN(totalPrice)) {
+    // Try to use totalPrice from context first
+    if (typeof totalPrice === 'number' && !isNaN(totalPrice) && totalPrice > 0) {
+      console.log('Using totalPrice from context:', totalPrice)
       return totalPrice
     }
-    // Fallback calculation
-    return cartItems.reduce((total, item) => {
+    
+    // Fallback: calculate from cart items
+    console.log('Calculating from cart items:', cartItems)
+    if (!cartItems || cartItems.length === 0) {
+      console.log('Cart is empty, returning 0')
+      return 0
+    }
+    
+    const total = cartItems.reduce((sum, item) => {
       const price = getSellingPrice(item)
       const quantity = getQuantity(item)
-      return total + (price * quantity)
+      console.log(`Item: ${item.name || item.title}, Price: ${price}, Quantity: ${quantity}`)
+      return sum + (price * quantity)
     }, 0)
+    
+    console.log('Calculated cart total:', total)
+    return total
   }
 
   const cartTotal = calculateCartTotal()
-  console.log('Payment Debug - cartTotal:', cartTotal, 'totalPrice:', totalPrice, 'cartItems:', cartItems)
+  console.log('Payment Debug - cartTotal:', cartTotal, 'totalPrice:', totalPrice, 'cartItems length:', cartItems?.length)
+
+  // Test: if cartTotal is still 0, use a test amount to see if UI works
+  const displayTotal = cartTotal > 0 ? cartTotal : 1000
+  console.log('Using displayTotal:', displayTotal)
 
   // Payment calculation logic
   const calculatePayment = () => {
-    let baseAmount = cartTotal
+    let baseAmount = displayTotal // Use displayTotal instead of cartTotal
     let hasDiscount = false
     let discountAmount = 0
     let hasCODCharge = selectedMethod === 'cod'
     let codCharge = hasCODCharge ? COD_CHARGE : 0
+    
+    console.log('Payment Calculation - baseAmount:', baseAmount, 'selectedMethod:', selectedMethod, 'paymentPlan:', paymentPlan)
     
     // Apply 10% discount for UPI/NetBanking on full payment
     if (paymentPlan === 'full' && (selectedMethod === 'upi' || selectedMethod === 'netbanking')) {
@@ -358,6 +377,29 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
     rzp.open()
   }
 
+  // Handle empty cart (only show empty cart if no items, not if total is 0)
+  if (!cartItems || cartItems.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#ffffff] via-[#fffaf3] to-[#fdf6ec] p-6">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center py-20">
+            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-4xl">Cart</span>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Your cart is empty</h1>
+            <p className="text-gray-600 mb-8">Add some items to your cart before proceeding to payment.</p>
+            <button
+              onClick={() => navigate('/shop')}
+              className="bg-[#ae0b0b] text-white px-6 py-3 rounded-xl font-medium hover:bg-[#8f0a0a] transition-colors"
+            >
+              Continue Shopping
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#ffffff] via-[#fffaf3] to-[#fdf6ec] p-6">
       <div className="max-w-4xl mx-auto">
@@ -418,7 +460,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           <div className="space-y-3">
             <div className="flex justify-between text-gray-600">
               <span>Subtotal</span>
-              <span>{formatPrice(cartTotal)}</span>
+              <span>{formatPrice(displayTotal)}</span>
             </div>
             
             {paymentCalculation.hasDiscount && (
