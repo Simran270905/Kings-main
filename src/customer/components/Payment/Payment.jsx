@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useCart } from '../../../context/useCart'
 import { AuthContext } from '../../../context/AuthContext'
 import { useCustomerOrder } from '../../../context/CustomerOrderContext'
+import { CreditCardIcon, InformationCircleIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 import { API_BASE_URL } from '../../../config/api.js'
 
@@ -14,6 +15,158 @@ const formatPrice = (value) => {
 
 const getSellingPrice = (item) => Number(item.sellingPrice || item.selling_price || 0) || 0
 const getQuantity = (item) => Number(item.quantity) || 1
+const safeNum = (value, fallback = 0) => {
+  const num = Number(value);
+  return isNaN(num) ? fallback : num;
+};
+
+// PaymentPlanSelector Component
+function PaymentPlanSelector({ 
+  selectedPlan, 
+  onPlanChange, 
+  totalAmount, 
+  paymentMethod,
+  paymentCalculation,
+  disabled = false 
+}) {
+  const handlePlanChange = (plan) => {
+    if (!disabled) {
+      onPlanChange(plan)
+    }
+  }
+
+  return (
+    <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
+      <div className="flex items-center gap-2 mb-4">
+        <CreditCardIcon className="h-5 w-5 text-gray-600" />
+        <h3 className="text-lg font-semibold text-gray-900">Payment Plan</h3>
+      </div>
+
+      <div className="space-y-3">
+        {/* Full Payment Option */}
+        <div
+          className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${
+            selectedPlan === 'full'
+              ? 'border-[#ae0b0b] bg-[#ffe9e9] text-[#950000]'
+              : 'border-gray-200 bg-white text-gray-900 hover:border-gray-300'
+          } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          onClick={() => handlePlanChange('full')}
+        >
+          <div className="flex items-center">
+            <div className="flex items-center h-5">
+              <input
+                type="radio"
+                name="paymentPlan"
+                value="full"
+                checked={selectedPlan === 'full'}
+                onChange={() => handlePlanChange('full')}
+                disabled={disabled}
+                className="h-4 w-4 text-[#ae0b0b] focus:ring-[#ae0b0b] border-gray-300"
+              />
+            </div>
+            <div className="ml-3 flex-1">
+              <label className="font-medium cursor-pointer">
+                Full Payment
+              </label>
+              <p className="text-sm text-gray-600 mt-1">
+                Pay the complete amount now
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="font-bold text-lg">{formatPrice(paymentCalculation.finalAmount)}</p>
+              <p className="text-xs text-gray-500">One-time payment</p>
+              {paymentCalculation.hasDiscount && (
+                <p className="text-xs text-green-600">10% discount applied</p>
+              )}
+              {paymentCalculation.hasCODCharge && (
+                <p className="text-xs text-orange-600">+Rs{safeNum(paymentCalculation.codCharge)} COD charge</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Partial Payment Option */}
+        <div
+          className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${
+            selectedPlan === 'partial'
+              ? 'border-[#ae0b0b] bg-[#ffe9e9] text-[#950000]'
+              : 'border-gray-200 bg-white text-gray-900 hover:border-gray-300'
+          } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          onClick={() => handlePlanChange('partial')}
+        >
+          <div className="flex items-center">
+            <div className="flex items-center h-5">
+              <input
+                type="radio"
+                name="paymentPlan"
+                value="partial"
+                checked={selectedPlan === 'partial'}
+                onChange={() => handlePlanChange('partial')}
+                disabled={disabled}
+                className="h-4 w-4 text-[#ae0b0b] focus:ring-[#ae0b0b] border-gray-300"
+              />
+            </div>
+            <div className="ml-3 flex-1">
+              <label className="font-medium cursor-pointer">
+                Partial Payment - Pay {paymentCalculation.advancePercent || 10}% now, {paymentCalculation.remainingPercent || 90}% later
+              </label>
+              <div className="mt-2 space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Pay Now ({paymentCalculation.advancePercent}%):</span>
+                  <span className="font-medium text-green-600">{formatPrice(paymentCalculation.advanceAmount)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Pay Later ({paymentCalculation.remainingPercent}%):</span>
+                  <span className="font-medium text-orange-600">{formatPrice(paymentCalculation.remainingAmount)}</span>
+                </div>
+                {paymentCalculation.hasCODCharge && (
+                  <p className="text-xs text-orange-600 mt-1">Includes Rs{safeNum(paymentCalculation.codCharge)} COD charge</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Partial Payment Info Note */}
+      {selectedPlan === 'partial' && (
+        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <div className="flex items-start gap-2">
+            <InformationCircleIcon className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-blue-800">
+              <p className="font-medium mb-1">Pay just 10% now, rest 90% later!</p>
+              <ul className="space-y-1 text-blue-700">
+                <li>Remaining amount must be paid before your order is shipped</li>
+                <li>For UPI/Netbanking: 10% discount applies first, then 10/90 split</li>
+                <li>For COD/Card: No discount, direct 10/90 split on original amount</li>
+                <li>You will receive a payment reminder for the remaining amount</li>
+                <li>Order processing begins after advance payment confirmation</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full Payment Note */}
+      {selectedPlan === 'full' && (
+        <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-3">
+          <div className="flex items-start gap-2">
+            <InformationCircleIcon className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-green-800">
+              <p className="font-medium mb-1">Benefits of Full Payment:</p>
+              <ul className="space-y-1 text-green-700">
+                <li>Eligible for 10% prepaid discount on UPI/NetBanking</li>
+                <li>Order processing starts immediately</li>
+                <li>No additional payment steps required</li>
+                <li>Faster order fulfillment</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 const API_URL = API_BASE_URL
 
@@ -67,10 +220,51 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
 
   const [deliveryAddress] = useState(propDeliveryAddress || location.state?.deliveryAddress || {})
   const [selectedMethod, setSelectedMethod] = useState('')
+  const [paymentPlan, setPaymentPlan] = useState('full')
   const [loading, setLoading] = useState(false)
 
-  // Calculate total amount with COD charge
-  const finalAmount = totalPrice + (selectedMethod === 'cod' ? COD_CHARGE : 0)
+  // Payment calculation logic
+  const calculatePayment = () => {
+    let baseAmount = totalPrice
+    let hasDiscount = false
+    let discountAmount = 0
+    let hasCODCharge = selectedMethod === 'cod'
+    let codCharge = hasCODCharge ? COD_CHARGE : 0
+    
+    // Apply 10% discount for UPI/NetBanking on full payment
+    if (paymentPlan === 'full' && (selectedMethod === 'upi' || selectedMethod === 'netbanking')) {
+      hasDiscount = true
+      discountAmount = baseAmount * 0.1
+      baseAmount = baseAmount * 0.9
+    }
+    
+    // Add COD charge
+    if (hasCODCharge) {
+      baseAmount += codCharge
+    }
+    
+    const finalAmount = baseAmount
+    
+    // For partial payment
+    const advancePercent = 10
+    const remainingPercent = 90
+    const advanceAmount = finalAmount * (advancePercent / 100)
+    const remainingAmount = finalAmount * (remainingPercent / 100)
+    
+    return {
+      finalAmount,
+      advanceAmount,
+      remainingAmount,
+      advancePercent,
+      remainingPercent,
+      hasDiscount,
+      discountAmount,
+      hasCODCharge,
+      codCharge
+    }
+  }
+  
+  const paymentCalculation = calculatePayment()
 
   const handlePayment = async () => {
     if (!selectedMethod) return toast.error('Select payment method')
@@ -85,8 +279,10 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
         price: getSellingPrice(item),
         quantity: getQuantity(item)
       })),
-      totalAmount: finalAmount,
-      paymentMethod: selectedMethod
+      totalAmount: paymentPlan === 'partial' ? paymentCalculation.advanceAmount : paymentCalculation.finalAmount,
+      paymentMethod: selectedMethod,
+      paymentPlan: paymentPlan,
+      remainingAmount: paymentPlan === 'partial' ? paymentCalculation.remainingAmount : 0
     }
 
     try {
@@ -132,9 +328,14 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
       name: 'KKings Jewellery',
       order_id: data.data.razorpayOrderId,
       handler: async (response) => {
-        toast.success('Payment successful')
+        toast.success(paymentPlan === 'partial' ? 'Advance payment successful!' : 'Payment successful!')
         clearCart()
         navigate('/order-success')
+      },
+      modal: {
+        ondismiss: function() {
+          toast.error('Payment cancelled')
+        }
       }
     };
 
@@ -185,23 +386,15 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           </div>
         </div>
 
-        {/* COD Charge Warning */}
-        {selectedMethod === 'cod' && (
-          <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-yellow-600 text-xs">!</span>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-yellow-800">
-                  Additional COD charge applied
-                </p>
-                <p className="text-sm text-yellow-700 mt-1">
-                  Extra amount of {formatPrice(COD_CHARGE)} will be added to your total
-                </p>
-              </div>
-            </div>
-          </div>
+        {/* Payment Plan Selector */}
+        {selectedMethod && (
+          <PaymentPlanSelector
+            selectedPlan={paymentPlan}
+            onPlanChange={setPaymentPlan}
+            totalAmount={totalPrice}
+            paymentMethod={selectedMethod}
+            paymentCalculation={paymentCalculation}
+          />
         )}
 
         {/* Order Summary */}
@@ -212,17 +405,46 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
               <span>Subtotal</span>
               <span>{formatPrice(totalPrice)}</span>
             </div>
-            {selectedMethod === 'cod' && (
-              <div className="flex justify-between text-yellow-600">
-                <span>COD Charge</span>
-                <span>+ {formatPrice(COD_CHARGE)}</span>
+            
+            {paymentCalculation.hasDiscount && (
+              <div className="flex justify-between text-green-600">
+                <span>10% Prepaid Discount</span>
+                <span>- {formatPrice(paymentCalculation.discountAmount)}</span>
               </div>
             )}
-            <div className="border-t pt-3">
-              <div className="flex justify-between text-lg font-bold text-gray-900">
-                <span>Total Amount</span>
-                <span>{formatPrice(finalAmount)}</span>
+            
+            {paymentCalculation.hasCODCharge && (
+              <div className="flex justify-between text-yellow-600">
+                <span>COD Charge</span>
+                <span>+ {formatPrice(paymentCalculation.codCharge)}</span>
               </div>
+            )}
+            
+            {paymentPlan === 'partial' && (
+              <>
+                <div className="border-t pt-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Pay Now ({paymentCalculation.advancePercent}%):</span>
+                    <span className="font-medium text-green-600">{formatPrice(paymentCalculation.advanceAmount)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mt-1">
+                    <span className="text-gray-600">Pay Later ({paymentCalculation.remainingPercent}%):</span>
+                    <span className="font-medium text-orange-600">{formatPrice(paymentCalculation.remainingAmount)}</span>
+                  </div>
+                </div>
+              </>
+            )}
+            
+            <div className={`border-t pt-3 ${paymentPlan === 'partial' ? 'mt-3' : ''}`}>
+              <div className="flex justify-between text-lg font-bold text-gray-900">
+                <span>{paymentPlan === 'partial' ? 'Amount Due Now:' : 'Total Amount:'}</span>
+                <span>{formatPrice(paymentPlan === 'partial' ? paymentCalculation.advanceAmount : paymentCalculation.finalAmount)}</span>
+              </div>
+              {paymentPlan === 'partial' && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Remaining {formatPrice(paymentCalculation.remainingAmount)} to be paid later
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -239,7 +461,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
             }
           `}
         >
-          {loading ? 'Processing...' : `Pay ${formatPrice(finalAmount)}`}
+          {loading ? 'Processing...' : `Pay ${formatPrice(paymentPlan === 'partial' ? paymentCalculation.advanceAmount : paymentCalculation.finalAmount)}`}
         </button>
       </div>
     </div>
