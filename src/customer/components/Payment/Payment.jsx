@@ -223,13 +223,20 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
   const [paymentPlan, setPaymentPlan] = useState('full')
   const [loading, setLoading] = useState(false)
 
+  // Debug: Check what totalPrice contains
+  console.log('Payment Debug - totalPrice:', totalPrice)
+  console.log('Payment Debug - cartItems:', cartItems)
+
   // Payment calculation logic
   const calculatePayment = () => {
-    let baseAmount = totalPrice
+    let baseAmount = Number(totalPrice) || 0
     let hasDiscount = false
     let discountAmount = 0
     let hasCODCharge = selectedMethod === 'cod'
     let codCharge = hasCODCharge ? COD_CHARGE : 0
+    
+    // Debug: Log calculation inputs
+    console.log('Payment Calculation - baseAmount:', baseAmount, 'selectedMethod:', selectedMethod, 'paymentPlan:', paymentPlan)
     
     // Apply 10% discount for UPI/NetBanking on full payment
     if (paymentPlan === 'full' && (selectedMethod === 'upi' || selectedMethod === 'netbanking')) {

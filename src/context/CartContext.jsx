@@ -146,6 +146,7 @@ export function CartProvider({ children }) {
     clearCart,
     getCartTotal: () => calculateCartTotal(cartItems),
     getCartCount: () => cartItems.reduce((sum, item) => sum + getQuantity(item), 0),
+    totalPrice: calculateCartTotal(cartItems),
     loading: false,
     error: null,
     // Helper method to check if item is in cart (considering size)
