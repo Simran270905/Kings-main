@@ -29,6 +29,8 @@ const HomeSectionCard = ({ product }) => {
   
   const { addToCart } = useCart()
   console.log('🛒 HomeSectionCard addToCart function:', typeof addToCart)
+  console.log('🛒 HomeSectionCard addToCart function name:', addToCart.name)
+  console.log('🛒 HomeSectionCard addToCart function toString:', addToCart.toString().substring(0, 100))
 
   return (
     <Link to={`/product/${product._id || product.id}`} className="block">

@@ -14,6 +14,8 @@ export const CartContext = createContext({
 })
 
 export function CartProvider({ children }) {
+  console.log('🛒🛒🛒 CartProvider RENDERED with children:', !!children)
+  
   // FIXED: Initialize cart from localStorage with proper error handling
   const [cartItems, setCartItems] = useState(() => {
     try {
