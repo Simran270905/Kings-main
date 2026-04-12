@@ -89,19 +89,14 @@ export const authApi = {
         console.log(' Login API - Token stored successfully');
       }
 
-      // Return the exact format expected by the UI
-      return {
-        token: response.data.data?.token,
-        user: response.data.data?.user,
-        success: true
-      };
+      // VERY IMPORTANT: RETURN THE ACTUAL RESPONSE DATA
+      return response.data.data;
       
     } catch (error) {
       console.error(' Login API Error:', error.response?.data || error.message);
       return {
         error: true,
-        message: error.response?.data?.message || error.message || 'Login failed',
-        success: false
+        message: error.response?.data?.message || error.message || 'Login failed'
       };
     }
   },

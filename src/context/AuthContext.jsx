@@ -176,59 +176,49 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // LOGIN (fixed with proper axios implementation)
+  // LOGIN (fixed with proper response.data return)
   const login = async (data) => {
     console.log('=== AUTHCONTEXT LOGIN FUNCTION START ===');
     console.log('Input data:', data);
     
     try {
-      // Import the auth API
-      const { authApi, validateLoginInput } = await import('../services/axiosApi.js');
+      // Import the new login function
+      const { login: loginService } = await import('../services/authService.js');
       
       // Get the input value (email or mobile)
       const inputValue = data.email || data.mobile || '';
       
-      // Validate the input (email or mobile)
-      const validation = validateLoginInput(inputValue);
-      if (!validation.valid) {
-        console.log('Login validation failed:', validation.error);
+      if (!inputValue) {
+        console.log('Login validation failed: No input provided');
         return {
           error: true,
-          message: validation.error
+          message: 'Email or mobile is required'
         };
       }
 
-      // Prepare payload based on input type - EXACTLY as specified
-      let payload;
-      if (/^\d{10}$/.test(inputValue)) {
-        payload = { mobile: inputValue };
-      } else {
-        payload = { email: inputValue };
-      }
-
-      console.log('Attempting login with payload:', payload);
+      console.log('Calling login service with identifier:', inputValue);
       
-      // Call the login API
-      const res = await authApi.login(payload);
-      console.log('Login API response:', res);
+      // Call the login service
+      const result = await loginService(inputValue);
+      console.log('Login service result:', result);
 
       // Handle response exactly as specified
-      if (!res || res.error) {
-        console.log('Login failed:', res?.message || 'Login failed');
+      if (!result || result.error) {
+        console.log('Login failed:', result?.message || 'Login failed');
         return {
           error: true,
-          message: res?.message || 'Login failed'
+          message: result?.message || 'Login failed'
         };
       }
 
       console.log('Login successful, updating state');
-      if (res.user) {
-        setUser(res.user);
+      if (result.user) {
+        setUser(result.user);
         setIsAuthenticated(true);
       }
       
-      // Return the exact format that matches the API response
-      return res;
+      // Return the actual response data
+      return result;
 
     } catch (error) {
       console.error('Login catch block - error:', error);

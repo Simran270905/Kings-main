@@ -26,44 +26,30 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      if (!identifier.trim()) {
-        throw new Error("Email or phone is required");
-      }
-
-      const value = identifier.trim();
+      const input = identifier.trim();
       
-      // Simple validation - let the API handle detailed validation
-      if (value.includes("@")) {
-        // Basic email format check
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(value)) {
-          throw new Error("Invalid email format");
-        }
-      } else {
-        // Basic phone check
-        const phoneDigits = value.replace(/\D/g, "");
-        if (!/^\d{10}$/.test(phoneDigits)) {
-          throw new Error("Phone must be 10 digits");
-        }
-      }
-
-      // Call login function with the identifier
-      console.log('About to call login with identifier:', value);
-      const res = await login({ email: value }); // API will handle email vs mobile
-      console.log('Login function returned:', res);
-
-      // Handle response exactly as specified
-      if (!res || res.error) {
-        console.log('Login failed, setting error:', res?.message || "Login failed");
-        setError(res?.message || "Login failed");
+      if (!input) {
+        setError("Please enter email or mobile");
         return;
       }
 
-      console.log('Login successful, navigating to account');
+      console.log('Calling login with:', input);
+
+      const result = await login({ email: input });
+
+      console.log('Login result:', result);
+
+      if (!result || result.error) {
+        setError(result?.message || "Login failed");
+        return;
+      }
+
+      // SUCCESS
+      console.log('Login success');
       navigate("/account");
 
     } catch (err) {
-      console.error(" Login error:", err.message);
+      console.error("Login error:", err.message);
       setError(err.message);
     } finally {
       setIsLoading(false);
