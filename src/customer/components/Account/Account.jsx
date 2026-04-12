@@ -46,7 +46,7 @@ const Account = () => {
     if (isAuthenticated && user) {
       fetchUserOrders();
     }
-  }, [isAuthenticated, user, fetchUserOrders]);
+  }, [isAuthenticated, user]); // Remove fetchUserOrders to prevent infinite loop
 
   return (
     <div className="min-h-screen bg-gray-50 py-10">
