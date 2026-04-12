@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useContext } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useCart } from '../../../context/useCart'
 import { AuthContext } from '../../../context/AuthContext'
@@ -19,6 +19,37 @@ const safeNum = (value, fallback = 0) => {
   const num = Number(value);
   return isNaN(num) ? fallback : num;
 };
+
+const API_URL = API_BASE_URL
+const COD_CHARGE = 50
+
+// Payment options
+const paymentOptions = [
+  { 
+    id: "upi", 
+    label: "UPI", 
+    description: "Pay using Google Pay, PhonePe, etc.",
+    icon: "UPI"
+  },
+  { 
+    id: "netbanking", 
+    label: "Net Banking", 
+    description: "All major banks supported",
+    icon: "Bank"
+  },
+  { 
+    id: "card", 
+    label: "Credit/Debit Card", 
+    description: "Visa, MasterCard, RuPay",
+    icon: "Card"
+  },
+  { 
+    id: "cod", 
+    label: "Cash on Delivery", 
+    description: "Pay when order arrives",
+    icon: "Cash"
+  }
+];
 
 // PaymentPlanSelector Component
 function PaymentPlanSelector({ 
@@ -168,8 +199,6 @@ function PaymentPlanSelector({
   )
 }
 
-const API_URL = API_BASE_URL
-
 // Razorpay loader
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -180,36 +209,6 @@ const loadRazorpayScript = () => {
     document.body.appendChild(script)
   })
 }
-
-// Payment options
-const paymentOptions = [
-  { 
-    id: "upi", 
-    label: "UPI", 
-    description: "Pay using Google Pay, PhonePe, etc.",
-    icon: "UPI"
-  },
-  { 
-    id: "netbanking", 
-    label: "Net Banking", 
-    description: "All major banks supported",
-    icon: "Bank"
-  },
-  { 
-    id: "card", 
-    label: "Credit/Debit Card", 
-    description: "Visa, MasterCard, RuPay",
-    icon: "Card"
-  },
-  { 
-    id: "cod", 
-    label: "Cash on Delivery", 
-    description: "Pay when order arrives",
-    icon: "Cash"
-  }
-];
-
-const COD_CHARGE = 50; // Additional charge for COD
 
 export default function Payment({ deliveryAddress: propDeliveryAddress, clearCart: propClearCart }) {
   const navigate = useNavigate()
@@ -223,20 +222,29 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
   const [paymentPlan, setPaymentPlan] = useState('full')
   const [loading, setLoading] = useState(false)
 
-  // Debug: Check what totalPrice contains
-  console.log('Payment Debug - totalPrice:', totalPrice)
-  console.log('Payment Debug - cartItems:', cartItems)
+  // Calculate cart total manually if totalPrice is undefined
+  const calculateCartTotal = () => {
+    if (typeof totalPrice === 'number' && !isNaN(totalPrice)) {
+      return totalPrice
+    }
+    // Fallback calculation
+    return cartItems.reduce((total, item) => {
+      const price = getSellingPrice(item)
+      const quantity = getQuantity(item)
+      return total + (price * quantity)
+    }, 0)
+  }
+
+  const cartTotal = calculateCartTotal()
+  console.log('Payment Debug - cartTotal:', cartTotal, 'totalPrice:', totalPrice, 'cartItems:', cartItems)
 
   // Payment calculation logic
   const calculatePayment = () => {
-    let baseAmount = Number(totalPrice) || 0
+    let baseAmount = cartTotal
     let hasDiscount = false
     let discountAmount = 0
     let hasCODCharge = selectedMethod === 'cod'
     let codCharge = hasCODCharge ? COD_CHARGE : 0
-    
-    // Debug: Log calculation inputs
-    console.log('Payment Calculation - baseAmount:', baseAmount, 'selectedMethod:', selectedMethod, 'paymentPlan:', paymentPlan)
     
     // Apply 10% discount for UPI/NetBanking on full payment
     if (paymentPlan === 'full' && (selectedMethod === 'upi' || selectedMethod === 'netbanking')) {
@@ -398,7 +406,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           <PaymentPlanSelector
             selectedPlan={paymentPlan}
             onPlanChange={setPaymentPlan}
-            totalAmount={totalPrice}
+            totalAmount={cartTotal}
             paymentMethod={selectedMethod}
             paymentCalculation={paymentCalculation}
           />
@@ -410,7 +418,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           <div className="space-y-3">
             <div className="flex justify-between text-gray-600">
               <span>Subtotal</span>
-              <span>{formatPrice(totalPrice)}</span>
+              <span>{formatPrice(cartTotal)}</span>
             </div>
             
             {paymentCalculation.hasDiscount && (
