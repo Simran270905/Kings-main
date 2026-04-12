@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+.carousel-image {
+  width: 100%;        /* fills the container */
+  max-width: 600px;   /* keeps a fixed max width for desktop */
+  height: auto;       /* maintains aspect ratio */
+  object-fit: cover;  /* avoids stretching */
+  display: block;
+  margin: 0 auto;     /* centers the image */
+}
+
+/* Hide scrollbar for horizontal scroll containers */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;     /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;             /* Safari and Chrome */
+}

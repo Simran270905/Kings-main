@@ -1,0 +1,10 @@
+# Production Environment Variables for Vercel
+# Copy these to your Vercel dashboard: Project Settings → Environment Variables
+
+VITE_API_URL=https://api.kkingsjewellery.com/api
+VITE_RAZORPAY_KEY=rzp_live_ScZU3xBVpGjz6I
+VITE_CLOUDINARY_CLOUD_NAME=dkbxrhe1v
+VITE_CLOUDINARY_UPLOAD_PRESET=kkings_uploads
+
+# Note: VITE_ prefix is required for frontend variables
+# These will be available in production as import.meta.env.VITE_API_URL
