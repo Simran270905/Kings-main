@@ -30,8 +30,11 @@ export const login = async (identifier) => {
       localStorage.setItem("token", response.data.data.token)
     }
 
-    // VERY IMPORTANT: RETURN DATA (backend returns {success, data: {user, token}})
-    return response.data.data
+    // VERY IMPORTANT: RETURN COMPLETE RESPONSE (backend returns {success, data: {user, token}})
+    return {
+      success: response.data.success,
+      ...response.data.data
+    }
 
   } catch (error) {
     console.error(" Login error full:", error)

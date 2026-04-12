@@ -203,7 +203,7 @@ export function AuthProvider({ children }) {
       console.log('Login service result:', result);
 
       // Handle response exactly as specified
-      if (!result || result.error) {
+      if (!result || !result.success) {
         console.log('Login failed:', result?.message || 'Login failed');
         return {
           error: true,
