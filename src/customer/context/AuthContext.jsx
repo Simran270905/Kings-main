@@ -179,6 +179,9 @@ export function AuthProvider({ children }) {
   // LOGIN (updated for no password)
   const login = async (data) => {
     try {
+      console.log('Attempting login with:', data.email);
+      console.log('API URL:', `${API_BASE_URL}/customers/login`);
+      
       const res = await fetch(`${API_BASE_URL}/customers/login`, {
         method: 'POST',
         headers: {
@@ -190,6 +193,8 @@ export function AuthProvider({ children }) {
       })
 
       const result = await res.json()
+      console.log('Login response:', result);
+      console.log('Response status:', res.status);
 
       if (!res.ok) {
         return {
