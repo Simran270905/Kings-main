@@ -221,6 +221,10 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
   const [selectedMethod, setSelectedMethod] = useState('')
   const [paymentPlan, setPaymentPlan] = useState('full')
   const [loading, setLoading] = useState(false)
+  const [couponCode, setCouponCode] = useState('')
+  const [appliedCoupon, setAppliedCoupon] = useState(null)
+  const [couponLoading, setCouponLoading] = useState(false)
+  const [couponError, setCouponError] = useState('')
 
   // Calculate cart total manually if totalPrice is undefined
   const calculateCartTotal = () => {
@@ -255,6 +259,66 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
   const displayTotal = cartTotal > 0 ? cartTotal : 1000
   console.log('Using displayTotal:', displayTotal)
 
+  // Coupon validation and application
+  const validateCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Please enter a coupon code')
+      return
+    }
+
+    setCouponLoading(true)
+    setCouponError('')
+
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${API_URL}/coupons/validate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          code: couponCode.trim().toUpperCase(),
+          totalAmount: displayTotal
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        setAppliedCoupon(data.coupon)
+        setCouponError('')
+        toast.success(`Coupon applied: ${data.coupon.discountType === 'percentage' ? data.coupon.discountValue + '%' : 'Rs' + data.coupon.discountValue} off`)
+      } else {
+        setCouponError(data.message || 'Invalid coupon code')
+        setAppliedCoupon(null)
+      }
+    } catch (error) {
+      setCouponError('Failed to validate coupon')
+      setAppliedCoupon(null)
+    } finally {
+      setCouponLoading(false)
+    }
+  }
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null)
+    setCouponCode('')
+    setCouponError('')
+    toast.info('Coupon removed')
+  }
+
+  // Calculate discount from applied coupon
+  const getCouponDiscount = () => {
+    if (!appliedCoupon) return 0
+    
+    if (appliedCoupon.discountType === 'percentage') {
+      return displayTotal * (appliedCoupon.discountValue / 100)
+    } else {
+      return appliedCoupon.discountValue
+    }
+  }
+
   // Payment calculation logic
   const calculatePayment = () => {
     let baseAmount = displayTotal // Use displayTotal instead of cartTotal
@@ -265,11 +329,20 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
     
     console.log('Payment Calculation - baseAmount:', baseAmount, 'selectedMethod:', selectedMethod, 'paymentPlan:', paymentPlan)
     
+    // Apply coupon discount first
+    const couponDiscount = getCouponDiscount()
+    if (couponDiscount > 0) {
+      hasDiscount = true
+      discountAmount += couponDiscount
+      baseAmount -= couponDiscount
+    }
+    
     // Apply 10% discount for UPI/NetBanking on full payment
     if (paymentPlan === 'full' && (selectedMethod === 'upi' || selectedMethod === 'netbanking')) {
       hasDiscount = true
-      discountAmount = baseAmount * 0.1
-      baseAmount = baseAmount * 0.9
+      const prepaidDiscount = baseAmount * 0.1
+      discountAmount += prepaidDiscount
+      baseAmount *= 0.9
     }
     
     // Add COD charge
@@ -294,7 +367,8 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
       hasDiscount,
       discountAmount,
       hasCODCharge,
-      codCharge
+      codCharge,
+      couponDiscount
     }
   }
   
@@ -316,7 +390,14 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
       totalAmount: paymentPlan === 'partial' ? paymentCalculation.advanceAmount : paymentCalculation.finalAmount,
       paymentMethod: selectedMethod,
       paymentPlan: paymentPlan,
-      remainingAmount: paymentPlan === 'partial' ? paymentCalculation.remainingAmount : 0
+      remainingAmount: paymentPlan === 'partial' ? paymentCalculation.remainingAmount : 0,
+      coupon: appliedCoupon ? {
+        code: appliedCoupon.code,
+        discountType: appliedCoupon.discountType,
+        discountValue: appliedCoupon.discountValue,
+        discountAmount: paymentCalculation.couponDiscount
+      } : null,
+      discountAmount: paymentCalculation.discountAmount
     }
 
     try {
@@ -443,6 +524,67 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           </div>
         </div>
 
+        {/* Coupon Section */}
+        <div className="mb-8 bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Coupon Code</h2>
+          <div className="space-y-4">
+            {appliedCoupon ? (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <span className="text-green-600 text-sm font-bold">%</span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-green-800">{appliedCoupon.code}</p>
+                      <p className="text-sm text-green-600">
+                        {appliedCoupon.discountType === 'percentage' 
+                          ? `${appliedCoupon.discountValue}% discount applied` 
+                          : `Rs${appliedCoupon.discountValue} discount applied`}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={removeCoupon}
+                    className="text-red-600 hover:text-red-700 text-sm font-medium"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={couponCode}
+                  onChange={(e) => {
+                    setCouponCode(e.target.value)
+                    setCouponError('')
+                  }}
+                  placeholder="Enter coupon code"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#ae0b0b] focus:ring-1 focus:ring-[#ae0b0b] focus:ring-opacity-50"
+                />
+                <button
+                  onClick={validateCoupon}
+                  disabled={couponLoading}
+                  className="px-6 py-2 bg-[#ae0b0b] text-white rounded-lg font-medium hover:bg-[#8f0a0a] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  {couponLoading ? 'Validating...' : 'Apply'}
+                </button>
+              </div>
+            )}
+            
+            {couponError && (
+              <p className="text-red-600 text-sm">{couponError}</p>
+            )}
+            
+            <div className="text-sm text-gray-500">
+              <p>Enter a valid coupon code to get discount on your order.</p>
+              <p>Coupons can be percentage-based or fixed amount discounts.</p>
+            </div>
+          </div>
+        </div>
+
         {/* Payment Plan Selector */}
         {selectedMethod && (
           <PaymentPlanSelector
@@ -464,10 +606,20 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
             </div>
             
             {paymentCalculation.hasDiscount && (
-              <div className="flex justify-between text-green-600">
-                <span>10% Prepaid Discount</span>
-                <span>- {formatPrice(paymentCalculation.discountAmount)}</span>
-              </div>
+              <>
+                {paymentCalculation.couponDiscount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Coupon Discount ({appliedCoupon?.code})</span>
+                    <span>- {formatPrice(paymentCalculation.couponDiscount)}</span>
+                  </div>
+                )}
+                {(paymentPlan === 'full' && (selectedMethod === 'upi' || selectedMethod === 'netbanking')) && (
+                  <div className="flex justify-between text-green-600">
+                    <span>10% Prepaid Discount</span>
+                    <span>- {formatPrice(paymentCalculation.discountAmount - paymentCalculation.couponDiscount)}</span>
+                  </div>
+                )}
+              </>
             )}
             
             {paymentCalculation.hasCODCharge && (
