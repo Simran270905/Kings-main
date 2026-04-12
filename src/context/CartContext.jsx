@@ -40,6 +40,8 @@ export function CartProvider({ children }) {
 
   // FIXED: Add to cart with duplicate prevention and size validation
   const addToCart = (product, qty = 1) => {
+    console.log('🛒 addToCart called with:', product, qty)
+    
     // Ensure product has an id
     if (!product.id && !product._id) {
       console.error('Cannot add product to cart: missing id', product)
@@ -77,7 +79,9 @@ export function CartProvider({ children }) {
         // Remove: price, purchasePrice, cost, wholesalePrice, etc.
       }
       
-      return [...prev, newItem]
+      const newCart = [...prev, newItem]
+      console.log('🛒 Cart updated:', newCart)
+      return newCart
     })
   }
 
