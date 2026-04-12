@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { couponApi } from '../../services/apiService'
+import { couponApi } from '../../services/api.js'
 import toast from 'react-hot-toast'
 import AdminCard from '../layout/AdminCard'
 import AdminButton from '../layout/AdminButton'
