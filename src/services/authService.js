@@ -30,7 +30,7 @@ export const login = async (identifier) => {
       localStorage.setItem("token", response.data.data.token)
     }
 
-    // VERY IMPORTANT: RETURN DATA
+    // VERY IMPORTANT: RETURN DATA (backend returns {success, data: {user, token}})
     return response.data.data
 
   } catch (error) {
