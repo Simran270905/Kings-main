@@ -42,12 +42,17 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error(' Axios Response Error:', {
-      status: error.response?.status,
-      url: error.config?.url,
-      message: error.response?.data?.message || error.message,
-      data: error.response?.data
-    });
+    // Don't log expected 404 errors for footer content
+    const isFooter404 = error.response?.status === 404 && error.config?.url?.includes('/content/footer');
+    
+    if (!isFooter404) {
+      console.error(' Axios Response Error:', {
+        status: error.response?.status,
+        url: error.config?.url,
+        message: error.response?.data?.message || error.message,
+        data: error.response?.data
+      });
+    }
 
     // Handle 401 Unauthorized - token expired or invalid
     if (error.response?.status === 401) {
@@ -209,7 +214,10 @@ export const contentApi = {
   // Get content by type
   getContent: async (type) => {
     try {
-      console.log(` Content API - Getting ${type} content`);
+      // Only log for debugging, not as errors
+      if (type === 'footer') {
+        console.log(` Content API - Getting ${type} content`);
+      }
       
       const response = await api.get(`/content/${type}`);
       return {
@@ -217,6 +225,17 @@ export const contentApi = {
         data: response.data.data
       };
     } catch (error) {
+      // Silently handle expected 404 for footer content
+      if (type === 'footer' && error.response?.status === 404) {
+        console.log(` Footer content not available, using default`);
+        return {
+          success: false,
+          error: 'Content not found',
+          data: null
+        };
+      }
+      
+      // Log other content errors normally
       console.error(` Content API Error for ${type}:`, error.response?.data || error.message);
       return {
         success: false,
