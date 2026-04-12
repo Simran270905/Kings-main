@@ -188,7 +188,7 @@ export function AuthProvider({ children }) {
 
   // LOGIN (CORRECTED - ALWAYS RETURNS)
   const login = async (data) => {
-    console.log(" CORRECT AUTH CONTEXT RUNNING")
+    console.log(" CORRECT AUTH CONTEXT RUNNING - login() called with:", data)
     
     try {
       const res = await fetch(`${API_BASE_URL}/customers/login`, {
