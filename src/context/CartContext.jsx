@@ -40,11 +40,12 @@ export function CartProvider({ children }) {
 
   // FIXED: Add to cart with duplicate prevention and size validation
   const addToCart = (product, qty = 1) => {
-    console.log('🛒 addToCart called with:', product, qty)
+    console.log('🛒🛒🛒 addToCart FUNCTION CALLED from CartContext with:', product, qty)
+    console.log('🛒🛒🛒 Product ID check:', product.id, product._id)
     
     // Ensure product has an id
     if (!product.id && !product._id) {
-      console.error('Cannot add product to cart: missing id', product)
+      console.error('🛒🛒🛒 Cannot add product to cart: missing id', product)
       return
     }
 
@@ -148,13 +149,20 @@ export function CartProvider({ children }) {
     decreaseQty,
     removeItem,
     clearCart,
-    totalPrice,
-    cartCount: cartItems.length,
+    getCartTotal: () => calculateCartTotal(cartItems),
+    getCartCount: () => cartItems.reduce((sum, item) => sum + getQuantity(item), 0),
+    loading: false,
+    error: null,
     // Helper method to check if item is in cart (considering size)
     isInCart: (id, size = null) => cartItems.some((p) => 
       String(p.id) === String(id) && (p.selectedSize || null) === (size || null)
     ),
   }
+
+  console.log('🛒🛒🛒 CartContext value being provided:', { 
+    addToCart: typeof value.addToCart, 
+    cartItemsLength: value.cartItems.length 
+  })
 
   return (
     <CartContext.Provider value={value}>
