@@ -49,11 +49,15 @@ const Login = () => {
       }
 
       // Call login function
+      console.log('About to call login with payload:', payload);
       const result = await login(payload);
+      console.log('Login function returned:', result);
 
       if (result && result.success) {
+        console.log('Login successful, navigating to account');
         navigate("/account");
       } else {
+        console.log('Login failed, setting error:', result?.error || "Login failed");
         setError(result?.error || "Login failed");
       }
 
