@@ -10,23 +10,13 @@ const api = axios.create({
   timeout: 10000, // 10 seconds timeout
 });
 
-// Request interceptor to automatically attach token
+// Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-      console.log(' Axios Request:', {
-        method: config.method?.toUpperCase(),
-        url: config.url,
-        hasToken: !!token,
-        tokenPreview: token ? token.substring(0, 20) + '...' : 'none'
-      });
-    }
     return config;
   },
   (error) => {
-    console.error(' Axios Request Error:', error);
+    console.error('API Request Error:', error);
     return Promise.reject(error);
   }
 );
@@ -34,11 +24,6 @@ api.interceptors.request.use(
 // Response interceptor to handle common responses
 api.interceptors.response.use(
   (response) => {
-    console.log(' Axios Response:', {
-      status: response.status,
-      url: response.config.url,
-      data: response.data
-    });
     return response;
   },
   (error) => {
@@ -46,12 +31,7 @@ api.interceptors.response.use(
     const isFooter404 = error.response?.status === 404 && error.config?.url?.includes('/content/footer');
     
     if (!isFooter404) {
-      console.error(' Axios Response Error:', {
-        status: error.response?.status,
-        url: error.config?.url,
-        message: error.response?.data?.message || error.message,
-        data: error.response?.data
-      });
+      console.error('API Error:', error.message);
     }
 
     // Handle 401 Unauthorized - token expired or invalid

@@ -82,7 +82,8 @@ const HomeSectionCard = ({ product }) => {
             group-hover:scale-105
           "
           onError={(e) => {
-            e.target.src = 'https://via.placeholder.com/400x400?text=No+Image';
+            e.target.style.display = 'none';
+            e.target.parentElement.classList.add('bg-gradient-to-br', 'from-gray-100', 'to-gray-200');
           }}
         />
       </div>

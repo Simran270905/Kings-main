@@ -89,7 +89,8 @@ const ProductCard = ({ product, onAddToCart }) => {
             decoding="async"
             onError={(e) => {
               setImgError(true);
-              e.target.src = 'https://via.placeholder.com/400x400?text=No+Image'
+              e.target.style.display = 'none';
+              e.target.parentElement.classList.add('bg-gradient-to-br', 'from-gray-100', 'to-gray-200');
             }}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />

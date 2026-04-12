@@ -95,19 +95,16 @@ export const ProductProvider = ({ children }) => {
       const lastFetch = lastProductsFetch.current
       
       if (lastFetch && (now - lastFetch) < 30 * 1000) {
-        console.log('📦 Using cached data (fresh)')
         return
       }
 
       // Add rate limiting to prevent 429 errors
       if (window.lastApiCall && (now - window.lastApiCall) < 2000) {
-        console.log('🕐 Rate limiting - waiting before API call')
         setTimeout(() => fetchData(), 2000)
         return
       }
 
       window.lastApiCall = now
-      console.log('🌐 Fetching fresh data from API...')
       
       // Parallel fetch for better performance
       const [apiProducts, apiCategories] = await Promise.all([
@@ -120,24 +117,15 @@ export const ProductProvider = ({ children }) => {
         ? apiProducts.map(product => normalizeProduct(product))
         : []
       
-      console.log("🔧 PRODUCT CONTEXT DEBUG:")
-      console.log("Raw API products:", apiProducts?.length || 0)
-      console.log("Normalized products:", normalizedProducts.length)
-      console.log("Raw API sample:", apiProducts?.slice(0, 1))
-      console.log("Normalized sample:", normalizedProducts.slice(0, 1))
-      
       setProducts(normalizedProducts)
       setCategories(apiCategories || [])
       setLastFetch(Date.now())
       lastProductsFetch.current = Date.now() // Update ref for cache check
-      
-      console.log(`✅ Loaded ${normalizedProducts.length} products and ${apiCategories?.length || 0} categories`)
     } catch (error) {
       console.error('❌ Error fetching data:', error)
       
       // Handle 429 rate limit errors specifically
       if (error.message.includes('429') || error.message.includes('Too many requests')) {
-        console.log('🕐 Rate limit hit - waiting 10 seconds before retry')
         setTimeout(() => fetchData(), 10000)
         return
       }
