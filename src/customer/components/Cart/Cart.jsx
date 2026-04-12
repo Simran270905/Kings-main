@@ -1,6 +1,10 @@
 'use client'
 
+<<<<<<< HEAD
 import { useCart } from '../../../context/useCart'
+=======
+import { useCart } from '../../context/useCart'
+>>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 import { useNavigate, Link } from 'react-router-dom'
 import CartItem from './CartItem'
 import { ShoppingBagIcon, ArrowLeftIcon, ShieldCheckIcon, TruckIcon, TagIcon } from '@heroicons/react/24/outline'

@@ -1,10 +1,17 @@
 import React, { Suspense, lazy } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 
+<<<<<<< HEAD
 import { CartProvider } from './context/CartContext'
 import { ProductProvider } from './context/ProductContext'
 import { CustomerOrderProvider } from './context/CustomerOrderContext'
 import { AuthProvider } from './context/AuthContext'
+=======
+import { CartProvider } from './customer/context/CartContext'
+import { ProductProvider } from './customer/context/ProductContext'
+import { CustomerOrderProvider } from './customer/context/CustomerOrderContext'
+import { AuthProvider } from './customer/context/AuthContext'
+>>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 import { AdminAuthProvider } from './admin/context/AdminAuthContext'
 import { OrderProvider } from './admin/context/OrderContext'
 import { EnhancedOrderProvider } from './admin/context/EnhancedOrderContext'

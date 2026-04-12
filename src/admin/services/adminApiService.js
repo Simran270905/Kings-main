@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { API_BASE_URL } from '../../config/api.js'
+=======
+import { API_BASE_URL } from '@config/api.js'
+>>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 
 // Simple API service for admin operations
 const adminApiService = {

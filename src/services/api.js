@@ -51,6 +51,7 @@ export const api = {
   delete: (endpoint, headers = {}) => request(endpoint, { method: 'DELETE', headers })
 }
 
+<<<<<<< HEAD
 // Coupon API methods
 export const couponApi = {
   validate: async (couponData) => {
@@ -88,4 +89,6 @@ export const couponApi = {
   }
 }
 
+=======
+>>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 export default api

@@ -37,7 +37,11 @@ import {
 } from '@mui/material'
 
 // Import data extraction helper
+<<<<<<< HEAD
 import { extractData, logApiCall, logApiResponse } from '../../../utils/dataExtractionHelper.js'
+=======
+import { extractData, logApiCall, logApiResponse } from '../../utils/dataExtractionHelper.js'
+>>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 
 const getStatusColor = (status) => {
   switch (status) {

@@ -1,5 +1,9 @@
 import { useAdminProduct } from '../context/AdminProductContext'
+<<<<<<< HEAD
 import { useCart } from '../../context/useCart'
+=======
+import { useCart } from '../../customer/context/useCart'
+>>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 import { useOrder } from '../context/OrderContext'
 import { useAnalytics } from '../hooks/useRealAnalytics'
 import { useMemo, useEffect, useState } from 'react'

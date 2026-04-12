@@ -1,6 +1,10 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+<<<<<<< HEAD
 import { useCart } from '../../../context/useCart';
+=======
+import { useCart } from '../../context/useCart';
+>>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 import DeliveryAddressForm from './DeliveryAddress';
 import OrderSummary from './OrderSummary';
 import Payment from '../Payment/Payment';

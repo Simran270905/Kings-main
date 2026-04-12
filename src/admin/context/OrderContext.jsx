@@ -1,6 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import adminApi from '../utils/adminApiService'
+<<<<<<< HEAD
 import { useAdminAuth } from './useAdminAuth.jsx'
+=======
+import { useAdminAuth } from './useAdminAuth'
+>>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 import { extractData, extractPagination, logApiCall, logApiResponse } from '../../utils/dataExtractionHelper.js'
 import { API_BASE_URL } from '../../config/api.js'
 
@@ -226,7 +230,11 @@ export const OrderProvider = ({ children }) => {
       {children}
     </OrderContext.Provider>
   )
+<<<<<<< HEAD
 }
 
 // Default export for better Fast Refresh compatibility
 export default OrderProvider
+=======
+}
+>>>>>>> 4969c802b413d50e828a9e734372265fe263f995

@@ -1,7 +1,11 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MapPinIcon, PhoneIcon, EnvelopeIcon, ClockIcon } from '@heroicons/react/24/outline'
+<<<<<<< HEAD
 import { API_BASE_URL } from '../../../config/api.js'
+=======
+import { API_BASE_URL } from '@config/api.js'
+>>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 
 const Contact = () => {
   const [formData, setFormData] = useState({

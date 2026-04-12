@@ -3,7 +3,11 @@ import { couponApi } from '../../services/apiService'
 import toast from 'react-hot-toast'
 import AdminCard from '../layout/AdminCard'
 import AdminButton from '../layout/AdminButton'
+<<<<<<< HEAD
 import { extractData, extractError, isSuccess, logApiCall, logApiResponse } from '../../../utils/dataExtractionHelper.js'
+=======
+import { extractData, extractError, isSuccess, logApiCall, logApiResponse } from '../../utils/dataExtractionHelper.js'
+>>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 
 export default function CouponManagement() {
   const [coupons, setCoupons] = useState([])

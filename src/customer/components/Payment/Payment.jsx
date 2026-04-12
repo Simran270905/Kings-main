@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useContext } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+<<<<<<< HEAD
 import { useCart } from '../../../context/useCart'
 import { useOrder } from '../../../context/useOrder'
 import { AuthContext } from '../../../context/AuthContext'
@@ -8,6 +9,16 @@ import { ShieldCheckIcon, LockClosedIcon, CreditCardIcon, TruckIcon, DevicePhone
 import toast from 'react-hot-toast'
 import { API_BASE_URL } from '../../../config/api.js'
 import { couponApi } from '../../../services/api.js';
+=======
+import { useCart } from '../../context/useCart'
+import { useOrder } from '../../context/useOrder'
+import { AuthContext } from '../../context/AuthContext'
+import { useCustomerOrder } from '../../context/CustomerOrderContext'
+import { ShieldCheckIcon, LockClosedIcon, CreditCardIcon, TruckIcon, DevicePhoneMobileIcon, BanknotesIcon, TicketIcon } from '@heroicons/react/24/outline'
+import toast from 'react-hot-toast'
+import { API_BASE_URL } from '@config/api.js'
+import { couponApi } from '../../../services/apiService'
+>>>>>>> 4969c802b413d50e828a9e734372265fe263f995
 import { calculateTotalDiscount, getDiscountBadgeText, calculatePartialPayment, getPaymentPlanBadgeText } from '../../../utils/discountCalculator.js'
 import PaymentPlanSelector from './PaymentPlanSelector.jsx'
 import PriceDisplay from '../Shared/PriceDisplay.jsx'
@@ -289,6 +300,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           toast.error(error.message || 'Failed to create order. Please try again.')
         }
       } else if (selectedMethod === 'upi') {
+<<<<<<< HEAD
         // For UPI, process through Razorpay (UPI is a Razorpay payment method)
         console.log('� Processing UPI payment through Razorpay with data:', orderData)
         await processRazorpayPayment(orderData, token)
@@ -296,6 +308,45 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
         // For NetBanking, process through Razorpay (NetBanking is a Razorpay payment method)
         console.log('🏦 Processing NetBanking payment through Razorpay with data:', orderData)
         await processRazorpayPayment(orderData, token)
+=======
+        // For UPI, create order directly (no payment gateway)
+        console.log('📱 Creating UPI order with data:', orderData)
+        try {
+          const result = await createOrder(orderData, propClearCart || clearCart)
+          console.log('📦 UPI order result:', result)
+          if (result && result.success) {
+            toast.success('Order placed successfully! Please complete UPI payment.')
+            navigate('/order-success', { state: { orderId: result.order._id || result.order.id, paymentMethod: selectedMethod, upiId: paymentDetails.upiId } })
+          } else {
+            console.error('❌ UPI order failed:', result.error)
+            setError(result.error || 'Failed to create order. Please try again.')
+            toast.error(result.error || 'Failed to create order. Please try again.')
+          }
+        } catch (error) {
+          console.error('❌ UPI order error:', error)
+          setError(error.message || 'Failed to create order. Please try again.')
+          toast.error(error.message || 'Failed to create order. Please try again.')
+        }
+      } else if (selectedMethod === 'netbanking') {
+        // For NetBanking, create order directly (no payment gateway)
+        console.log('🏦 Creating NetBanking order with data:', orderData)
+        try {
+          const result = await createOrder(orderData, propClearCart || clearCart)
+          console.log('📦 NetBanking order result:', result)
+          if (result && result.success) {
+            toast.success('Order placed successfully! Please complete NetBanking payment.')
+            navigate('/order-success', { state: { orderId: result.order._id || result.order.id, paymentMethod: selectedMethod } })
+          } else {
+            console.error('❌ NetBanking order failed:', result.error)
+            setError(result.error || 'Failed to create order. Please try again.')
+            toast.error(result.error || 'Failed to create order. Please try again.')
+          }
+        } catch (error) {
+          console.error('❌ NetBanking order error:', error)
+          setError(error.message || 'Failed to create order. Please try again.')
+          toast.error(error.message || 'Failed to create order. Please try again.')
+        }
+>>>>>>> 4969c802b413d50e828a9e734372265fe263f995
       } else if (selectedMethod === 'razorpay') {
         // Process Razorpay payment
         await processRazorpayPayment(orderData, token)
