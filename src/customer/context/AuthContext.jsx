@@ -176,49 +176,10 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // LOGIN (FINAL CORRECT IMPLEMENTATION)
-  const login = async (data) => {
-    try {
-      console.log(" LOGIN REQUEST:", data)
-
-      const res = await fetch(`${API_BASE_URL}/customers/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      })
-
-      const result = await res.json()
-      console.log(" LOGIN RESPONSE:", result)
-
-      if (!res.ok) {
-        return {
-          success: false,
-          message: result.message || "Login failed"
-        }
-      }
-
-      // Store token and user
-      const token = result?.data?.token
-      const user = result?.data?.user
-
-      if (token) localStorage.setItem("token", token)
-      if (user) localStorage.setItem("user", JSON.stringify(user))
-
-      localStorage.setItem("isAuthenticated", "true")
-
-      return {
-        success: true,
-        user
-      }
-
-    } catch (error) {
-      return {
-        success: false,
-        message: error.message
-      }
-    }
+  // LOGIN (FORCE TEST - ALWAYS RETURNS)
+  const login = async () => {
+    console.log("AUTH CONTEXT ACTIVE - LOGIN FUNCTION CALLED")
+    return { success: true }
   }
 
   // REGISTER (kept for backward compatibility)
