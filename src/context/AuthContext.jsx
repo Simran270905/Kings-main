@@ -186,33 +186,43 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // LOGIN (COMPLETELY REPLACED WITH EXACT IMPLEMENTATION)
-  const login = async (payload) => {
+  // LOGIN (CORRECTED - ALWAYS RETURNS)
+  const login = async (data) => {
+    console.log(" CORRECT AUTH CONTEXT RUNNING")
+    
     try {
-      console.log(" Sending login request:", payload)
+      const res = await fetch(`${API_BASE_URL}/customers/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
 
-      const res = await axios.post(
-        `${API_BASE_URL}/customers/login`,
-        payload
-      )
+      const result = await res.json()
 
-      console.log(" Login API response:", res.data)
-
-      if (res.data?.data?.token) {
-        localStorage.setItem("token", res.data.data.token)
+      if (!res.ok) {
+        return {
+          success: false,
+          message: result.message || "Login failed"
+        }
       }
+
+      const token = result?.data?.token
+      const user = result?.data?.user
+
+      if (token) localStorage.setItem("token", token)
+      if (user) localStorage.setItem("user", JSON.stringify(user))
+
+      localStorage.setItem("isAuthenticated", "true")
 
       return {
         success: true,
-        ...res.data
+        user
       }
 
-    } catch (err) {
-      console.error(" Login error:", err.response?.data || err.message)
-
+    } catch (error) {
       return {
         success: false,
-        message: err.response?.data?.message || "Login failed"
+        message: error.message
       }
     }
   }
