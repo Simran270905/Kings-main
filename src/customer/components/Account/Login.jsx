@@ -54,7 +54,7 @@ const Login = () => {
       if (result && result.success) {
         navigate("/account");
       } else {
-        setError(result.error || "Login failed");
+        setError(result?.error || "Login failed");
       }
 
     } catch (err) {
