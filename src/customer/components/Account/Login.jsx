@@ -35,17 +35,24 @@ const Login = () => {
 
       console.log('Calling login with:', input);
 
-      const result = await login({ email: input });
+      // Prepare payload based on input type
+      let payload = {};
+      if (/^\d{10}$/.test(input)) {
+        payload = { mobile: input };
+      } else {
+        payload = { email: input };
+      }
 
-      console.log('Login result:', result);
+      const result = await login(payload);
 
-      if (!result || result.error) {
-        setError(result?.message || "Login failed");
-        return;
+      console.log(" FINAL LOGIN RESULT:", result)
+
+      if (!result || result.success === false) {
+        setError(result?.message || "Login failed")
+        return
       }
 
       // SUCCESS
-      console.log('Login success');
       navigate("/account");
 
     } catch (err) {

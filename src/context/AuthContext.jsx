@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react'
+import axios from 'axios'
 import { API_BASE_URL } from '../config/api.js'
 
 // CLIENT-SIDE JWT VALIDATION FUNCTION - SIMPLIFIED
@@ -176,56 +177,33 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // LOGIN (fixed with proper response.data return)
-  const login = async (data) => {
-    console.log('=== AUTHCONTEXT LOGIN FUNCTION START ===');
-    console.log('Input data:', data);
-    
+  // LOGIN (COMPLETELY REPLACED WITH EXACT IMPLEMENTATION)
+  const login = async (payload) => {
     try {
-      // Import the new login function
-      const { login: loginService } = await import('../services/authService.js');
-      
-      // Get the input value (email or mobile)
-      const inputValue = data.email || data.mobile || '';
-      
-      if (!inputValue) {
-        console.log('Login validation failed: No input provided');
-        return {
-          error: true,
-          message: 'Email or mobile is required'
-        };
+      console.log(" Sending login request:", payload)
+
+      const res = await axios.post(
+        `${API_BASE_URL}/customers/login`,
+        payload
+      )
+
+      console.log(" Login API response:", res.data)
+
+      //  STORE TOKEN
+      if (res.data?.data?.token) {
+        localStorage.setItem("token", res.data.data.token)
       }
 
-      console.log('Calling login service with identifier:', inputValue);
-      
-      // Call the login service
-      const result = await loginService(inputValue);
-      console.log('Login service result:', result);
+      //  RETURN DATA (THIS WAS MISSING)
+      return res.data
 
-      // Handle response exactly as specified
-      if (!result || !result.success) {
-        console.log('Login failed:', result?.message || 'Login failed');
-        return {
-          error: true,
-          message: result?.message || 'Login failed'
-        };
-      }
+    } catch (err) {
+      console.error(" Login error:", err.response?.data || err.message)
 
-      console.log('Login successful, updating state');
-      if (result.user) {
-        setUser(result.user);
-        setIsAuthenticated(true);
-      }
-      
-      // Return the actual response data
-      return result;
-
-    } catch (error) {
-      console.error('Login catch block - error:', error);
       return {
-        error: true,
-        message: error.message || 'Login failed. Please try again.'
-      };
+        success: false,
+        message: err.response?.data?.message || "Login failed"
+      }
     }
   }
 
