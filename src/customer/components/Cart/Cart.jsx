@@ -1,6 +1,6 @@
 'use client'
 
-import { useCart } from '../../context/useCart'
+import { useCart } from '../../../context/useCart'
 import { useNavigate, Link } from 'react-router-dom'
 import CartItem from './CartItem'
 import { ShoppingBagIcon, ArrowLeftIcon, ShieldCheckIcon, TruckIcon, TagIcon } from '@heroicons/react/24/outline'
