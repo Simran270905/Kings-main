@@ -176,62 +176,48 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // LOGIN (updated for no password)
+  // LOGIN (FINAL CORRECT IMPLEMENTATION)
   const login = async (data) => {
-    console.log('=== LOGIN FUNCTION START ===');
-    console.log('Input data:', data);
-    
     try {
-      console.log('Attempting login with:', data.email);
-      console.log('API URL:', `${API_BASE_URL}/customers/login`);
-      
+      console.log(" LOGIN REQUEST:", data)
+
       const res = await fetch(`${API_BASE_URL}/customers/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          email: data.email
-        })
+        body: JSON.stringify(data)
       })
 
-      console.log('Fetch completed, status:', res.status);
-      
       const result = await res.json()
-      console.log('Login response:', result);
-      console.log('Response status:', res.status);
+      console.log(" LOGIN RESPONSE:", result)
 
       if (!res.ok) {
-        console.log('Login failed, returning error');
         return {
           success: false,
-          error: result.message || 'Login failed'
+          message: result.message || "Login failed"
         }
       }
 
-      console.log('Login successful, setting localStorage and state');
-      localStorage.setItem('token', result.data.token)
-      localStorage.setItem('user', JSON.stringify(result.data.user))
-      localStorage.setItem('isAuthenticated', 'true')
+      // Store token and user
+      const token = result?.data?.token
+      const user = result?.data?.user
 
-      setUser(result.data.user)
-      setIsAuthenticated(true)
+      if (token) localStorage.setItem("token", token)
+      if (user) localStorage.setItem("user", JSON.stringify(user))
 
-      const returnObj = {
+      localStorage.setItem("isAuthenticated", "true")
+
+      return {
         success: true,
-        user: result.data.user
+        user
       }
-      console.log('Returning success object:', returnObj);
-      return returnObj;
 
     } catch (error) {
-      console.log('Login catch block - error:', error);
-      const returnObj = {
+      return {
         success: false,
-        error: error.message
+        message: error.message
       }
-      console.log('Returning error object:', returnObj);
-      return returnObj;
     }
   }
 

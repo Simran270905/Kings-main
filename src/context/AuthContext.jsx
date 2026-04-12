@@ -2,6 +2,15 @@ import React, { createContext, useState, useEffect, useContext } from 'react'
 import axios from 'axios'
 import { API_BASE_URL } from '../config/api.js'
 
+// AXIOS TOKEN INTERCEPTOR
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token")
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}` 
+  }
+  return config
+})
+
 // CLIENT-SIDE JWT VALIDATION FUNCTION - SIMPLIFIED
 const isTokenValid = (token) => {
   if (!token) return false
@@ -189,13 +198,14 @@ export function AuthProvider({ children }) {
 
       console.log(" Login API response:", res.data)
 
-      //  STORE TOKEN
       if (res.data?.data?.token) {
         localStorage.setItem("token", res.data.data.token)
       }
 
-      //  RETURN DATA (THIS WAS MISSING)
-      return res.data
+      return {
+        success: true,
+        ...res.data
+      }
 
     } catch (err) {
       console.error(" Login error:", err.response?.data || err.message)

@@ -36,12 +36,7 @@ const Login = () => {
       console.log('Calling login with:', input);
 
       // Prepare payload based on input type
-      let payload = {};
-      if (/^\d{10}$/.test(input)) {
-        payload = { mobile: input };
-      } else {
-        payload = { email: input };
-      }
+      const payload = input.includes("@") ? { email: input } : { mobile: input };
 
       const result = await login(payload);
 
