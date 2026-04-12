@@ -117,19 +117,30 @@ class AdminApiService {
   // Verify admin token
   async verifyToken() {
     try {
+      const token = this.getToken();
+      
+      // Only call API if token exists
+      if (!token) {
+        console.log('Admin verifyToken: No token found, skipping API call');
+        return false;
+      }
+
+      console.log('Admin verifyToken: Checking token validity');
       const response = await fetch(`${this.baseURL}/admin/verify`, {
         headers: {
-          'Authorization': `Bearer ${this.getToken()}`
+          'Authorization': `Bearer ${token}`
         }
       })
 
       if (response.status === 401) {
+        console.log('Admin verifyToken: Token invalid (401), clearing token');
         this.clearToken()
         return false
       }
 
       // Check if response is ok before parsing JSON
       if (!response.ok) {
+        console.log('Admin verifyToken: Token verification failed, clearing token');
         this.clearToken()
         return false
       }

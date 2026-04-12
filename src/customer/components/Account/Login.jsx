@@ -15,6 +15,13 @@ const Login = () => {
   // Handle login
   const handleLogin = async (e) => {
     e.preventDefault();
+    
+    // Prevent multiple calls
+    if (isLoading) {
+      console.log('Login already in progress, ignoring click');
+      return;
+    }
+
     setError("");
     setIsLoading(true);
 
@@ -24,33 +31,25 @@ const Login = () => {
       }
 
       const value = identifier.trim();
-      const isEmail = value.includes("@");
-
-      let payload;
-
-      if (isEmail) {
-        // Email validation
+      
+      // Simple validation - let the API handle detailed validation
+      if (value.includes("@")) {
+        // Basic email format check
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(value)) {
           throw new Error("Invalid email format");
         }
-
-        payload = { email: value };
-
       } else {
-        // Phone validation
+        // Basic phone check
         const phoneDigits = value.replace(/\D/g, "");
         if (!/^\d{10}$/.test(phoneDigits)) {
           throw new Error("Phone must be 10 digits");
         }
-
-        // For phone login, use email field with phone number
-        payload = { email: phoneDigits };
       }
 
-      // Call login function
-      console.log('About to call login with payload:', payload);
-      const result = await login(payload);
+      // Call login function with the identifier
+      console.log('About to call login with identifier:', value);
+      const result = await login({ email: value }); // API will handle email vs mobile
       console.log('Login function returned:', result);
 
       if (result && result.success) {
@@ -62,7 +61,7 @@ const Login = () => {
       }
 
     } catch (err) {
-      console.error("❌ Login error:", err.message);
+      console.error(" Login error:", err.message);
       setError(err.message);
     } finally {
       setIsLoading(false);

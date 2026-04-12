@@ -176,61 +176,60 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // LOGIN (updated for no password)
+  // LOGIN (fixed with proper axios implementation)
   const login = async (data) => {
-    console.log('!!! CONTEXT AUTHCONTEXT LOGIN FUNCTION START !!!');
-    console.log('!!! Input data:', data);
+    console.log('=== AUTHCONTEXT LOGIN FUNCTION START ===');
+    console.log('Input data:', data);
     
     try {
-      console.log('!!! Attempting login with:', data.email);
-      console.log('!!! API URL:', `${API_BASE_URL}/customers/login`);
+      // Import the auth API
+      const { authApi, validateLoginInput } = await import('../services/axiosApi.js');
       
-      const res = await fetch(`${API_BASE_URL}/customers/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: data.email
-        })
-      })
-
-      console.log('!!! Fetch completed, status:', res.status);
-      
-      const result = await res.json()
-      console.log('!!! Login response:', result);
-
-      if (!res.ok) {
-        console.log('!!! Login failed, returning error');
+      // Validate the input (email or mobile)
+      const validation = validateLoginInput(data.email || data.mobile || '');
+      if (!validation.valid) {
+        console.log('Login validation failed:', validation.error);
         return {
           success: false,
-          error: result.message || 'Login failed'
-        }
+          error: validation.error
+        };
       }
 
-      console.log('!!! Login successful, setting localStorage and state');
-      localStorage.setItem('token', result.data.token)
-      localStorage.setItem('user', JSON.stringify(result.data.user))
-      localStorage.setItem('isAuthenticated', 'true')
+      // Prepare payload based on input type
+      const payload = validation.type === 'email' 
+        ? { email: validation.value }
+        : { mobile: validation.value };
 
-      setUser(result.data.user)
-      setIsAuthenticated(true)
+      console.log('Attempting login with payload:', payload);
+      
+      // Call the login API
+      const result = await authApi.login(payload);
+      console.log('Login API result:', result);
 
-      const returnObj = {
-        success: true,
-        user: result.data.user
+      if (result.success) {
+        console.log('Login successful, updating state');
+        setUser(result.user);
+        setIsAuthenticated(true);
+        
+        return {
+          success: true,
+          user: result.user,
+          token: result.token
+        };
+      } else {
+        console.log('Login failed:', result.error);
+        return {
+          success: false,
+          error: result.error
+        };
       }
-      console.log('!!! Returning success object:', returnObj);
-      return returnObj;
 
     } catch (error) {
-      console.log('!!! Login catch block - error:', error);
-      const returnObj = {
+      console.error('Login catch block - error:', error);
+      return {
         success: false,
-        error: error.message
-      }
-      console.log('!!! Returning error object:', returnObj);
-      return returnObj;
+        error: error.message || 'Login failed. Please try again.'
+      };
     }
   }
 

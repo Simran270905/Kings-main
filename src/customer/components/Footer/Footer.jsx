@@ -41,13 +41,26 @@ export default function Footer() {
   const [content, setContent] = useState(DEFAULT_FOOTER)
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/content/footer`)
-      .then(r => r.json())
-      .then(json => {
-        const saved = json?.data?.data
-        if (saved && typeof saved === 'object') setContent({ ...DEFAULT_FOOTER, ...saved })
-      })
-      .catch(() => {})
+    const loadFooterContent = async () => {
+      try {
+        // Import the content API dynamically
+        const { contentApi } = await import('../../../services/axiosApi.js');
+        
+        const result = await contentApi.getContent('footer');
+        if (result.success && result.data) {
+          console.log('Footer content loaded successfully:', result.data);
+          setContent({ ...DEFAULT_FOOTER, ...result.data });
+        } else {
+          console.log('Footer content not found, using default');
+          // Keep default footer content
+        }
+      } catch (error) {
+        console.log('Footer content load failed, using default:', error.message);
+        // Keep default footer content on error
+      }
+    };
+
+    loadFooterContent();
   }, [])
 
   return (
