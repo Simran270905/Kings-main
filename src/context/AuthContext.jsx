@@ -185,50 +185,56 @@ export function AuthProvider({ children }) {
       // Import the auth API
       const { authApi, validateLoginInput } = await import('../services/axiosApi.js');
       
+      // Get the input value (email or mobile)
+      const inputValue = data.email || data.mobile || '';
+      
       // Validate the input (email or mobile)
-      const validation = validateLoginInput(data.email || data.mobile || '');
+      const validation = validateLoginInput(inputValue);
       if (!validation.valid) {
         console.log('Login validation failed:', validation.error);
         return {
-          success: false,
-          error: validation.error
+          error: true,
+          message: validation.error
         };
       }
 
-      // Prepare payload based on input type
-      const payload = validation.type === 'email' 
-        ? { email: validation.value }
-        : { mobile: validation.value };
+      // Prepare payload based on input type - EXACTLY as specified
+      let payload;
+      if (/^\d{10}$/.test(inputValue)) {
+        payload = { mobile: inputValue };
+      } else {
+        payload = { email: inputValue };
+      }
 
       console.log('Attempting login with payload:', payload);
       
       // Call the login API
-      const result = await authApi.login(payload);
-      console.log('Login API result:', result);
+      const res = await authApi.login(payload);
+      console.log('Login API response:', res);
 
-      if (result.success) {
-        console.log('Login successful, updating state');
-        setUser(result.user);
-        setIsAuthenticated(true);
-        
+      // Handle response exactly as specified
+      if (!res || res.error) {
+        console.log('Login failed:', res?.message || 'Login failed');
         return {
-          success: true,
-          user: result.user,
-          token: result.token
-        };
-      } else {
-        console.log('Login failed:', result.error);
-        return {
-          success: false,
-          error: result.error
+          error: true,
+          message: res?.message || 'Login failed'
         };
       }
+
+      console.log('Login successful, updating state');
+      if (res.user) {
+        setUser(res.user);
+        setIsAuthenticated(true);
+      }
+      
+      // Return the exact format that matches the API response
+      return res;
 
     } catch (error) {
       console.error('Login catch block - error:', error);
       return {
-        success: false,
-        error: error.message || 'Login failed. Please try again.'
+        error: true,
+        message: error.message || 'Login failed. Please try again.'
       };
     }
   }

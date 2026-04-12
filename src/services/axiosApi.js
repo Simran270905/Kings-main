@@ -71,11 +71,16 @@ export const authApi = {
   // Login with email or mobile
   login: async (payload) => {
     try {
-      console.log(' Login API - Attempting login with:', payload);
+      console.log(' Login API - Attempting login with payload:', payload);
       
       const response = await api.post('/customers/login', payload);
       console.log(' Login API Response:', response.data);
       
+      // Check if response exists and has data
+      if (!response || !response.data) {
+        throw new Error("No response from server");
+      }
+
       // Store token and user data
       if (response.data.data?.token) {
         localStorage.setItem('token', response.data.data.token);
@@ -83,19 +88,20 @@ export const authApi = {
         localStorage.setItem('isAuthenticated', 'true');
         console.log(' Login API - Token stored successfully');
       }
-      
+
+      // Return the exact format expected by the UI
       return {
-        success: true,
         token: response.data.data?.token,
         user: response.data.data?.user,
-        data: response.data.data
+        success: true
       };
+      
     } catch (error) {
       console.error(' Login API Error:', error.response?.data || error.message);
       return {
-        success: false,
-        error: error.response?.data?.message || error.message || 'Login failed',
-        status: error.response?.status
+        error: true,
+        message: error.response?.data?.message || error.message || 'Login failed',
+        success: false
       };
     }
   },

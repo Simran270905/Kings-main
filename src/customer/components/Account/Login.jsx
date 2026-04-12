@@ -49,16 +49,18 @@ const Login = () => {
 
       // Call login function with the identifier
       console.log('About to call login with identifier:', value);
-      const result = await login({ email: value }); // API will handle email vs mobile
-      console.log('Login function returned:', result);
+      const res = await login({ email: value }); // API will handle email vs mobile
+      console.log('Login function returned:', res);
 
-      if (result && result.success) {
-        console.log('Login successful, navigating to account');
-        navigate("/account");
-      } else {
-        console.log('Login failed, setting error:', result?.error || "Login failed");
-        setError(result?.error || "Login failed");
+      // Handle response exactly as specified
+      if (!res || res.error) {
+        console.log('Login failed, setting error:', res?.message || "Login failed");
+        setError(res?.message || "Login failed");
+        return;
       }
+
+      console.log('Login successful, navigating to account');
+      navigate("/account");
 
     } catch (err) {
       console.error(" Login error:", err.message);
