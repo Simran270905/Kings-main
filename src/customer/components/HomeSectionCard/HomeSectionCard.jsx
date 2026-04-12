@@ -28,6 +28,7 @@ const HomeSectionCard = ({ product }) => {
   const discount = getDiscountPercentage(product);
   
   const { addToCart } = useCart()
+  console.log('🛒 HomeSectionCard addToCart function:', typeof addToCart)
 
   return (
     <Link to={`/product/${product._id || product.id}`} className="block">
@@ -122,8 +123,10 @@ const HomeSectionCard = ({ product }) => {
         
         <button
           onClick={(e) => {
+            console.log('🛒 Add to Cart button clicked!')
             e.preventDefault()
             e.stopPropagation() // Prevent navigation when clicking Add to Cart
+            console.log('🛒 Calling addToCart with product:', product)
             addToCart(product, 1)
           }}
           className="w-full rounded-md bg-[#ae0b0b] py-1.5 sm:py-2 text-white text-xs sm:text-sm font-medium hover:bg-[#8f0a0a] transition-colors"
