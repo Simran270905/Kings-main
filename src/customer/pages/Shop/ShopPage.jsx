@@ -18,6 +18,8 @@ export default function ShopPage() {
   const { category } = useParams() || {}
   const [sort, setSort] = useState('newest')
   const { products: allProducts, loading } = useProduct()
+  console.log('🛍️ ShopPage - Raw allProducts:', allProducts)
+  console.log('🛍️ ShopPage - Loading:', loading)
   const cat = category ? category.toLowerCase() : null
 
   const baseProducts = useMemo(() => {
@@ -66,6 +68,7 @@ export default function ShopPage() {
     const arr = [...baseProducts]
     if (sort === 'price_asc') arr.sort((a, b) => (Number(a.sellingPrice) || 0) - (Number(b.sellingPrice) || 0))
     if (sort === 'price_desc') arr.sort((a, b) => (Number(b.sellingPrice) || 0) - (Number(a.sellingPrice) || 0))
+    console.log('🛍️ ShopPage - Final products array:', arr)
     return arr
   }, [baseProducts, sort])
 
