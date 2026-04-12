@@ -140,7 +140,7 @@ export function AuthProvider({ children }) {
   const simpleLogin = async (data) => {
     try {
       // Try backend login
-      const res = await fetch(`${API_BASE_URL}/customers/register-or-login`, {
+      const res = await fetch(`${API_BASE_URL}/customers/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
