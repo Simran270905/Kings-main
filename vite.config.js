@@ -40,7 +40,8 @@ export default defineConfig({
           admin: [
             './src/admin/AdminOnlyLayout.jsx',
             './src/admin/layout/Dashboard.jsx',
-            './src/admin/context/useAdminAuth.jsx'
+            './src/admin/context/useAdminAuth.jsx',
+            './src/admin/context/AdminContextProvider.jsx',
           ],
           // Separate customer chunks
           customer: [
