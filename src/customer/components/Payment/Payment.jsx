@@ -230,34 +230,25 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
   const calculateCartTotal = () => {
     // Try to use totalPrice from context first
     if (typeof totalPrice === 'number' && !isNaN(totalPrice) && totalPrice > 0) {
-      console.log('Using totalPrice from context:', totalPrice)
       return totalPrice
     }
     
     // Fallback: calculate from cart items
-    console.log('Calculating from cart items:', cartItems)
     if (!cartItems || cartItems.length === 0) {
-      console.log('Cart is empty, returning 0')
       return 0
     }
     
     const total = cartItems.reduce((sum, item) => {
       const price = getSellingPrice(item)
       const quantity = getQuantity(item)
-      console.log(`Item: ${item.name || item.title}, Price: ${price}, Quantity: ${quantity}`)
       return sum + (price * quantity)
     }, 0)
     
-    console.log('Calculated cart total:', total)
     return total
   }
 
   const cartTotal = calculateCartTotal()
-  console.log('Payment Debug - cartTotal:', cartTotal, 'totalPrice:', totalPrice, 'cartItems length:', cartItems?.length)
-
-  // Test: if cartTotal is still 0, use a test amount to see if UI works
   const displayTotal = cartTotal > 0 ? cartTotal : 1000
-  console.log('Using displayTotal:', displayTotal)
 
   // Coupon validation and application
   const validateCoupon = async () => {
@@ -326,8 +317,6 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
     let discountAmount = 0
     let hasCODCharge = selectedMethod === 'cod'
     let codCharge = hasCODCharge ? COD_CHARGE : 0
-    
-    console.log('Payment Calculation - baseAmount:', baseAmount, 'selectedMethod:', selectedMethod, 'paymentPlan:', paymentPlan)
     
     // Apply coupon discount first
     const couponDiscount = getCouponDiscount()
@@ -422,40 +411,94 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
   }
 
   const processRazorpayPayment = async (orderData, token) => {
-    const res = await fetch(`${API_URL}/payments/create-order`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ amount: orderData.totalAmount })
-    })
+    try {
+      // Create order on backend first
+      const orderRes = await fetch(`${API_URL}/payments/create-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          amount: orderData.totalAmount,
+          currency: 'INR',
+          receipt: `order_${Date.now()}`,
+          notes: {
+            paymentPlan: orderData.paymentPlan,
+            items: orderData.items.length
+          }
+        })
+      })
 
-    const data = await res.json()
-
-    const loaded = await loadRazorpayScript()
-    if (!loaded) return toast.error('Razorpay failed to load')
-
-    const options = {
-      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-      amount: orderData.totalAmount * 100,
-      currency: 'INR',
-      name: 'KKings Jewellery',
-      order_id: data.data.razorpayOrderId,
-      handler: async (response) => {
-        toast.success(paymentPlan === 'partial' ? 'Advance payment successful!' : 'Payment successful!')
-        clearCart()
-        navigate('/order-success')
-      },
-      modal: {
-        ondismiss: function() {
-          toast.error('Payment cancelled')
-        }
+      const orderDataResponse = await orderRes.json()
+      
+      if (!orderDataResponse.success) {
+        throw new Error(orderDataResponse.message || 'Failed to create order')
       }
-    };
 
-    const rzp = new window.Razorpay(options)
-    rzp.open()
+      const loaded = await loadRazorpayScript()
+      if (!loaded) return toast.error('Razorpay failed to load')
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: orderDataResponse.data.amount,
+        currency: orderDataResponse.data.currency,
+        name: 'KKings Jewellery',
+        description: `Payment for ${orderData.items.length} items`,
+        order_id: orderDataResponse.data.id,
+        prefill: {
+          name: user?.name || '',
+          email: user?.email || '',
+          contact: user?.phone || ''
+        },
+        notes: {
+          paymentPlan: orderData.paymentPlan,
+          address: JSON.stringify(deliveryAddress)
+        },
+        handler: async (response) => {
+          // Verify payment on backend
+          const verifyRes = await fetch(`${API_URL}/payments/verify`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              orderData: orderData
+            })
+          })
+
+          const verifyData = await verifyRes.json()
+          
+          if (verifyData.success) {
+            toast.success(paymentPlan === 'partial' ? 'Advance payment successful!' : 'Payment successful!')
+            clearCart()
+            navigate('/order-success')
+          } else {
+            toast.error('Payment verification failed')
+          }
+        },
+        modal: {
+          ondismiss: function() {
+            toast.error('Payment cancelled')
+          },
+          escape: false,
+          backdropclose: false
+        },
+        theme: {
+          color: '#ae0b0b'
+        }
+      };
+
+      const rzp = new window.Razorpay(options)
+      rzp.open()
+    } catch (error) {
+      console.error('Razorpay payment error:', error)
+      toast.error(error.message || 'Payment failed')
+    }
   }
 
   // Handle empty cart (only show empty cart if no items, not if total is 0)
@@ -493,10 +536,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
             {paymentOptions.map((method) => (
               <div
                 key={method.id}
-                onClick={() => {
-                  setSelectedMethod(method.id)
-                  console.log("Selected Payment Method:", method.id)
-                }}
+                onClick={() => setSelectedMethod(method.id)}
                 className={`
                   border-2 rounded-xl p-4 cursor-pointer transition-all duration-200
                   ${selectedMethod === method.id 

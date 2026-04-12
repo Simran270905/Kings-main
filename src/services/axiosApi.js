@@ -208,7 +208,6 @@ export const contentApi = {
     } catch (error) {
       // Silently handle expected 404 for footer content
       if (type === 'footer' && error.response?.status === 404) {
-        console.log(` Footer content not available, using default`);
         return {
           success: false,
           error: 'Content not found',
