@@ -1,18 +1,11 @@
 import React from 'react'
-import { AdminAuthProvider } from './AdminAuthContext'
-import { OrderProvider } from './OrderContext'
-import { AdminProductProvider } from './AdminProductContext'
 
-// Combined provider to handle context hierarchy
+// Simplified combined provider to avoid circular dependencies
 export const AdminContextProvider = ({ children }) => {
   return (
-    <AdminAuthProvider>
-      <AdminProductProvider>
-        <OrderProvider>
-          {children}
-        </OrderProvider>
-      </AdminProductProvider>
-    </AdminAuthProvider>
+    <React.Fragment>
+      {children}
+    </React.Fragment>
   )
 }
 

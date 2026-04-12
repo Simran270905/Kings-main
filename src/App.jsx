@@ -5,7 +5,10 @@ import { CartProvider } from './context/CartContext'
 import { ProductProvider } from './context/ProductContext'
 import { CustomerOrderProvider } from './context/CustomerOrderContext'
 import { AuthProvider } from './context/AuthContext'
-import { AdminContextProvider } from './admin/context/AdminContextProvider'
+import { AdminAuthProvider } from './admin/context/AdminAuthContext'
+import { OrderProvider } from './admin/context/OrderContext'
+import { AdminProductProvider } from './admin/context/AdminProductContext'
+import { EnhancedOrderProvider } from './admin/context/EnhancedOrderContext'
 import ScrollToTop from './components/ScrollToTop'
 
 import Navbar from './customer/components/navigation/Navbar'
@@ -90,21 +93,20 @@ const App = () => {
   return (
     <Router>
       <ScrollToTop />
-      <AdminContextProvider>
-        <AdminProductProvider>
+      <AdminAuthProvider>
+        <OrderProvider>
           <EnhancedOrderProvider>
-            <OrderProvider>
-              <AuthProvider>
-                <CustomerOrderProvider>
-                  <ProductProvider>
-                    <CartProvider>
+            <AdminProductProvider>
+              <CustomerOrderProvider>
+                <ProductProvider>
+                  <CartProvider>
 
-                      <Suspense fallback={<LoadingFallback />}>
+                    <Suspense fallback={<LoadingFallback />}>
 
-                        <Routes>
+                      <Routes>
 
-                          {/* ================= CUSTOMER ROUTES ================= */}
-                          <Route path="/" element={<CustomerLayout><HomePage /></CustomerLayout>} />
+                        {/* ================= CUSTOMER ROUTES ================= */}
+                        <Route path="/" element={<CustomerLayout><HomePage /></CustomerLayout>} />
 
                           <Route path="/product/:id" element={<CustomerLayout><ProductDetails /></CustomerLayout>} />
                           <Route path="/shop" element={<CustomerLayout><ShopPage /></CustomerLayout>} />
@@ -265,12 +267,11 @@ const App = () => {
                     </CartProvider>
                   </ProductProvider>
                 </CustomerOrderProvider>
-              </AuthProvider>
-            </OrderProvider>
-          </EnhancedOrderProvider>
-        </AdminProductProvider>
-      </AdminContextProvider>
-    </Router>
+              </AdminProductProvider>
+            </EnhancedOrderProvider>
+          </OrderProvider>
+        </AdminAuthProvider>
+      </Router>
   )
 }
 
