@@ -178,7 +178,13 @@ export function AuthProvider({ children }) {
 
   // LOGIN (updated for no password)
   const login = async (data) => {
+    console.log('!!! CONTEXT AUTHCONTEXT LOGIN FUNCTION START !!!');
+    console.log('!!! Input data:', data);
+    
     try {
+      console.log('!!! Attempting login with:', data.email);
+      console.log('!!! API URL:', `${API_BASE_URL}/customers/login`);
+      
       const res = await fetch(`${API_BASE_URL}/customers/login`, {
         method: 'POST',
         headers: {
@@ -189,15 +195,20 @@ export function AuthProvider({ children }) {
         })
       })
 
+      console.log('!!! Fetch completed, status:', res.status);
+      
       const result = await res.json()
+      console.log('!!! Login response:', result);
 
       if (!res.ok) {
+        console.log('!!! Login failed, returning error');
         return {
           success: false,
           error: result.message || 'Login failed'
         }
       }
 
+      console.log('!!! Login successful, setting localStorage and state');
       localStorage.setItem('token', result.data.token)
       localStorage.setItem('user', JSON.stringify(result.data.user))
       localStorage.setItem('isAuthenticated', 'true')
@@ -205,16 +216,21 @@ export function AuthProvider({ children }) {
       setUser(result.data.user)
       setIsAuthenticated(true)
 
-      return {
+      const returnObj = {
         success: true,
         user: result.data.user
       }
+      console.log('!!! Returning success object:', returnObj);
+      return returnObj;
 
     } catch (error) {
-      return {
+      console.log('!!! Login catch block - error:', error);
+      const returnObj = {
         success: false,
         error: error.message
       }
+      console.log('!!! Returning error object:', returnObj);
+      return returnObj;
     }
   }
 
