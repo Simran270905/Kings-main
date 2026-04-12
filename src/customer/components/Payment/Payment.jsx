@@ -598,64 +598,95 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
 
         {/* Order Summary */}
         <div className="mb-8 bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Summary</h2>
-          <div className="space-y-3">
-            <div className="flex justify-between text-gray-600">
-              <span>Subtotal</span>
-              <span>{formatPrice(displayTotal)}</span>
-            </div>
-            
-            {paymentCalculation.hasDiscount && (
-              <>
-                {paymentCalculation.couponDiscount > 0 && (
-                  <div className="flex justify-between text-green-600">
-                    <span>Coupon Discount ({appliedCoupon?.code})</span>
-                    <span>- {formatPrice(paymentCalculation.couponDiscount)}</span>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Purchase Summary</h2>
+          
+          {/* Items List */}
+          <div className="mb-6 space-y-3">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Items ({cartItems?.length || 0})</h3>
+            {cartItems?.map((item, index) => (
+              <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <span className="text-xs font-medium text-gray-600">{item.name?.charAt(0) || 'P'}</span>
                   </div>
-                )}
-                {(paymentPlan === 'full' && (selectedMethod === 'upi' || selectedMethod === 'netbanking')) && (
-                  <div className="flex justify-between text-green-600">
-                    <span>10% Prepaid Discount</span>
-                    <span>- {formatPrice(paymentCalculation.discountAmount - paymentCalculation.couponDiscount)}</span>
-                  </div>
-                )}
-              </>
-            )}
-            
-            {paymentCalculation.hasCODCharge && (
-              <div className="flex justify-between text-yellow-600">
-                <span>COD Charge</span>
-                <span>+ {formatPrice(paymentCalculation.codCharge)}</span>
-              </div>
-            )}
-            
-            {paymentPlan === 'partial' && (
-              <>
-                <div className="border-t pt-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Pay Now ({paymentCalculation.advancePercent}%):</span>
-                    <span className="font-medium text-green-600">{formatPrice(paymentCalculation.advanceAmount)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm mt-1">
-                    <span className="text-gray-600">Pay Later ({paymentCalculation.remainingPercent}%):</span>
-                    <span className="font-medium text-orange-600">{formatPrice(paymentCalculation.remainingAmount)}</span>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{item.name || item.title}</p>
+                    <p className="text-xs text-gray-500">Qty: {getQuantity(item)}</p>
                   </div>
                 </div>
-              </>
-            )}
-            
-            <div className={`border-t pt-3 ${paymentPlan === 'partial' ? 'mt-3' : ''}`}>
-              <div className="flex justify-between text-lg font-bold text-gray-900">
-                <span>{paymentPlan === 'partial' ? 'Amount Due Now:' : 'Total Amount:'}</span>
-                <span>{formatPrice(paymentPlan === 'partial' ? paymentCalculation.advanceAmount : paymentCalculation.finalAmount)}</span>
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-900">{formatPrice(getSellingPrice(item) * getQuantity(item))}</p>
+                </div>
               </div>
-              {paymentPlan === 'partial' && (
-                <p className="text-sm text-gray-500 mt-1">
-                  Remaining {formatPrice(paymentCalculation.remainingAmount)} to be paid later
-                </p>
+            ))}
+          </div>
+          
+          {/* Price Breakdown */}
+          <div className="border-t border-gray-200 pt-4">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Price Details</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Subtotal ({cartItems?.length || 0} items)</span>
+                <span className="font-medium">{formatPrice(displayTotal)}</span>
+              </div>
+              
+              {paymentCalculation.hasDiscount && (
+                <>
+                  {paymentCalculation.couponDiscount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-600">Coupon Discount ({appliedCoupon?.code})</span>
+                      <span className="font-medium text-green-600">-{formatPrice(paymentCalculation.couponDiscount)}</span>
+                    </div>
+                  )}
+                  {(paymentPlan === 'full' && (selectedMethod === 'upi' || selectedMethod === 'netbanking')) && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-600">Prepaid Discount (10%)</span>
+                      <span className="font-medium text-green-600">-{formatPrice(paymentCalculation.discountAmount - paymentCalculation.couponDiscount)}</span>
+                    </div>
+                  )}
+                </>
               )}
+              
+              {paymentCalculation.hasCODCharge && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-yellow-600">Cash on Delivery Charge</span>
+                  <span className="font-medium text-yellow-600">+{formatPrice(paymentCalculation.codCharge)}</span>
+                </div>
+              )}
+              
+              <div className="border-t border-gray-200 pt-2 mt-2">
+                {paymentPlan === 'partial' ? (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Amount Due Now ({paymentCalculation.advancePercent}%)</span>
+                      <span className="text-lg font-bold text-green-600">{formatPrice(paymentCalculation.advanceAmount)}</span>
+                    </div>
+                    <div className="flex justify-between mt-2">
+                      <span className="text-sm text-gray-600">Remaining Amount ({paymentCalculation.remainingPercent}%)</span>
+                      <span className="text-sm font-medium text-orange-600">{formatPrice(paymentCalculation.remainingAmount)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Total Amount</span>
+                    <span className="text-lg font-bold text-gray-900">{formatPrice(paymentCalculation.finalAmount)}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
+          
+          {/* Payment Method Info */}
+          {selectedMethod && (
+            <div className="border-t border-gray-200 pt-4 mt-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Payment Method</h3>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span className="font-medium capitalize">{selectedMethod}</span>
+                <span>·</span>
+                <span>{paymentPlan === 'full' ? 'Full Payment' : 'Partial Payment (10%/90%)'}</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Pay Button */}
