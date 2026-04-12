@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useCart } from '../../context/useCart';
+import { useCart } from '../../../context/useCart';
 import DeliveryAddressForm from './DeliveryAddress';
 import OrderSummary from './OrderSummary';
 import Payment from '../Payment/Payment';

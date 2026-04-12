@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 
 import { getAvailableSizes } from '../../utils/productSchemaNormalizer'
 import HomeSectionCard from '../HomeSectionCard/HomeSectionCard'
-import { useCart } from '../../context/useCart'
+import { useCart } from '../../../context/useCart'
 import { API_BASE_URL } from '@config/api.js'
 // ✅ IMPORT SHARED HELPERS
 import {
