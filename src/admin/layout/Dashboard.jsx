@@ -1,5 +1,5 @@
 import { useAdminProduct } from '../context/AdminProductContext'
-import { useCart } from '../../customer/context/useCart'
+import { useCart } from '../../context/useCart'
 import { useOrder } from '../context/OrderContext'
 import { useAnalytics } from '../hooks/useRealAnalytics'
 import { useMemo, useEffect, useState } from 'react'

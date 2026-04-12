@@ -14,8 +14,6 @@ export const CartContext = createContext({
 })
 
 export function CartProvider({ children }) {
-  console.log('🛒🛒🛒 CartProvider RENDERED with children:', !!children)
-  
   // FIXED: Initialize cart from localStorage with proper error handling
   const [cartItems, setCartItems] = useState(() => {
     try {
@@ -42,12 +40,9 @@ export function CartProvider({ children }) {
 
   // FIXED: Add to cart with duplicate prevention and size validation
   const addToCart = (product, qty = 1) => {
-    console.log('🛒🛒🛒 addToCart FUNCTION CALLED from CartContext with:', product, qty)
-    console.log('🛒🛒🛒 Product ID check:', product.id, product._id)
-    
     // Ensure product has an id
     if (!product.id && !product._id) {
-      console.error('🛒🛒🛒 Cannot add product to cart: missing id', product)
+      console.error('Cannot add product to cart: missing id', product)
       return
     }
 
@@ -82,9 +77,7 @@ export function CartProvider({ children }) {
         // Remove: price, purchasePrice, cost, wholesalePrice, etc.
       }
       
-      const newCart = [...prev, newItem]
-      console.log('🛒 Cart updated:', newCart)
-      return newCart
+      return [...prev, newItem]
     })
   }
 
@@ -160,11 +153,6 @@ export function CartProvider({ children }) {
       String(p.id) === String(id) && (p.selectedSize || null) === (size || null)
     ),
   }
-
-  console.log('🛒🛒🛒 CartContext value being provided:', { 
-    addToCart: typeof value.addToCart, 
-    cartItemsLength: value.cartItems.length 
-  })
 
   return (
     <CartContext.Provider value={value}>

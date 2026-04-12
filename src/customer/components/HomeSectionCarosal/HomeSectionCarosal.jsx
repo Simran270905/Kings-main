@@ -6,8 +6,6 @@ import CategoryHeader from '../CategoryHeader/CategoryHeader'
 import { Link } from 'react-router-dom'
 
 const HomeSectionCarousel = ({ data, sectionName, showExploreButton = true }) => {
-  console.log('🎠 HomeSectionCarosal - Received data:', data)
-  console.log('🎠 HomeSectionCarosal - Section name:', sectionName)
   const scrollRef = useRef(null)
 
   // Scroll functions for manual navigation
