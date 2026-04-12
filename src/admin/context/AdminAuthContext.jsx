@@ -38,10 +38,7 @@ export function AdminAuthProvider({ children }) {
       setIsAdminAuthenticated(true);
       setAdminLoading(false);
 
-      // Trigger order refresh if callback is set
-      if (orderRefreshCallback) {
-        orderRefreshCallback();
-      }
+      // Login successful - admin authenticated
 
       return { success: true };
 
