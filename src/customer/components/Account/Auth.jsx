@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../../context/useAuth";
+import { useAuth } from "../../../context/useAuth";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { API_BASE_URL } from "@config/api.js";
 

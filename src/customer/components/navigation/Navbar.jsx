@@ -10,8 +10,8 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { Popover, Dialog, Transition } from '@headlessui/react'
-import { useAuth } from '../../context/useAuth'
-import { useCart } from '../../context/useCart'
+import { useAuth } from '../../../context/useAuth'
+import { useCart } from '../../../context/useCart'
 import { API_BASE_URL } from '@config/api.js'
 
 // Inline formatPrice function to bypass import issues

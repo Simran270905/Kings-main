@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../../context/useAuth";
-import { useCustomerOrder } from "../../context/CustomerOrderContext";
+import { useAuth } from "../../../context/useAuth";
+import { useCustomerOrder } from "../../../context/CustomerOrderContext";
 import { UserCircleIcon, EnvelopeIcon, PhoneIcon, ShoppingBagIcon, ArrowRightOnRectangleIcon, ClockIcon, CheckCircleIcon, TruckIcon, XCircleIcon } from "@heroicons/react/24/outline";
 
 const Account = () => {

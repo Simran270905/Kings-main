@@ -210,9 +210,14 @@ export function AuthProvider({ children }) {
       const user = result?.data?.user
 
       if (token) localStorage.setItem("token", token)
-      if (user) localStorage.setItem("user", JSON.stringify(user))
+      if (user) {
+        localStorage.setItem("user", JSON.stringify(user))
+        setUser(user)  // Update React state
+      }
 
       localStorage.setItem("isAuthenticated", "true")
+      setIsAuthenticated(true)  // Update React state
+      setLoading(false)  // Update React state
 
       return {
         success: true,
