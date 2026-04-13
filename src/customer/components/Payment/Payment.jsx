@@ -3,7 +3,14 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useCart } from '../../../context/useCart'
 import { AuthContext } from '../../../context/AuthContext'
 import { useCustomerOrder } from '../../../context/CustomerOrderContext'
-import { CreditCardIcon, InformationCircleIcon } from '@heroicons/react/24/outline'
+import { 
+  CreditCardIcon, 
+  InformationCircleIcon,
+  BanknotesIcon,
+  CreditCardIcon as CardIcon,
+  WalletIcon,
+  CurrencyDollarIcon
+} from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 import { API_BASE_URL } from '../../../config/api.js'
 
@@ -23,31 +30,49 @@ const safeNum = (value, fallback = 0) => {
 const API_URL = API_BASE_URL
 const COD_CHARGE = 50
 
-// Payment options
+// Payment Method Icon Component
+function PaymentMethodIcon({ method }) {
+  const iconClass = "w-6 h-6 text-gray-600"
+  
+  switch(method) {
+    case 'upi':
+      return <WalletIcon className={iconClass} />
+    case 'netbanking':
+      return <BanknotesIcon className={iconClass} />
+    case 'card':
+      return <CardIcon className={iconClass} />
+    case 'cod':
+      return <CurrencyDollarIcon className={iconClass} />
+    default:
+      return <CreditCardIcon className={iconClass} />
+  }
+}
+
+// Payment options with proper icons
 const paymentOptions = [
   { 
     id: "upi", 
     label: "UPI", 
-    description: "Pay using Google Pay, PhonePe, etc.",
-    icon: "UPI"
+    description: "Pay using Google Pay, PhonePe, Paytm, etc.",
+    icon: "upi"
   },
   { 
     id: "netbanking", 
     label: "Net Banking", 
-    description: "All major banks supported",
-    icon: "Bank"
+    description: "Secure payment via all major banks",
+    icon: "netbanking"
   },
   { 
     id: "card", 
     label: "Credit/Debit Card", 
-    description: "Visa, MasterCard, RuPay",
-    icon: "Card"
+    description: "Visa, MasterCard, RuPay, American Express",
+    icon: "card"
   },
   { 
     id: "cod", 
     label: "Cash on Delivery", 
-    description: "Pay when order arrives",
-    icon: "Cash"
+    description: "Pay when your order is delivered",
+    icon: "cod"
   }
 ];
 
@@ -364,10 +389,24 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
   const paymentCalculation = calculatePayment()
 
   const handlePayment = async () => {
-    if (!selectedMethod) return toast.error('Select payment method')
+    // ADDED: Enhanced validation with better error messages
+    if (!selectedMethod) {
+      toast.error('Please select a payment method to continue', {
+        duration: 4000,
+        position: 'top-center'
+      })
+      return
+    }
 
     const token = localStorage.getItem('token')
-    if (!token) return toast.error('Login required')
+    if (!token) {
+      toast.error('Please login to continue with payment', {
+        duration: 4000,
+        position: 'top-center'
+      })
+      navigate('/login')
+      return
+    }
 
     const orderData = {
       items: cartItems.map(item => ({
@@ -395,16 +434,27 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
       if (selectedMethod === 'cod') {
         const res = await createOrder(orderData)
         if (res?.success) {
-          toast.success('Order placed')
+          // ADDED: Enhanced success message
+          toast.success('Order placed successfully! Your order will be delivered soon.', {
+            duration: 5000,
+            position: 'top-center'
+          })
           clearCart()
           navigate('/order-success')
+        } else {
+          throw new Error(res?.message || 'Failed to place order')
         }
       } else {
         await processRazorpayPayment(orderData, token)
       }
 
     } catch (err) {
-      toast.error(err.message || 'Payment failed')
+      // ADDED: Enhanced error handling
+      console.error('Payment error:', err)
+      toast.error(err.message || 'Payment failed. Please try again.', {
+        duration: 5000,
+        position: 'top-center'
+      })
     } finally {
       setLoading(false)
     }
@@ -474,11 +524,22 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           const verifyData = await verifyRes.json()
           
           if (verifyData.success) {
-            toast.success(paymentPlan === 'partial' ? 'Advance payment successful!' : 'Payment successful!')
+            // ADDED: Enhanced success messages
+            const successMessage = paymentPlan === 'partial' 
+              ? 'Advance payment successful! You will be notified for the remaining payment.'
+              : 'Payment successful! Your order has been confirmed.'
+            
+            toast.success(successMessage, {
+              duration: 5000,
+              position: 'top-center'
+            })
             clearCart()
             navigate('/order-success')
           } else {
-            toast.error('Payment verification failed')
+            toast.error('Payment verification failed. Please contact support.', {
+              duration: 5000,
+              position: 'top-center'
+            })
           }
         },
         modal: {
@@ -529,35 +590,78 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Payment</h1>
         
-        {/* Payment Methods */}
+        {/* Payment Methods Section */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Select Payment Method</h2>
+          <div className="flex items-center gap-2 mb-6">
+            <CreditCardIcon className="h-5 w-5 text-gray-600" />
+            <h2 className="text-xl font-semibold text-gray-900">Select Payment Method</h2>
+          </div>
+          
+          {/* Validation Error Message */}
+          {!selectedMethod && (
+            <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="flex items-center gap-2">
+                <InformationCircleIcon className="h-5 w-5 text-red-600 flex-shrink-0" />
+                <p className="text-sm text-red-800">Please select a payment method to continue</p>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {paymentOptions.map((method) => (
               <div
                 key={method.id}
                 onClick={() => setSelectedMethod(method.id)}
                 className={`
-                  border-2 rounded-xl p-4 cursor-pointer transition-all duration-200
+                  // ADDED: Enhanced payment method card UI
+                  relative border-2 rounded-xl p-5 cursor-pointer transition-all duration-200 group
                   ${selectedMethod === method.id 
-                    ? 'border-[#ae0b0b] bg-[#fdf6ec]' 
-                    : 'border-gray-200 bg-white hover:border-gray-300'
+                    ? 'border-[#ae0b0b] bg-[#fdf6ec] shadow-lg transform scale-[1.02]' 
+                    : 'border-gray-200 bg-white hover:border-[#ae0b0b] hover:shadow-md hover:transform hover:scale-[1.01]'
                   }
                 `}
               >
-                <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <span className="text-sm font-bold text-gray-600">{method.icon}</span>
+                <div className="flex items-start gap-4">
+                  {/* ADDED: Better icon container */}
+                  <div className={`
+                    w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-200
+                    ${selectedMethod === method.id 
+                      ? 'bg-[#ae0b0b] text-white' 
+                      : 'bg-gray-100 text-gray-600 group-hover:bg-[#fdf6ec] group-hover:text-[#ae0b0b]'
+                    }
+                  `}>
+                    <PaymentMethodIcon method={method.icon} />
                   </div>
+                  
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{method.label}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{method.description}</p>
-                  </div>
-                  <div className="w-6 h-6 rounded-full border-2 flex items-center justify-center">
+                    <h3 className={`
+                      font-semibold text-gray-900 mb-1
+                      ${selectedMethod === method.id ? 'text-[#ae0b0b]' : ''}
+                    `}>
+                      {method.label}
+                    </h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">{method.description}</p>
+                    
+                    {/* ADDED: Selection indicator */}
                     {selectedMethod === method.id && (
-                      <div className="w-3 h-3 bg-[#ae0b0b] rounded-full"></div>
+                      <div className="flex items-center gap-1 mt-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-xs font-medium text-green-600">Selected</span>
+                      </div>
                     )}
                   </div>
+                </div>
+                
+                {/* ADDED: Radio button for accessibility */}
+                <div className="absolute top-4 right-4">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value={method.id}
+                    checked={selectedMethod === method.id}
+                    onChange={() => setSelectedMethod(method.id)}
+                    className="w-4 h-4 text-[#ae0b0b] focus:ring-[#ae0b0b] focus:ring-2 focus:ring-offset-2 border-gray-300"
+                  />
                 </div>
               </div>
             ))}
@@ -566,14 +670,19 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
 
         {/* Coupon Section */}
         <div className="mb-8 bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Coupon Code</h2>
+          <div className="flex items-center gap-2 mb-4">
+            <CurrencyDollarIcon className="h-5 w-5 text-gray-600" />
+            <h2 className="text-xl font-semibold text-gray-900">Coupon Code</h2>
+          </div>
+          
           <div className="space-y-4">
             {appliedCoupon ? (
+              // ADDED: Enhanced applied coupon display
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <span className="text-green-600 text-sm font-bold">%</span>
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                      <span className="text-green-600 text-lg font-bold">%</span>
                     </div>
                     <div>
                       <p className="font-medium text-green-800">{appliedCoupon.code}</p>
@@ -582,46 +691,90 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
                           ? `${appliedCoupon.discountValue}% discount applied` 
                           : `Rs${appliedCoupon.discountValue} discount applied`}
                       </p>
+                      <p className="text-xs text-green-500 mt-1">Successfully applied to your order</p>
                     </div>
                   </div>
                   <button
                     onClick={removeCoupon}
-                    className="text-red-600 hover:text-red-700 text-sm font-medium"
+                    className="px-3 py-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md text-sm font-medium transition-colors"
                   >
                     Remove
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="flex gap-3">
-                <input
-                  type="text"
-                  value={couponCode}
-                  onChange={(e) => {
-                    setCouponCode(e.target.value)
-                    setCouponError('')
-                  }}
-                  placeholder="Enter coupon code"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#ae0b0b] focus:ring-1 focus:ring-[#ae0b0b] focus:ring-opacity-50"
-                />
-                <button
-                  onClick={validateCoupon}
-                  disabled={couponLoading}
-                  className="px-6 py-2 bg-[#ae0b0b] text-white rounded-lg font-medium hover:bg-[#8f0a0a] transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-                >
-                  {couponLoading ? 'Validating...' : 'Apply'}
-                </button>
+              // ADDED: Enhanced coupon input section
+              <div className="space-y-3">
+                <div className="flex gap-3">
+                  <div className="relative flex-1">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => {
+                        setCouponCode(e.target.value)
+                        setCouponError('')
+                      }}
+                      placeholder="Enter coupon code"
+                      className={`
+                        // ADDED: Enhanced input styling
+                        w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:border-[#ae0b0b] focus:ring-2 focus:ring-[#ae0b0b] focus:ring-opacity-20 transition-all duration-200
+                        ${couponError ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}
+                      `}
+                    />
+                    {/* ADDED: Input helper icon */}
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <CurrencyDollarIcon className="h-5 w-5 text-gray-400" />
+                    </div>
+                  </div>
+                  <button
+                    onClick={validateCoupon}
+                    disabled={couponLoading || !couponCode.trim()}
+                    className={`
+                      // ADDED: Enhanced button styling
+                      px-6 py-3 bg-[#ae0b0b] text-white rounded-lg font-medium transition-all duration-200
+                      ${couponLoading 
+                        ? 'opacity-50 cursor-not-allowed' 
+                        : 'hover:bg-[#8f0a0a] hover:shadow-lg hover:transform hover:scale-[1.02] active:scale-[0.98]'
+                      }
+                      ${!couponCode.trim() ? 'opacity-50 cursor-not-allowed' : ''}
+                    `}
+                  >
+                    {couponLoading ? (
+                      <span className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent border-r-transparent animate-spin"></div>
+                        Validating...
+                      </span>
+                    ) : 'Apply'}
+                  </button>
+                </div>
+                
+                {/* ADDED: Enhanced error display */}
+                {couponError && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <div className="flex items-center gap-2">
+                      <InformationCircleIcon className="h-5 w-5 text-red-600 flex-shrink-0" />
+                      <p className="text-sm text-red-800">{couponError}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {/* ADDED: Help text */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-start gap-2">
+                    <InformationCircleIcon className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium mb-1">Coupon Tips:</p>
+                      <ul className="space-y-1 text-blue-700">
+                        <li>• Check for valid coupon codes on our website</li>
+                        <li>• Some coupons have minimum order requirements</li>
+                        <li>• Percentage coupons apply to subtotal</li>
+                        <li>• Fixed amount coupons subtract directly</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
-            
-            {couponError && (
-              <p className="text-red-600 text-sm">{couponError}</p>
-            )}
-            
-            <div className="text-sm text-gray-500">
-              <p>Enter a valid coupon code to get discount on your order.</p>
-              <p>Coupons can be percentage-based or fixed amount discounts.</p>
-            </div>
           </div>
         </div>
 
@@ -638,7 +791,10 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
 
         {/* Order Summary */}
         <div className="mb-8 bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Purchase Summary</h2>
+          <div className="flex items-center gap-2 mb-6">
+            <CreditCardIcon className="h-5 w-5 text-gray-600" />
+            <h2 className="text-xl font-semibold text-gray-900">Purchase Summary</h2>
+          </div>
           
           {/* Items List */}
           <div className="mb-6 space-y-3">
@@ -730,19 +886,68 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
         </div>
 
         {/* Pay Button */}
-        <button
-          onClick={handlePayment}
-          disabled={loading || !selectedMethod}
-          className={`
-            w-full py-4 rounded-xl font-bold transition-all duration-200
-            ${loading || !selectedMethod
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-[#ae0b0b] text-white hover:bg-[#8f0a0a] active:scale-[0.98]'
-            }
-          `}
-        >
-          {loading ? 'Processing...' : `Pay ${formatPrice(paymentPlan === 'partial' ? paymentCalculation.advanceAmount : paymentCalculation.finalAmount)}`}
-        </button>
+        <div className="space-y-3">
+          {/* ADDED: Final validation message */}
+          {!selectedMethod && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              <div className="flex items-center gap-2">
+                <InformationCircleIcon className="h-5 w-5 text-yellow-600 flex-shrink-0" />
+                <p className="text-sm text-yellow-800">Please select a payment method to proceed with payment</p>
+              </div>
+            </div>
+          )}
+          
+          {/* ADDED: Enhanced pay button */}
+          <button
+            onClick={handlePayment}
+            disabled={loading || !selectedMethod}
+            className={`
+              // ADDED: Enhanced button styling with loading states
+              w-full py-4 px-6 rounded-xl font-bold text-lg transition-all duration-200 relative overflow-hidden
+              ${loading || !selectedMethod
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed border border-gray-300'
+                : 'bg-gradient-to-r from-[#ae0b0b] to-[#8f0a0a] text-white hover:from-[#8f0a0a] hover:to-[#7d0808] hover:shadow-xl hover:transform hover:scale-[1.02] active:scale-[0.98] border border-transparent'
+              }
+            `}
+          >
+            {loading ? (
+              // ADDED: Loading state with spinner
+              <span className="flex items-center justify-center gap-3">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent border-r-transparent animate-spin"></div>
+                <span>Processing Payment...</span>
+              </span>
+            ) : (
+              // ADDED: Enhanced payment amount display
+              <span className="flex items-center justify-center gap-2">
+                <span>
+                  {paymentPlan === 'partial' ? 'Pay Advance' : 'Pay Now'}
+                </span>
+                <span className="font-bold text-xl">
+                  {formatPrice(paymentPlan === 'partial' ? paymentCalculation.advanceAmount : paymentCalculation.finalAmount)}
+                </span>
+                <span className="text-sm opacity-75">
+                  ({selectedMethod ? selectedMethod.toUpperCase() : 'SELECT METHOD'})
+                </span>
+              </span>
+            )}
+          </button>
+          
+          {/* ADDED: Security and trust indicators */}
+          <div className="flex items-center justify-center gap-6 text-xs text-gray-500">
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span>Secure Payment</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+              <span>SSL Encrypted</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+              <span>Safe Checkout</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
