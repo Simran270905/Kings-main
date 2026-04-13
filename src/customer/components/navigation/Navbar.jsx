@@ -145,34 +145,37 @@ export default function Navbar() {
                   </Popover.Button>
 
                   <Transition as={Fragment}>
-                    <Popover.Panel className="absolute left-1/2 -translate-x-1/2 top-full mt-6 w-[95vw] max-w-[1100px] max-h-[80vh] bg-white shadow-2xl border p-10 rounded-2xl z-50 overflow-y-auto">
-                      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <Popover.Panel className="absolute left-1/2 -translate-x-1/2 top-full mt-6 w-[95vw] max-w-[1100px] bg-white shadow-2xl border p-10 rounded-2xl z-50 overflow-hidden">
+                      <div className="dropdown-grid grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
                         {shopCategories.length === 0 ? (
                           <div className="col-span-4 text-center py-8 text-gray-400">
                             <p>No categories available yet.</p>
                           </div>
                         ) : (
                           shopCategories.map((cat) => (
-                            <Link
-                              key={cat._id || cat.name}
-                              to={`/shop/${cat.name.toLowerCase()}`}
-                              onClick={() => close()}
-                              className="text-center group"
-                            >
+                            <div key={cat._id || cat.name} className="category-card group">
                               {cat.image ? (
                                 <img
                                   src={cat.image}
                                   alt={cat.name}
-                                  className="rounded-xl aspect-square object-cover group-hover:scale-105 transition"
+                                  className="rounded-xl aspect-square object-cover group-hover:scale-105 transition-transform duration-300 w-full"
                                 />
                               ) : (
-                                <div className="rounded-xl aspect-square bg-gray-100 flex items-center justify-center group-hover:scale-105 transition">
+                                <div className="rounded-xl aspect-square bg-gray-100 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 w-full">
                                   <span className="text-4xl font-bold text-gray-300">{cat.name[0]}</span>
                                 </div>
                               )}
-                              <p className="mt-3 font-medium">{cat.name}</p>
-                              <span className="text-sm text-[#ae0b0b]">Explore →</span>
-                            </Link>
+                              <h4 className="mt-3 font-medium text-gray-900 group-hover:text-[#ae0b0b] transition-colors duration-200">{cat.name}</h4>
+                              <button
+                                onClick={() => {
+                                  navigate(`/shop/${cat.name.toLowerCase()}`);
+                                  close();
+                                }}
+                                className="mt-2 text-sm text-[#ae0b0b] font-medium hover:text-[#8f0a0a] transition-colors duration-200 flex items-center gap-1 mx-auto"
+                              >
+                                Explore <span className="transform group-hover:translate-x-1 transition-transform duration-200">&#8594;</span>
+                              </button>
+                            </div>
                           ))
                         )}
                       </div>

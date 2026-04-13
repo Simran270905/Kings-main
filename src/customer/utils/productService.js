@@ -29,6 +29,9 @@ export const loadProducts = async () => {
     }
     
     const data = await response.json()
+    console.log("🔍 PRODUCT SERVICE: Raw API response:", data)
+    
+    // Fix: API response is {success: true, data: {products: [...], pagination: {...}}}
     const products = data.data?.products || []
     console.log(`📦 Loaded ${products.length} products from API`)
     return Array.isArray(products) ? products : []
@@ -48,7 +51,8 @@ export const fetchProductsFromAPI = async () => {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
 
-    const apiUrl = `${API_BASE_URL}/products`
+    // Fix: Fetch ALL products by setting high limit
+    const apiUrl = `${API_BASE_URL}/products?limit=500`
 
     const response = await fetch(apiUrl, {
       signal: controller.signal
@@ -70,6 +74,8 @@ export const fetchProductsFromAPI = async () => {
     }
     
     const data = await response.json()
+    
+    // Fix: API response is {success: true, data: {products: [...], pagination: {...}}}
     const products = data.data?.products || []
     
     // 🔧 TEMPORARY FIX: If no products found, provide sample data for testing

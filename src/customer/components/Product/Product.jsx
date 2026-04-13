@@ -18,7 +18,7 @@ import {
 
 import ProductCard from './ProductCard'
 import { applyFilters } from '../../components/Product/FilterData'
-import { useProduct } from '../../context/ProductContext'
+import { useProduct } from '../../../context/ProductContext'
 
 // SORT OPTIONS
 const sortOptions = [

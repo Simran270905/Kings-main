@@ -4,7 +4,7 @@ import { memo, lazy, Suspense, useEffect, useState, useMemo, useRef } from 'reac
 import MainCarosal from '../../components/HomeCarosal/MainCarosal'
 import HomeSectionCarosal from '../../components/HomeSectionCarosal/HomeSectionCarosal'
 import HomeSectionCard from '../../components/HomeSectionCard/HomeSectionCard'
-import { useProduct } from '../../context/ProductContext'
+import { useProduct } from '../../../context/ProductContext'
 import { API_BASE_URL } from '@config/api.js'
 import { HomePageSkeleton, CategorySkeleton } from '../../../components/LoadingSkeletons.jsx'
 

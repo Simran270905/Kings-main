@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useCart } from '../../../context/useCart'
-import { AuthContext } from '../../../context/AuthContext'
+import { useProduct } from '../../../context/ProductContext'
 import { useCustomerOrder } from '../../../context/CustomerOrderContext'
 import { 
   CreditCardIcon, 

@@ -1,12 +1,9 @@
 "use client"
 
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ChevronDownIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline'
-import { useProduct } from '../../context/ProductContext'
-import HomeSectionCarosal from '../../components/HomeSectionCarosal/HomeSectionCarosal'
-import CategoryHeader from '../../components/CategoryHeader/CategoryHeader'
-import { CategorySkeleton } from '../../../components/LoadingSkeletons'
+import { useProduct } from '../../../context/ProductContext'
+import HomeSectionCard from '../../components/HomeSectionCard/HomeSectionCard'
 
 const sortOptions = [
   { value: 'newest', label: 'Newest First' },
@@ -17,40 +14,27 @@ const sortOptions = [
 export default function ShopPage() {
   const { category } = useParams() || {}
   const [sort, setSort] = useState('newest')
+  const [selectedCategory, setSelectedCategory] = useState(category || 'all')
   const { products: allProducts, loading } = useProduct()
-  const cat = category ? category.toLowerCase() : null
 
-  const baseProducts = useMemo(() => {
-    if (!allProducts || allProducts.length === 0) return []
-    if (!cat) {
-      // Remove duplicates from all products view
-      const uniqueProducts = []
-      const seenIds = new Set()
-      
-      for (const product of allProducts) {
-        const productId = product.id || product._id
-        if (!seenIds.has(productId)) {
-          seenIds.add(productId)
-          uniqueProducts.push(product)
-        }
-      }
-      
-      console.log(`🛍️ Shop Page: All Products - Found ${uniqueProducts.length} unique products from ${allProducts.length} total`)
-      return uniqueProducts
+  // Update selected category when URL parameter changes
+  useEffect(() => {
+    if (category) {
+      setSelectedCategory(category.toLowerCase())
+    } else {
+      setSelectedCategory('all')
     }
+  }, [category])
+
+  // Get ALL products without filtering
+  const allProductsList = useMemo(() => {
+    if (!allProducts || allProducts.length === 0) return []
     
-    // Filter products by category (case-insensitive match)
-    const filtered = allProducts.filter(product => {
-      if (!product.category) return false
-      const productCat = product.category.toLowerCase()
-      return productCat.includes(cat) || cat.includes(productCat)
-    })
-    
-    // Remove duplicates based on product ID
+    // Remove duplicates
     const uniqueProducts = []
     const seenIds = new Set()
     
-    for (const product of filtered) {
+    for (const product of allProducts) {
       const productId = product.id || product._id
       if (!seenIds.has(productId)) {
         seenIds.add(productId)
@@ -58,78 +42,143 @@ export default function ShopPage() {
       }
     }
     
-    console.log(`🛍️ Shop Page: ${cat} - Found ${uniqueProducts.length} unique products from ${filtered.length} filtered`)
     return uniqueProducts
-  }, [allProducts, cat])
+  }, [allProducts])
 
+  // Extract unique categories from products
+  const categories = useMemo(() => {
+    const uniqueCats = ['all', ...new Set(allProductsList.map(p => p.category).filter(Boolean))]
+    return uniqueCats
+  }, [allProductsList])
+
+  // Apply category filtering and sorting
   const products = useMemo(() => {
-    const arr = [...baseProducts]
+    let arr = [...allProductsList]
+    
+    // Filter by category
+    if (selectedCategory !== 'all') {
+      arr = arr.filter(item => 
+        item.category?.toLowerCase() === selectedCategory.toLowerCase()
+      )
+    }
+    
+    // Apply sorting
     if (sort === 'price_asc') arr.sort((a, b) => (Number(a.sellingPrice) || 0) - (Number(b.sellingPrice) || 0))
     if (sort === 'price_desc') arr.sort((a, b) => (Number(b.sellingPrice) || 0) - (Number(a.sellingPrice) || 0))
+    
     return arr
-  }, [baseProducts, sort])
-
-  const title = cat
-    ? cat.replace(/-/g, ' ').replace(/\b\w/g, (s) => s.toUpperCase())
-    : 'All Products'
+  }, [allProductsList, selectedCategory, sort])
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#ffffff] via-[#fffaf3] to-[#fdf6ec]">
-      {/* Page header */}
-      <div className="relative w-full px-4 sm:px-6 lg:px-14 py-12 lg:py-16">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#f3e6cf]/20 via-transparent to-[#f3e6cf]/20" />
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+      {/* Container */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        <div className="relative">
-          <nav className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+        {/* Header */}
+        <div className="mb-8">
+          <nav className="flex items-center gap-2 text-sm text-gray-500 mb-4">
             <Link to="/" className="hover:text-[#ae0b0b] transition-colors">Home</Link>
             <span>/</span>
             <Link to="/shop" className="hover:text-[#ae0b0b] transition-colors">Shop</Link>
-            {cat && <><span>/</span><span className="text-gray-900 font-medium">{title}</span></>}
+            {selectedCategory !== 'all' && (
+              <>
+                <span>/</span>
+                <span className="text-gray-900 font-medium">
+                  {selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}
+                </span>
+              </>
+            )}
           </nav>
           
-          <div className="flex items-end justify-between gap-4">
-            <CategoryHeader title={title} showExploreButton={false} />
-            <p className="text-sm text-gray-500">{products.length} product{products.length !== 1 ? 's' : ''}</p>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                {selectedCategory === 'all' ? 'All Products' : selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}
+              </h1>
+              <p className="text-gray-600">
+                {selectedCategory === 'all' ? 'Discover our complete collection' : `Discover our ${selectedCategory} collection`}
+              </p>
+            </div>
             
-            {/* Sort */}
-            <div className="relative">
+            {/* Sort Dropdown */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-500">Sort by:</span>
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value)}
-                className="appearance-none pl-4 pr-10 py-2.5 border-2 border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:border-[#ae0b0b] bg-white cursor-pointer"
+                className="appearance-none pl-4 pr-10 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#ae0b0b] bg-white"
               >
-                {sortOptions.map(o => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
                 ))}
               </select>
-              <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Products carousel - Same as homepage */}
-      <div className="relative w-full px-4 sm:px-6 lg:px-14 pb-12 lg:pb-16">
+          {/* Category Filter Buttons */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                  selectedCategory === category
+                    ? 'bg-[#ae0b0b] text-white shadow-md'
+                    : 'bg-white border border-gray-300 text-gray-700 hover:border-[#ae0b0b] hover:text-[#ae0b0b]'
+                }`}
+              >
+                {category === 'all' ? 'All Products' : category.charAt(0).toUpperCase() + category.slice(1)}
+              </button>
+            ))}
+          </div>
+          
+          {/* Product Count */}
+          <p className="text-sm text-gray-500 mt-4">
+            {products.length} product{products.length !== 1 ? 's' : ''} {selectedCategory === 'all' ? 'available' : `in ${selectedCategory}`}
+          </p>
+        </div>
+
+        {/* Loading State */}
         {loading ? (
           <div className="text-center py-20">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#ae0b0b]"></div>
             <p className="mt-4 text-gray-600">Loading products...</p>
           </div>
         ) : products.length === 0 ? (
+          /* Empty State */
           <div className="text-center py-20">
-            <AdjustmentsHorizontalIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-gray-900 mb-2">No products found</h2>
-            <p className="text-gray-500 mb-6">Try a different category.</p>
-            <Link to="/shop" className="inline-block px-6 py-3 bg-[#ae0b0b] text-white font-bold rounded-xl hover:bg-[#8f0a0a] transition-colors">
-              View All Products
-            </Link>
+            <div className="h-16 w-16 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
+              <svg className="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              {selectedCategory === 'all' ? 'No products found' : `No products in ${selectedCategory}`}
+            </h2>
+            <p className="text-gray-500 mb-4">
+              {selectedCategory === 'all' 
+                ? 'Check back later for new arrivals.' 
+                : `Try selecting a different category or view all products.`
+              }
+            </p>
+            {selectedCategory !== 'all' && (
+              <button
+                onClick={() => setSelectedCategory('all')}
+                className="inline-block px-6 py-3 bg-[#ae0b0b] text-white font-bold rounded-xl hover:bg-[#8f0a0a] transition-colors"
+              >
+                View All Products
+              </button>
+            )}
           </div>
         ) : (
-          <HomeSectionCarosal 
-            data={products} 
-            sectionName={title}
-            showExploreButton={false}
-          />
+          /* Products Grid */
+          <div className="products-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {products.map((product) => (
+              <HomeSectionCard key={product._id || product.id} product={product} />
+            ))}
+          </div>
         )}
       </div>
     </div>

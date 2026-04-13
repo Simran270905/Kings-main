@@ -1,5 +1,47 @@
 @import "tailwindcss";
 
+/* Prevent horizontal scrolling globally */
+html, body {
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Category Dropdown Styles */
+.category-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.category-card:hover {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+}
+
+.dropdown-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .dropdown-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .dropdown-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 .carousel-image {
   width: 100%;        /* fills the container */
   max-width: 600px;   /* keeps a fixed max width for desktop */
