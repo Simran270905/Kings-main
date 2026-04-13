@@ -1,8 +1,9 @@
-import React, { useState, useContext } from 'react'
+import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useCart } from '../../../context/useCart'
 import { useProduct } from '../../../context/ProductContext'
 import { useCustomerOrder } from '../../../context/CustomerOrderContext'
+import { useAuth } from '../../../context/useAuth'
 import { 
   CreditCardIcon, 
   InformationCircleIcon,
@@ -239,7 +240,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
   const navigate = useNavigate()
   const location = useLocation()
   const { cartItems, totalPrice, clearCart } = useCart()
-  const { user } = useContext(AuthContext)
+  const { user } = useAuth()
   const { createOrder } = useCustomerOrder()
 
   const [deliveryAddress] = useState(propDeliveryAddress || location.state?.deliveryAddress || {})
