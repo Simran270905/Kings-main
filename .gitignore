@@ -23,6 +23,15 @@ dist-ssr
 *.sln
 *.sw?
 
-.vercel
-.env*.local
+# ENV FILES - CRITICAL SECURITY
 .env
+.env.*
+*.env
+.env.local
+.env.production
+.env.development
+.env.example
+
+# Vercel / build env
+.vercel
+.vercelignore
