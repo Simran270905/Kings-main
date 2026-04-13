@@ -18,7 +18,11 @@ import { API_BASE_URL } from '../../../config/api.js'
 // Helpers
 const formatPrice = (value) => {
   const num = Number(value)
-  return `Rs${(isNaN(num) ? 0 : num).toLocaleString("en-IN")}`
+  console.log('💰 formatPrice called with:', value, typeof value)
+  // If value is in paise (>= 10000), convert to rupees
+  const displayValue = num >= 10000 ? num / 100 : num
+  console.log('💰 formatPrice displaying:', displayValue)
+  return `Rs${(isNaN(displayValue) ? 0 : displayValue).toLocaleString("en-IN")}`
 }
 
 const getSellingPrice = (item) => Number(item.sellingPrice || item.selling_price || 0) || 0
@@ -463,6 +467,13 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
 
   const processRazorpayPayment = async (orderData, token) => {
     try {
+      // DEBUG: Log amount details
+      console.log('💰 FRONTEND PAYMENT DEBUG ===')
+      console.log('💰 Order Data:', orderData)
+      console.log('💰 Total Amount (₹):', orderData.totalAmount)
+      console.log('💰 Amount Type:', typeof orderData.totalAmount)
+      console.log('💰 Sending to backend (₹):', orderData.totalAmount)
+      
       // Create order on backend first
       const orderRes = await fetch(`${API_URL}/payments/create-order`, {
         method: 'POST',
@@ -471,7 +482,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ 
-          amount: orderData.totalAmount,
+          amount: orderData.totalAmount, // Send in ₹ (backend will convert to paise)
           currency: 'INR',
           receipt: `order_${Date.now()}`,
           notes: {
@@ -483,6 +494,11 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
 
       const orderDataResponse = await orderRes.json()
       
+      console.log('🔧 BACKEND RESPONSE DEBUG ===')
+      console.log('🔧 Order Response:', orderDataResponse)
+      console.log('🔧 Backend Amount (paise):', orderDataResponse.data.amount)
+      console.log('🔧 Backend Amount (₹):', orderDataResponse.data.amount / 100)
+      
       if (!orderDataResponse.success) {
         throw new Error(orderDataResponse.message || 'Failed to create order')
       }
@@ -490,9 +506,13 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
       const loaded = await loadRazorpayScript()
       if (!loaded) return toast.error('Razorpay failed to load')
 
+      console.log('💳 RAZORPAY CHECKOUT DEBUG ===')
+      console.log('💳 Amount from backend (paise):', orderDataResponse.data.amount)
+      console.log('💳 Amount for Razorpay (should be paise):', orderDataResponse.data.amount)
+      
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: orderDataResponse.data.amount,
+        amount: orderDataResponse.data.amount, // Already in paise from backend
         currency: orderDataResponse.data.currency,
         name: 'KKings Jewellery',
         description: `Payment for ${orderData.items.length} items`,

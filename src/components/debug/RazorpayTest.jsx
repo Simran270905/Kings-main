@@ -46,7 +46,7 @@ export default function RazorpayTest() {
       // Step 3: Open Razorpay
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: order.data.amount * 100, // Already in paise from backend
+        amount: order.data.amount, // Already in paise from backend - DON'T multiply again
         currency: "INR",
         order_id: order.data.razorpayOrderId,
         name: "Test Payment",
