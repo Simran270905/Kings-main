@@ -198,20 +198,38 @@ export default function Dashboard() {
           return
         }
 
-        const response = await fetch(`${API_BASE_URL}/products/recent`, {
+        // Try dedicated recent products endpoint first
+        let response = await fetch(`${API_BASE_URL}/products/recent`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         })
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch recent products')
+        let data, products
+
+        if (response.ok) {
+          data = await response.json()
+          products = data.data || data || []
+          console.log('Dashboard - Recent products fetched from /recent endpoint:', products.length)
+        } else {
+          // Fallback to main products endpoint with limit
+          console.log('Dashboard - /recent endpoint failed, trying fallback...')
+          response = await fetch(`${API_BASE_URL}/products?limit=5`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch recent products')
+          }
+
+          data = await response.json()
+          products = data.data?.products || data.products || data.data || data || []
+          console.log('Dashboard - Recent products fetched from fallback endpoint:', products.length)
         }
 
-        const data = await response.json()
-        const products = data.data || data || []
-        setRecentProducts(Array.isArray(products) ? products : [])
-        console.log('Dashboard - Recent products fetched:', products.length)
+        setRecentProducts(Array.isArray(products) ? products.slice(0, 5) : [])
       } catch (error) {
         console.error('Dashboard - Error fetching recent products:', error)
         setRecentProducts([])
@@ -232,17 +250,36 @@ export default function Dashboard() {
             const token = localStorage.getItem('kk_admin_token')
             if (!token) return
 
-            const response = await fetch(`${API_BASE_URL}/products/recent`, {
+            // Try dedicated recent products endpoint first
+            let response = await fetch(`${API_BASE_URL}/products/recent`, {
               headers: {
                 'Authorization': `Bearer ${token}`
               }
             })
 
+            let data, products
+
             if (response.ok) {
-              const data = await response.json()
-              const products = data.data || data || []
-              setRecentProducts(Array.isArray(products) ? products : [])
+              data = await response.json()
+              products = data.data || data || []
+              console.log('Dashboard - Recent products refreshed from /recent endpoint:', products.length)
+            } else {
+              // Fallback to main products endpoint with limit
+              console.log('Dashboard - /recent endpoint failed during refresh, trying fallback...')
+              response = await fetch(`${API_BASE_URL}/products?limit=5`, {
+                headers: {
+                  'Authorization': `Bearer ${token}`
+                }
+              })
+
+              if (response.ok) {
+                data = await response.json()
+                products = data.data?.products || data.products || data.data || data || []
+                console.log('Dashboard - Recent products refreshed from fallback endpoint:', products.length)
+              }
             }
+
+            setRecentProducts(Array.isArray(products) ? products.slice(0, 5) : [])
           } catch (error) {
             console.error('Dashboard - Error refreshing recent products:', error)
           }

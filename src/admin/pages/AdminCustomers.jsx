@@ -26,7 +26,11 @@ const AdminCustomers = () => {
         setLoading(true)
         setError('')
         
-        const token = localStorage.getItem('token')
+        const token = localStorage.getItem('kk_admin_token')
+        if (!token) {
+          throw new Error('No admin token found. Please log in first.')
+        }
+        
         const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'}/admin/customers`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -51,7 +55,16 @@ const AdminCustomers = () => {
       } catch (err) {
         console.error('AdminCustomers - Error fetching customers:', err)
         setError(err.message || 'Failed to load customers')
-        setCustomers([])
+        
+        // Fallback: Derive customers from orders if API fails
+        if (orders && orders.length > 0) {
+          console.log('AdminCustomers - Using fallback: deriving customers from orders')
+          const fallbackCustomers = deriveCustomersFromOrders(orders)
+          setCustomers(fallbackCustomers)
+          setError('Showing customers derived from orders (API unavailable)')
+        } else {
+          setCustomers([])
+        }
       } finally {
         setLoading(false)
       }
@@ -59,6 +72,45 @@ const AdminCustomers = () => {
 
     fetchCustomers()
   }, [])
+
+  // Derive customers from orders as fallback
+  const deriveCustomersFromOrders = (orders) => {
+    if (!Array.isArray(orders)) return []
+    
+    const customerMap = new Map()
+    
+    orders.forEach(order => {
+      const email = order.customer?.email || order.shippingAddress?.email
+      const phone = order.customer?.phone || order.shippingAddress?.phone
+      const name = order.customer?.name || order.shippingAddress?.name || 'Unknown'
+      
+      if (email || phone) {
+        const key = email || phone
+        if (!customerMap.has(key)) {
+          customerMap.set(key, {
+            _id: key,
+            name,
+            email,
+            phone,
+            createdAt: order.createdAt || order.date,
+            totalOrders: 0,
+            totalSpent: 0,
+            lastOrder: null
+          })
+        }
+        
+        const customer = customerMap.get(key)
+        customer.totalOrders += 1
+        customer.totalSpent += safeNumber(order.totalAmount || order.amount || 0)
+        
+        if (!customer.lastOrder || new Date(order.createdAt || order.date) > new Date(customer.lastOrder)) {
+          customer.lastOrder = order.createdAt || order.date
+        }
+      }
+    })
+    
+    return Array.from(customerMap.values())
+  }
 
   // Enhance customers with order data
   const enhanceCustomersWithOrderData = async (customers) => {
