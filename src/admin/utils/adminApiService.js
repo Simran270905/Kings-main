@@ -10,14 +10,15 @@ class AdminApiService {
     this.token = null
   }
 
-  // STEP 1: SAFE API CALL WRAPPER
+  // SAFE API CALL WRAPPER - Does NOT swallow errors
   safeApiCall = async (promise) => {
     try {
       const res = await promise
       return res || {}
     } catch (err) {
       console.error("API Error:", err)
-      return {}
+      // Let errors propagate naturally - don't swallow them
+      throw err
     }
   }
 
@@ -86,47 +87,53 @@ class AdminApiService {
 
   // Admin login
   async login(password) {
-    // STEP 7: FAIL SAFE UI - Wrap everything in try/catch
     try {
       console.log(' Attempting admin login with password:', password)
       console.log(' Base URL:', this.baseURL)
       
-      // STEP 2: USE SAFE RESPONSE
-      const response = await this.safeApiCall(
-        axios.post(`${this.baseURL}/admin/login`, { password })
-      )
+      // Use axios directly without safeApiCall
+      const response = await axios.post(`${this.baseURL}/admin/login`, { password })
 
       console.log(' Login response status:', response.status)
       console.log(' Login response data:', response.data)
 
-      // STEP 3: ADD DEBUG LOG
-      console.log("LOGIN RESPONSE:", response)
-
-      // STEP 3: NORMALIZE RESPONSE
       const data = response.data || response || {}
+      const isSuccess = data.success === true || data.token || data.user
 
-      // STEP 4: FLEXIBLE SUCCESS CHECK
-      const isSuccess =
-        data.success === true ||
-        data.token ||
-        data.user ||
-        data.status === "ok"
-
-      // STEP 5: HANDLE LOGIN
       if (isSuccess) {
-        const token = data.data?.token || data.token || data.user?.token
+        const token = data.data?.token || data.token
         if (token) {
           this.setToken(token)
         }
         return { success: true, token, data }
       } else {
-        throw new Error(data.message || "Login failed")
+        throw new Error(data.message || 'Login failed')
       }
     } catch (error) {
-      // STEP 6: FAIL SAFE UI
       console.error("Login error:", error)
-      const errorMessage = error.message || "Login failed"
-      throw new Error(errorMessage)
+      
+      // Handle axios HTTP errors with proper message extraction
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message)
+      } else if (error.response) {
+        // Handle different HTTP status codes
+        const status = error.response.status
+        if (status === 401) {
+          throw new Error("Invalid password")
+        } else if (status === 400) {
+          throw new Error("Password is required")
+        } else if (status === 500) {
+          throw new Error("Server error - please try again")
+        } else {
+          throw new Error(`Login failed (${status})`)
+        }
+      } else if (error.request) {
+        // Network error
+        throw new Error("Network error - please check your connection")
+      } else {
+        // Other error
+        throw new Error(error.message || 'Login failed')
+      }
     }
   }
 
