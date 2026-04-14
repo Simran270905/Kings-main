@@ -1,4 +1,5 @@
 // 🔐 Admin API Service - Centralized API integration with JWT authentication
+import axios from 'axios'
 import { API_BASE_URL } from '@config/api.js'
 import { events } from '../../utils/eventSystem.js'
 import { cache } from '../../utils/cacheManager.js'
@@ -78,43 +79,27 @@ class AdminApiService {
       console.log(' Attempting admin login with password:', password)
       console.log(' Base URL:', this.baseURL)
       
-      const response = await fetch(`${this.baseURL}/admin/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ password })
+      // STEP 2: FIX API CALL - Use axios instead of fetch
+      const response = await axios.post(`${this.baseURL}/admin/login`, {
+        password
       })
 
       console.log(' Login response status:', response.status)
-      console.log(' Login response ok:', response.ok)
-
-      // STEP 1: SAFE RESPONSE HANDLING
-      if (!response) {
-        throw new Error("No response from server")
-      }
-
-      const data = await response.json()
-      console.log(' Login response data:', data)
-      console.log(' Data type:', typeof data)
-      console.log(' Data.success:', data?.success)
+      console.log(' Login response data:', response.data)
 
       // STEP 3: ADD DEBUG LOG
       console.log("LOGIN RESPONSE:", response)
 
-      if (!response.ok) {
-        // Handle specific login errors
-        if (response.status === 401) {
-          throw new Error('Invalid password')
-        } else if (response.status === 400) {
-          throw new Error(data?.message || 'Password is required')
-        } else {
-          throw new Error(data?.message || `HTTP ${response.status}`)
-        }
+      // STEP 4: HANDLE UNDEFINED RESPONSE
+      if (!response || !response.data) {
+        throw new Error("Invalid response from server")
       }
 
+      // STEP 5: SAFE RESPONSE CHECK
+      const data = response.data
+      
       // STEP 2: FIX SUCCESS CHECK
-      // STEP 4: HANDLE BACKEND FORMAT
+      // STEP 7: HANDLE BACKEND FORMAT
       if (data?.success) {
         this.setToken(data.data?.token || data.token)
         return { success: true, token: data.data?.token || data.token }

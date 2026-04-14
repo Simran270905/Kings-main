@@ -147,6 +147,11 @@ export const adminAuthApi = {
       const response = await api.post('/admin/login', { password });
       console.log(' Admin Login API Response:', response.data);
       
+      // SAFETY CHECK: Ensure response and data exist
+      if (!response || !response.data) {
+        throw new Error('Invalid server response');
+      }
+      
       // Store admin token
       if (response.data.data?.token) {
         localStorage.setItem('adminToken', response.data.data.token);
