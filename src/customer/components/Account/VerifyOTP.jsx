@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../context/useAuth";
 import { ExclamationCircleIcon, LockClosedIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
-import { API_BASE_URL } from "@config/api.js";
+import { API_BASE_URL } from "../../../config/api.js";
 
 const VerifyOTP = () => {
   const navigate = useNavigate();
