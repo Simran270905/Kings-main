@@ -69,13 +69,14 @@ class AdminApiService {
   }
 
   // ======================
-  // 🔐 AUTHENTICATION
+  // AUTHENTICATION
   // ======================
 
   // Admin login
   async login(password) {
     try {
-      console.log('🔐 Attempting admin login with password:', password)
+      console.log(' Attempting admin login with password:', password)
+      console.log(' Base URL:', this.baseURL)
       
       const response = await fetch(`${this.baseURL}/admin/login`, {
         method: 'POST',
@@ -85,31 +86,39 @@ class AdminApiService {
         body: JSON.stringify({ password })
       })
 
-      console.log('🔐 Login response status:', response.status)
-      console.log('🔐 Login response headers:', response.headers)
+      console.log(' Login response status:', response.status)
+      console.log(' Login response ok:', response.ok)
+
+      // Check if response exists before parsing
+      if (!response) {
+        throw new Error('No response from server')
+      }
 
       const data = await response.json()
-      console.log('🔐 Login response data:', data)
+      console.log(' Login response data:', data)
+      console.log(' Data type:', typeof data)
+      console.log(' Data.success:', data?.success)
 
       if (!response.ok) {
         // Handle specific login errors
         if (response.status === 401) {
           throw new Error('Invalid password')
         } else if (response.status === 400) {
-          throw new Error(data.message || 'Password is required')
+          throw new Error(data?.message || 'Password is required')
         } else {
-          throw new Error(data.message || `HTTP ${response.status}`)
+          throw new Error(data?.message || `HTTP ${response.status}`)
         }
       }
 
-      if (data.success && data.data?.token) {
+      if (data?.success && data?.data?.token) {
         this.setToken(data.data.token)
         return { success: true, token: data.data.token }
       }
 
-      throw new Error('Login failed')
+      throw new Error('Login failed - invalid response format')
     } catch (error) {
-      console.error(`❌ Login Error:`, error.message)
+      console.error(` Login Error:`, error.message)
+      console.error(' Full error:', error)
       throw error
     }
   }
