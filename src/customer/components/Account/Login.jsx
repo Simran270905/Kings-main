@@ -10,13 +10,12 @@ const Login = () => {
 
   // Debug: Verify API_BASE_URL is available
   console.log("🔐 Login component - API_BASE_URL:", API_BASE_URL);
-
   // Form state
   const [identifier, setIdentifier] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Handle login - send OTP first
+  // Handle login - identifier only
   const handleLogin = async (e) => {
     e.preventDefault();
     
@@ -37,44 +36,19 @@ const Login = () => {
         return;
       }
 
-      console.log('🔐 LOGIN: Sending OTP for:', input);
+      console.log('🔐 LOGIN: Authenticating with:', input);
 
-      // Prepare name from email or use default
-      const name = input.includes("@") ? input.split('@')[0] : `User${input.slice(-4)}`;
-      
-      // Send OTP first
-      const otpResponse = await fetch(`${API_BASE_URL}/otp/send-otp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: name,
-          email: input.includes("@") ? input : `${name}@temp.com`,
-          phone: input.includes("@") ? undefined : input
-        })
-      });
+      // Use in-memory authentication
+      const result = await login({ identifier: input });
 
-      const otpResult = await otpResponse.json();
-
-      if (!otpResponse.ok) {
-        throw new Error(otpResult.message || 'Failed to send OTP');
+      if (!result.success) {
+        throw new Error(result.message || 'Login failed');
       }
 
-      console.log('✅ OTP sent successfully');
-      
-      // Store the identifier for OTP verification
-      sessionStorage.setItem('loginIdentifier', input);
-      sessionStorage.setItem('loginName', name);
+      console.log('✅ Login successful');
 
-      // Redirect to OTP verification
-      navigate("/verify-otp", { 
-        state: { 
-          identifier: input, 
-          name: name,
-          isLogin: true 
-        } 
-      });
+      // Redirect to homepage
+      navigate("/");
 
     } catch (err) {
       console.error("❌ Login error:", err.message);

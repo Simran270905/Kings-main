@@ -1,33 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react'
-import axios from 'axios'
 import { API_BASE_URL } from '../config/api.js'
-
-// AXIOS TOKEN INTERCEPTOR
-axios.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token")
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}` 
-  }
-  return config
-})
-
-// CLIENT-SIDE JWT VALIDATION FUNCTION - SIMPLIFIED
-const isTokenValid = (token) => {
-  if (!token) return false
-  
-  try {
-    // Simple format check - JWT should have 3 parts
-    const parts = token.split('.')
-    if (parts.length !== 3) return false
-    
-    // For now, just check if token exists and has valid format
-    // We can add proper expiration checking later if needed
-    return true
-  } catch (error) {
-    console.error(' JWT validation error:', error)
-    return false
-  }
-}
 
 export const AuthContext = createContext({
   user: null,
@@ -36,9 +8,7 @@ export const AuthContext = createContext({
   login: () => {},
   register: () => {},
   logout: () => {},
-  updateProfile: () => {},
-  authenticateWithOTP: () => {},
-  simpleLogin: () => {}
+  updateProfile: () => {}
 })
 
 export function AuthProvider({ children }) {
@@ -46,154 +16,16 @@ export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  // IMPROVED SESSION RESTORATION
-  useEffect(() => {
-    const restoreSession = () => {
-      try {
-        // Check for simple login first (no token)
-        const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true'
-        const storedUser = localStorage.getItem('user')
-        
-        if (isAuthenticated && storedUser) {
-          const user = JSON.parse(storedUser)
-          setUser(user)
-          setIsAuthenticated(true)
-          setLoading(false)
-          return
-        }
-
-        // CLIENT-SIDE TOKEN VALIDATION (no API call)
-        const token = localStorage.getItem('token')
-
-        if (!token) {
-          setLoading(false)
-          return
-        }
-
-        // Validate token client-side first
-        if (!isTokenValid(token)) {
-          console.log(' Token expired, clearing session')
-          localStorage.removeItem('token')
-          localStorage.removeItem('user')
-          localStorage.removeItem('isAuthenticated')
-          setLoading(false)
-          return
-        }
-
-        // TOKEN IS VALID - RESTORE SESSION IMMEDIATELY
-        const storedUserData = localStorage.getItem('user')
-        if (storedUserData) {
-          const userData = JSON.parse(storedUserData)
-          setUser(userData)
-          setIsAuthenticated(true)
-          console.log(' Session restored from localStorage')
-        } else {
-          // Token exists but no user data - clear token
-          localStorage.removeItem('token')
-        }
-
-      } catch (error) {
-        console.error(' Session restoration failed:', error)
-        // Only clear on actual errors, not 404s
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        localStorage.removeItem('isAuthenticated')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    restoreSession()
-  }, [])
-
-  // OTP AUTHENTICATION
-  const authenticateWithOTP = async (data) => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/otp/verify-otp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      })
-
-      const result = await res.json()
-
-      if (!res.ok) {
-        return {
-          success: false,
-          error: result.message || 'Authentication failed'
-        }
-      }
-
-      localStorage.setItem('token', result.data.token)
-      localStorage.setItem('user', JSON.stringify(result.data.user))
-      localStorage.setItem('isAuthenticated', 'true')
-
-      setUser(result.data.user)
-      setIsAuthenticated(true)
-
-      return {
-        success: true,
-        user: result.data.user
-      }
-
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message
-      }
-    }
-  }
-
-  // SIMPLE LOGIN (name, email, phone only)
-  const simpleLogin = async (data) => {
-    try {
-      // Try backend login
-      const res = await fetch(`${API_BASE_URL}/customers/register-or-login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      })
-
-      const result = await res.json()
-
-      if (res.ok) {
-        // Store user info and real token
-        localStorage.setItem('token', result.data.token)
-        localStorage.setItem('user', JSON.stringify(result.data.user))
-        localStorage.setItem('isAuthenticated', 'true')
-
-        setUser(result.data.user)
-        setIsAuthenticated(true)
-
-        console.log("User logged in via backend:", result.data.user)
-
-        return {
-          success: true,
-          user: result.data.user
-        }
-      } else {
-        throw new Error(result.message || 'Login failed')
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message || 'Login failed. Please check your credentials and try again.'
-      }
-    }
-  }
-
-  // LOGIN (CORRECTED - ALWAYS RETURNS)
+  // LOGIN FUNCTION - Identifier only, in-memory state
   const login = async (data) => {
-    console.log(" CORRECT AUTH CONTEXT RUNNING - login() called with:", data)
+    console.log(" AUTH CONTEXT - login() called with:", data)
     
     try {
       const res = await fetch(`${API_BASE_URL}/customers/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(data)
       })
 
@@ -206,22 +38,19 @@ export function AuthProvider({ children }) {
         }
       }
 
-      const token = result?.data?.token
-      const user = result?.data?.user
-
-      if (token) localStorage.setItem("token", token)
-      if (user) {
-        localStorage.setItem("user", JSON.stringify(user))
-        setUser(user)  // Update React state
+      // Set user in React state only (no localStorage)
+      const userData = result?.data?.user
+      if (userData) {
+        setUser(userData)
+        setIsAuthenticated(true)
+        console.log(" User logged in:", userData.email)
       }
 
-      localStorage.setItem("isAuthenticated", "true")
-      setIsAuthenticated(true)  // Update React state
-      setLoading(false)  // Update React state
+      setLoading(false)
 
       return {
         success: true,
-        user
+        user: userData
       }
 
     } catch (error) {
@@ -232,8 +61,10 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // REGISTER (kept for backward compatibility)
+  // REGISTER FUNCTION - Simple registration, in-memory state
   const register = async (data) => {
+    console.log(" AUTH CONTEXT - register() called with:", data)
+    
     try {
       const res = await fetch(`${API_BASE_URL}/customers/register`, {
         method: 'POST',
@@ -252,9 +83,17 @@ export function AuthProvider({ children }) {
         }
       }
 
+      // Set user in React state only (no localStorage)
+      const userData = result?.data?.user
+      if (userData) {
+        setUser(userData)
+        setIsAuthenticated(true)
+        console.log(" User registered:", userData.email)
+      }
+
       return {
         success: true,
-        data: result.data
+        user: userData
       }
 
     } catch (error) {
@@ -265,16 +104,24 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // ✅ UPDATE PROFILE (PUT)
-  const updateProfile = async (data) => {
-    try {
-      const token = localStorage.getItem('token')
+  // LOGOUT FUNCTION - Clear in-memory state
+  const logout = () => {
+    console.log(" AUTH CONTEXT - logout() called")
+    setUser(null)
+    setIsAuthenticated(false)
+    setLoading(false)
+  }
 
+  // UPDATE PROFILE FUNCTION - Update in-memory state
+  const updateProfile = async (data) => {
+    console.log(" AUTH CONTEXT - updateProfile() called with:", data)
+    
+    try {
       const res = await fetch(`${API_BASE_URL}/customers/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${data.token || 'no-token'}`
         },
         body: JSON.stringify(data)
       })
@@ -288,15 +135,16 @@ export function AuthProvider({ children }) {
         }
       }
 
-      // Update local state with fresh data from backend
-      setUser(result.data)
-      
-      // Also update localStorage to keep in sync
-      localStorage.setItem('user', JSON.stringify(result.data))
+      // Update user in React state
+      const userData = result?.data
+      if (userData) {
+        setUser(userData)
+        console.log(" Profile updated:", userData.email)
+      }
 
       return {
         success: true,
-        data: result.data
+        data: userData
       }
 
     } catch (error) {
@@ -305,37 +153,6 @@ export function AuthProvider({ children }) {
         error: error.message
       }
     }
-  }
-
-  // ✅ REFRESH USER PROFILE - Helper function to fetch latest data
-  const refetchUserProfile = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      if (!token) return
-
-      const res = await fetch(`${API_BASE_URL}/customers/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-
-      const result = await res.json()
-      if (res.ok && result.data) {
-        setUser(result.data)
-        localStorage.setItem('user', JSON.stringify(result.data))
-      }
-    } catch (error) {
-      console.error('Failed to refetch user profile:', error)
-    }
-  }
-
-  // LOGOUT
-  const logout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    localStorage.removeItem('isAuthenticated')
-    setUser(null)
-    setIsAuthenticated(false)
   }
 
   return (
@@ -347,9 +164,7 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
-        updateProfile, // Existing
-        authenticateWithOTP, // Existing OTP method
-        simpleLogin // NEW simple login method
+        updateProfile
       }}
     >
       {children}
