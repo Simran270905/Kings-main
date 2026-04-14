@@ -20,7 +20,16 @@ export const useAnalytics = () => {
       
       // Use the backend API directly - this has the correct revenue calculation
       const response = await fetch(`${API_BASE_URL}/orders/stats`)
+      
+      if (!response) {
+        throw new Error('No response from server')
+      }
+      
       const data = await response.json()
+      
+      if (!data) {
+        throw new Error('Invalid response from server')
+      }
       
       if (response.ok && data.success) {
         setStats({

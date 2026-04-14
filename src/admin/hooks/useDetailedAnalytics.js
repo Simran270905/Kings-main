@@ -26,7 +26,16 @@ export const useDetailedAnalytics = () => {
       
       // Get basic stats
       const statsResponse = await fetch(`${API_BASE_URL}/orders/stats`)
+      
+      if (!statsResponse) {
+        throw new Error('No response from server')
+      }
+      
       const statsData = await statsResponse.json()
+      
+      if (!statsData) {
+        throw new Error('Invalid response from server')
+      }
       
       if (!statsResponse.ok || !statsData.success) {
         throw new Error(statsData.message || 'Failed to fetch stats')

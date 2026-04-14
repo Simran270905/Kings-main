@@ -45,6 +45,10 @@ export const useAnalytics = () => {
         try {
           const statsData = await adminApi.getOrderStats()
           
+          if (!statsData) {
+            throw new Error('No response from stats API')
+          }
+          
           if (statsData.success) {
             // Transform public stats to match admin analytics format
             analyticsData = {
