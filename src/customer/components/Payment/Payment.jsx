@@ -433,15 +433,8 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
       return
     }
 
-    const token = localStorage.getItem('token')
-    if (!token) {
-      toast.error('Please login to continue with payment', {
-        duration: 4000,
-        position: 'top-center'
-      })
-      navigate('/login')
-      return
-    }
+    // ✅ REMOVED LOGIN REQUIREMENT - GUEST CHECKOUT
+    // No token required for guest checkout
 
     const orderData = {
       items: cartItems.map(item => ({
@@ -498,43 +491,36 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
 
   const processRazorpayPayment = async (orderData, token) => {
     try {
-      // DEBUG: Log amount details
-      console.log('💰 FRONTEND PAYMENT DEBUG ===')
-      console.log('💰 Order Data:', orderData)
-      console.log('💰 Total Amount (₹):', orderData.totalAmount)
-      console.log('💰 Amount Type:', typeof orderData.totalAmount)
-      console.log('💰 Sending to backend (₹):', orderData.totalAmount)
-      
-      // Create order on backend first
-      const orderRes = await fetch(`${API_URL}/payments/create-order`, {
+      // ✅ REMOVED TOKEN DEPENDENCY - GUEST CHECKOUT
+      const response = await fetch(`${API_URL}/payments/create-razorpay-order`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
+          // ✅ NO AUTH HEADER NEEDED FOR GUEST CHECKOUT
         },
-        body: JSON.stringify({ 
-          amount: orderData.totalAmount, // Send in ₹ (backend will convert to paise)
-          currency: 'INR',
-          receipt: `order_${Date.now()}`,
-          notes: {
-            paymentPlan: orderData.paymentPlan,
-            paymentMethod: selectedMethod,
-            items: orderData.items.length
-          }
-        })
+        body: JSON.stringify(orderData)
       })
 
-      const orderDataResponse = await orderRes.json()
-      
-      console.log('BACKEND RESPONSE DEBUG ===')
-      console.log('Order Response:', orderDataResponse)
-      console.log('Response success:', orderDataResponse.success)
-      console.log('Response data:', orderDataResponse.data)
-      
-      if (!orderDataResponse.success) {
-        console.error('Backend error:', orderDataResponse.message)
-        throw new Error(orderDataResponse.message || 'Failed to create order')
-      }
+      console.log('🔍 Razorpay order creation response:', response.status, response.ok)
+
+      if (response.ok) {
+        const orderDataResponse = await response.json()
+        
+        console.log('BACKEND RESPONSE DEBUG ===')
+        console.log('Order Response:', orderDataResponse)
+        console.log('Response success:', orderDataResponse.success)
+        console.log('Response data:', orderDataResponse.data)
+        
+        if (!orderDataResponse.success) {
+          console.error('Backend error:', orderDataResponse.message)
+          throw new Error(orderDataResponse.message || 'Failed to create order')
+        }
+        
+        if (!orderDataResponse.data) {
+          console.error('No data in response:', orderDataResponse)
+          throw new Error('Invalid response from server: missing data')
+        }
+        
       
       if (!orderDataResponse.data) {
         console.error('No data in response:', orderDataResponse)
