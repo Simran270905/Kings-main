@@ -147,35 +147,26 @@ export const ProductProvider = ({ children }) => {
   useEffect(() => {
     // Subscribe to admin product changes
     const unsubscribeProductCreated = dataSyncEvents.subscribe(EVENT_TYPES.PRODUCT_CREATED, (data) => {
-      console.log('🔄 Real-time: Product created by admin:', data)
       setProducts(prev => [...prev, normalizeProduct(data)])
       // Don't invalidate cache for new products, just update state
     })
 
     const unsubscribeProductUpdated = dataSyncEvents.subscribe(EVENT_TYPES.PRODUCT_UPDATED, (data) => {
-      console.log('🔄 Real-time: Product updated by admin')
       setProducts(prev => prev.map(product => {
         const productId = product.id || product._id
         const updatedProductId = data.id || data._id
-        if (productId === updatedProductId) {
-          const normalizedUpdated = normalizeProduct(data)
-          return normalizedUpdated
-        }
-        return product
+        return productId === updatedProductId ? normalizeProduct(data) : product
       }))
-      // Only invalidate cache if product actually changed
       cache.invalidate('products')
     })
 
     const unsubscribeProductDeleted = dataSyncEvents.subscribe(EVENT_TYPES.PRODUCT_DELETED, (data) => {
-      console.log('🔄 Real-time: Product deleted by admin:', data)
       setProducts(prev => prev.filter(product => product.id !== data.id))
       cache.invalidate('products')
     })
 
     // Listen for admin product updates (fallback mechanism)
     const handleAdminProductUpdate = () => {
-      console.log('🔄 Admin product update detected, refreshing data...')
       fetchData()
     }
 
@@ -183,8 +174,6 @@ export const ProductProvider = ({ children }) => {
 
     // Real-time polling for continuous sync (DISABLED for performance)
     const startRealTimeSync = () => {
-      // Disabled aggressive polling - using event-based sync only
-      console.log('🔄 Real-time polling disabled - using event-based sync only')
       return null // Return null instead of interval
     }
 
@@ -192,7 +181,6 @@ export const ProductProvider = ({ children }) => {
 
     // Subscribe to category changes
     const unsubscribeCategoryUpdated = dataSyncEvents.subscribe(EVENT_TYPES.CATEGORY_UPDATED, (data) => {
-      console.log('🔄 Real-time: Category updated by admin:', data)
       // Refresh categories when they change
       fetchCategoriesFromAPI().then(categories => {
         setCategories(categories || [])

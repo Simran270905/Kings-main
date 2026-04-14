@@ -36,7 +36,8 @@ export const useAnalytics = () => {
         analyticsData = await adminApi.getAnalytics({ 
           range: '30', 
           period: 'daily',
-          validate: 'false' 
+          validate: 'false',
+          strictPopulate: 'false'
         })
       } catch (adminAnalyticsError) {
         console.warn('⚠️ Admin analytics failed, falling back to public stats:', adminAnalyticsError.message)
@@ -166,7 +167,8 @@ export const useAnalytics = () => {
         const analyticsData = await adminApi.getAnalytics({ 
           range: days.toString(), 
           period,
-          validate: 'false' 
+          validate: 'false',
+          strictPopulate: 'false'
         })
         
         if (analyticsData.success) {

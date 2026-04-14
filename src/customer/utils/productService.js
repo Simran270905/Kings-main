@@ -25,19 +25,15 @@ export const loadProducts = async () => {
     const response = await fetch(apiUrl)
     
     if (!response.ok) {
-      console.error(`❌ API Error: HTTP ${response.status}`)
       return []
     }
     
     const data = await response.json()
-    console.log("🔍 PRODUCT SERVICE: Raw API response:", data)
     
     // Fix: API response is {success: true, data: {products: [...], pagination: {...}}}
     const products = data.data?.products || []
-    console.log(`📦 Loaded ${products.length} products from API`)
     return Array.isArray(products) ? products : []
   } catch (error) {
-    console.error('❌ Error loading products:', error.message)
     return []
   }
 }
@@ -50,7 +46,6 @@ export const fetchProductsFromAPI = async () => {
   try {
     // Use safeFetch with timeout and retry logic
     const apiUrl = `${API_BASE_URL}/products?limit=500`
-    console.log('🌐 API CALL:', apiUrl)
     
     const data = await safeFetch.fetch(apiUrl, {
       method: 'GET'
@@ -58,8 +53,6 @@ export const fetchProductsFromAPI = async () => {
     
     // Fix: API response is {success: true, data: {products: [...], pagination: {...}}}
     const products = data.data?.products || []
-    
-    console.log(`📦 Enhanced Products updated: ${products.length} products (using real API)`)
     return Array.isArray(products) ? products : []
   } catch (error) {
     console.error('❌ Error fetching products from API:', error.message)
@@ -109,7 +102,6 @@ export const loadCategories = async () => {
       categories = data.data.categories
     }
     
-    console.log(`📂 Loaded ${categories.length} categories from API`)
     return Array.isArray(categories) ? categories : []
   } catch (error) {
     console.error('❌ Error loading categories:', error.message)
@@ -124,7 +116,6 @@ export const loadCategories = async () => {
 export const fetchCategoriesFromAPI = async () => {
   try {
     const apiUrl = `${API_BASE_URL}/categories`
-    console.log("🔗 API Call: GET /categories")
     
     const data = await safeFetch.fetch(apiUrl, {
       method: 'GET'
@@ -138,8 +129,6 @@ export const fetchCategoriesFromAPI = async () => {
     } else if (data?.data?.categories && Array.isArray(data.data.categories)) {
       categories = data.data.categories
     }
-    
-    console.log(`📂 Loaded ${categories.length} categories from API`)
     return Array.isArray(categories) ? categories : []
   } catch (error) {
     console.error('❌ Error fetching categories from API:', error.message)

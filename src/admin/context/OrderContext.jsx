@@ -27,10 +27,7 @@ const fetchOrders = async (silent = false) => {
 try {
 if (!silent) setLoading(true)
 
-  logApiCall('/orders', 'GET')
   const data = await adminApi.getOrders()
-  logApiResponse('/orders', data)
-
   const newOrders = extractData(data)
   setOrders(Array.isArray(newOrders) ? newOrders : [])
   setLastFetch(new Date())

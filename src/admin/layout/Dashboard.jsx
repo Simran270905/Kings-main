@@ -107,16 +107,7 @@ export default function Dashboard() {
       if (email) uniqueUsers.add(email);
     });
     
-    console.log("Dashboard - Final metrics:", {
-      totalRevenue,
-      totalOrders: ordersArray.length,
-      pendingOrders: pendingOrdersCount,
-      totalUsers: uniqueUsers.size,
-      totalProducts: productsArray.length,
-      paidOrders,
-      pendingPaymentOrders
-    });
-    
+        
     return {
       totalRevenue,
       totalOrders: ordersArray.length,
@@ -163,19 +154,9 @@ export default function Dashboard() {
   
   const totalStock = useMemo(() => {
     const productsArray = Array.isArray(products) ? products : []
-    const stock = productsArray.reduce((sum, product) => {
+    return productsArray.reduce((sum, product) => {
       return sum + getTotalStock(product)
     }, 0)
-    console.log("Dashboard Products:", {
-      productsCount: productsArray.length,
-      totalStock: stock,
-      products: productsArray.map(p => ({ 
-        name: p.name, 
-        stock: getTotalStock(p),
-        sizes: p.sizes 
-      }))
-    })
-    return stock
   }, [products, getTotalStock])
   
   const lowStockProducts = useMemo(() => {
@@ -210,10 +191,8 @@ export default function Dashboard() {
         if (response.ok) {
           data = await response.json()
           products = data.data || data || []
-          console.log('Dashboard - Recent products fetched from /recent endpoint:', products.length)
         } else {
           // Fallback to main products endpoint with limit
-          console.log('Dashboard - /recent endpoint failed, trying fallback...')
           response = await fetch(`${API_BASE_URL}/products?limit=5`, {
             headers: {
               'Authorization': `Bearer ${token}`
@@ -226,7 +205,6 @@ export default function Dashboard() {
 
           data = await response.json()
           products = data.data?.products || data.products || data.data || data || []
-          console.log('Dashboard - Recent products fetched from fallback endpoint:', products.length)
         }
 
         setRecentProducts(Array.isArray(products) ? products.slice(0, 5) : [])
@@ -262,10 +240,8 @@ export default function Dashboard() {
             if (response.ok) {
               data = await response.json()
               products = data.data || data || []
-              console.log('Dashboard - Recent products refreshed from /recent endpoint:', products.length)
             } else {
               // Fallback to main products endpoint with limit
-              console.log('Dashboard - /recent endpoint failed during refresh, trying fallback...')
               response = await fetch(`${API_BASE_URL}/products?limit=5`, {
                 headers: {
                   'Authorization': `Bearer ${token}`
@@ -275,7 +251,6 @@ export default function Dashboard() {
               if (response.ok) {
                 data = await response.json()
                 products = data.data?.products || data.products || data.data || data || []
-                console.log('Dashboard - Recent products refreshed from fallback endpoint:', products.length)
               }
             }
 
@@ -294,9 +269,7 @@ export default function Dashboard() {
   
   const pendingOrdersCount = useMemo(() => {
     const ordersArray = Array.isArray(orders) ? orders : []
-    const pending = ordersArray.filter(order => safeOrderStatus(order) === 'pending').length
-    console.log("Dashboard - Pending Orders:", pending)
-    return pending
+    return ordersArray.filter(order => safeOrderStatus(order) === 'pending').length
   }, [orders])
   
   const totalUsersCount = useMemo(() => {
@@ -314,9 +287,7 @@ export default function Dashboard() {
       }
     })
     
-    const userCount = uniqueUsers.size
-    console.log("Dashboard - Total Users:", userCount)
-    return userCount
+    return uniqueUsers.size
   }, [orders])
   
   const processingOrders = useMemo(() => {
@@ -339,10 +310,7 @@ export default function Dashboard() {
     return ordersArray.filter(order => safeOrderStatus(order) === 'cancelled').length
   }, [orders])
   
-  // Debug logs
-  console.log("Dashboard - Orders:", Array.isArray(orders) ? orders.length : 0)
-  console.log("Dashboard - Products:", Array.isArray(products) ? products.length : 0)
-
+  
   // ✅ Show loader while loading
   if (isLoading) {
     return <Loader />
