@@ -494,14 +494,23 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
 
       const orderDataResponse = await orderRes.json()
       
-      console.log('🔧 BACKEND RESPONSE DEBUG ===')
-      console.log('🔧 Order Response:', orderDataResponse)
-      console.log('🔧 Backend Amount (paise):', orderDataResponse.data.amount)
-      console.log('🔧 Backend Amount (₹):', orderDataResponse.data.amount / 100)
+      console.log('BACKEND RESPONSE DEBUG ===')
+      console.log('Order Response:', orderDataResponse)
+      console.log('Response success:', orderDataResponse.success)
+      console.log('Response data:', orderDataResponse.data)
       
       if (!orderDataResponse.success) {
+        console.error('Backend error:', orderDataResponse.message)
         throw new Error(orderDataResponse.message || 'Failed to create order')
       }
+      
+      if (!orderDataResponse.data) {
+        console.error('No data in response:', orderDataResponse)
+        throw new Error('Invalid response from server: missing data')
+      }
+      
+      console.log('Backend Amount (paise):', orderDataResponse.data.amount)
+      console.log('Backend Amount (Rs):', orderDataResponse.data.amount / 100)
 
       const loaded = await loadRazorpayScript()
       if (!loaded) return toast.error('Razorpay failed to load')
@@ -516,7 +525,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
         currency: orderDataResponse.data.currency,
         name: 'KKings Jewellery',
         description: `Payment for ${orderData.items.length} items`,
-        order_id: orderDataResponse.data.id,
+        order_id: orderDataResponse.data.razorpayOrderId,
         prefill: {
           name: user?.name || '',
           email: user?.email || '',
