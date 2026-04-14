@@ -321,12 +321,11 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
     setCouponError('')
 
     try {
-      const token = localStorage.getItem('token')
+      // Guest checkout - no token required
       const response = await fetch(`${API_URL}/coupons/validate`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           code: couponCode.trim().toUpperCase(),
@@ -473,7 +472,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           throw new Error(res?.message || 'Failed to place order')
         }
       } else {
-        await processRazorpayPayment(orderData, token)
+        await processRazorpayPayment(orderData)
       }
 
     } catch (err) {
@@ -489,7 +488,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
     }
   }
 
-  const processRazorpayPayment = async (orderData, token) => {
+  const processRazorpayPayment = async (orderData) => {
     try {
       // ✅ REMOVED TOKEN DEPENDENCY - GUEST CHECKOUT
       const response = await fetch(`${API_URL}/payments/create-razorpay-order`, {
@@ -520,12 +519,6 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           console.error('No data in response:', orderDataResponse)
           throw new Error('Invalid response from server: missing data')
         }
-        
-      
-      if (!orderDataResponse.data) {
-        console.error('No data in response:', orderDataResponse)
-        throw new Error('Invalid response from server: missing data')
-      }
       
       console.log('Backend Amount (paise):', orderDataResponse.data.amount)
       console.log('Backend Amount (Rs):', orderDataResponse.data.amount / 100)
@@ -559,8 +552,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           const verifyRes = await fetch(`${API_URL}/payments/verify`, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({
               razorpay_order_id: response.razorpay_order_id,
@@ -605,6 +597,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
 
       const rzp = new window.Razorpay(options)
       rzp.open()
+      }
     } catch (error) {
       console.error('Payment processing error:', error)
       toast.error(error.message || 'Payment failed. Please try again.')
