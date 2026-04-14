@@ -10,6 +10,17 @@ class AdminApiService {
     this.token = null
   }
 
+  // STEP 1: SAFE API CALL WRAPPER
+  safeApiCall = async (promise) => {
+    try {
+      const res = await promise
+      return res || {}
+    } catch (err) {
+      console.error("API Error:", err)
+      return {}
+    }
+  }
+
   // 🔐 Get token from localStorage
   getToken() {
     if (!this.token) {
@@ -75,14 +86,15 @@ class AdminApiService {
 
   // Admin login
   async login(password) {
+    // STEP 7: FAIL SAFE UI - Wrap everything in try/catch
     try {
       console.log(' Attempting admin login with password:', password)
       console.log(' Base URL:', this.baseURL)
       
-      // STEP 2: FIX API CALL - Use axios instead of fetch
-      const response = await axios.post(`${this.baseURL}/admin/login`, {
-        password
-      })
+      // STEP 2: USE SAFE RESPONSE
+      const response = await this.safeApiCall(
+        axios.post(`${this.baseURL}/admin/login`, { password })
+      )
 
       console.log(' Login response status:', response.status)
       console.log(' Login response data:', response.data)
@@ -90,36 +102,31 @@ class AdminApiService {
       // STEP 3: ADD DEBUG LOG
       console.log("LOGIN RESPONSE:", response)
 
-      // STEP 4: HANDLE UNDEFINED RESPONSE
-      if (!response || !response.data) {
-        throw new Error("Invalid response from server")
-      }
+      // STEP 3: NORMALIZE RESPONSE
+      const data = response.data || response || {}
 
-      // STEP 5: SAFE RESPONSE CHECK
-      const data = response.data
-      
-      // STEP 2: FIX SUCCESS CHECK
-      // STEP 7: HANDLE BACKEND FORMAT
-      if (data?.success) {
-        this.setToken(data.data?.token || data.token)
-        return { success: true, token: data.data?.token || data.token }
-      }
+      // STEP 4: FLEXIBLE SUCCESS CHECK
+      const isSuccess =
+        data.success === true ||
+        data.token ||
+        data.user ||
+        data.status === "ok"
 
-      // Alternative: Check for token directly if success field is missing
-      if (data?.token || data?.user) {
-        this.setToken(data.token)
-        return { success: true, token: data.token }
+      // STEP 5: HANDLE LOGIN
+      if (isSuccess) {
+        const token = data.data?.token || data.token || data.user?.token
+        if (token) {
+          this.setToken(token)
+        }
+        return { success: true, token, data }
+      } else {
+        throw new Error(data.message || "Login failed")
       }
-
-      throw new Error('Login failed - invalid response format')
     } catch (error) {
-      // STEP 5: ERROR HANDLING
+      // STEP 6: FAIL SAFE UI
       console.error("Login error:", error)
-      console.error(' Full error:', error)
-      
-      // Re-throw with user-friendly message
-      const userError = error.message || "Login failed"
-      throw new Error(userError)
+      const errorMessage = error.message || "Login failed"
+      throw new Error(errorMessage)
     }
   }
 

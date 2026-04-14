@@ -18,24 +18,25 @@ const AdminLogin = () => {
     setError('')
     setIsLoading(true)
 
+    // STEP 7: FAIL SAFE UI - Wrap everything in try/catch
     try {
       if (!password.trim()) {
         throw new Error('Password is required')
       }
 
-      // ✅ USE CONTEXT (IMPORTANT)
+      // Use context (IMPORTANT)
       const result = await loginAdmin(password)
 
       if (!result.success) {
-        throw new Error(result.error)
+        throw new Error(result.error || 'Login failed')
       }
 
-      // ✅ redirect AFTER state update
+      // redirect AFTER state update
       navigate('/admin')
 
     } catch (err) {
-      console.error('❌ Login error:', err.message)
-      setError(err.message)
+      console.error(' Login error:', err.message)
+      setError(err.message || 'Login failed')
     } finally {
       setIsLoading(false)
     }

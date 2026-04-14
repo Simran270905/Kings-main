@@ -29,7 +29,8 @@ export function AdminAuthProvider({ children }) {
   }, []);
 
   // ✅ LOGIN (FIXED)
-  const loginAdmin = async (password) => {
+  async function loginAdmin(password) {
+    // STEP 7: FAIL SAFE UI - Wrap everything in try/catch
     try {
       const result = await adminApi.login(password);
       
@@ -39,11 +40,10 @@ export function AdminAuthProvider({ children }) {
       setAdminLoading(false);
 
       // Login successful - admin authenticated
-
       return { success: true };
 
     } catch (error) {
-      console.error('❌ Admin login failed:', error.message);
+      console.error(' Admin login failed:', error.message);
       return { success: false, error: error.message };
     }
   };
