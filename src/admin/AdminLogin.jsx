@@ -25,12 +25,18 @@ const AdminLogin = () => {
       }
 
       // Use context (IMPORTANT)
+      console.log(' AdminLogin: Calling loginAdmin with password');
       const result = await loginAdmin(password)
+      
+      console.log(' AdminLogin: Received result from loginAdmin:', result);
 
       // Add null guard for result
       if (!result || typeof result !== 'object' || !result.success) {
+        console.log(' AdminLogin: Login failed, result:', result);
         throw new Error(result?.error || 'Login failed')
       }
+      
+      console.log(' AdminLogin: Login successful, navigating to admin');
 
       // redirect AFTER state update
       navigate('/admin')

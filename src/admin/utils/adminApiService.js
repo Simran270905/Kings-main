@@ -6,8 +6,11 @@ import { cache } from '../../utils/cacheManager.js'
 
 class AdminApiService {
   constructor() {
+    console.log(' AdminApiService: Initializing...');
+    console.log(' AdminApiService: API_BASE_URL:', API_BASE_URL);
     this.baseURL = API_BASE_URL
     this.token = null
+    console.log(' AdminApiService: Initialized with baseURL:', this.baseURL);
   }
 
   // SAFE API CALL WRAPPER - Does NOT swallow errors
@@ -105,9 +108,17 @@ class AdminApiService {
 
       const data = response.data || {}
       
+      console.log(' Processing response data:', data)
+      console.log(' data.success:', data.success)
+      console.log(' data.data?.token:', data.data?.token)
+      console.log(' data.token:', data.token)
+      
       // Handle both response formats: { success: true, data: { token } } or { success: true, token }
       const isSuccess = data.success === true
       const token = data.data?.token || data.token
+
+      console.log(' isSuccess:', isSuccess)
+      console.log(' token exists:', !!token)
 
       if (isSuccess && token) {
         this.setToken(token)
@@ -115,6 +126,7 @@ class AdminApiService {
       } else if (isSuccess) {
         throw new Error('Login successful but no token received')
       } else {
+        console.log(' Throwing error - data.message:', data.message)
         throw new Error(data.message || 'Login failed')
       }
     } catch (error) {
@@ -481,6 +493,8 @@ class AdminApiService {
 }
 
 // Create singleton instance
+console.log(' adminApiService: Creating singleton instance...');
 const adminApi = new AdminApiService()
+console.log(' adminApiService: Singleton created:', adminApi);
 
 export default adminApi

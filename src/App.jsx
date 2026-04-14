@@ -35,6 +35,7 @@ import Contact from './customer/pages/Contact/Contact'
 
 import AdminLogin from './admin/AdminLogin'
 import { AdminRoute } from './admin/AdminRoute'
+import { AdminAuthProvider } from './admin/context/AdminAuthContext'
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -127,7 +128,11 @@ return (
                           <Route path="/debug/razorpay" element={<RazorpayTest />} />
 
                           {/* ================= ADMIN LOGIN ================= */}
-                          <Route path="/admin-login" element={<AdminLogin />} />
+                          <Route path="/admin-login" element={
+                            <AdminAuthProvider>
+                              <AdminLogin />
+                            </AdminAuthProvider>
+                          } />
 
                           {/* ================= ADMIN ROUTES ================= */}
 
