@@ -54,6 +54,10 @@ export default function Dashboard() {
   // ✅ Add error state for error handling
   const [error, setError] = useState(null)
   
+  // Add recent products state
+  const [recentProducts, setRecentProducts] = useState([])
+  const [recentProductsLoading, setRecentProductsLoading] = useState(true)
+  
   // ✅ Calculate metrics from context data (only when data is available)
   const metrics = useMemo(() => {
     // Only calculate if we have data
@@ -126,10 +130,10 @@ export default function Dashboard() {
   
   // ✅ Update loading state when data is ready
   useEffect(() => {
-    if (!ordersLoading && !productsLoading) {
+    if (!ordersLoading && !productsLoading && !recentProductsLoading) {
       setLoading(false)
     }
-  }, [ordersLoading, productsLoading])
+  }, [ordersLoading, productsLoading, recentProductsLoading])
   
   // ✅ Combined loading state
   const isLoading = loading || ordersLoading || productsLoading || recentProductsLoading
@@ -183,9 +187,6 @@ export default function Dashboard() {
   }
 
   // REAL-TIME CALCULATIONS
-  const [recentProducts, setRecentProducts] = useState([])
-  const [recentProductsLoading, setRecentProductsLoading] = useState(true)
-
   // Fetch recent products separately for better performance
   useEffect(() => {
     const fetchRecentProducts = async () => {
