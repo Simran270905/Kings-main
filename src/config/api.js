@@ -1,4 +1,9 @@
-const raw = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+// Use relative URL in development to work with Vite proxy
+// Use absolute URL in production
+const isDevelopment = import.meta.env.DEV;
+const raw = isDevelopment 
+  ? "/api"  // Relative URL for Vite proxy
+  : (import.meta.env.VITE_API_URL || "https://api.kkingsjewellery.com/api");
 
 // Remove trailing slashes
 const cleaned = raw.replace(/\/+$/, "");
