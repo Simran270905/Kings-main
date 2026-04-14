@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useOrder } from '../context/OrderContext'
 import AdminCard from '../layout/AdminCard'
 import AdminButton from '../layout/AdminButton'
@@ -554,6 +554,300 @@ export default function PaymentTracking() {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+
+  // Auto-refresh data every 15 seconds for real-time updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchOrders()
+    }, 15000) // 15 seconds
+
+    return () => clearInterval(interval)
+  }, [fetchOrders])
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Payment Tracking System</h1>
+        <p className="text-gray-500 mt-2">Track all payment methods and transaction details</p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <AdminCard>
+          <div className="text-center">
+            <div className="text-sm font-medium text-gray-600">Total Orders</div>
+            <div className="text-2xl font-bold text-gray-900">{totalOrders}</div>
+          </div>
+        </AdminCard>
+        
+        <AdminCard>
+          <div className="text-center">
+            <div className="text-sm font-medium text-gray-600">Total Revenue</div>
+            <div className="text-2xl font-bold text-green-600">{formatCurrency(totalRevenue)}</div>
+          </div>
+        </AdminCard>
+        
+        <AdminCard>
+          <div className="text-center">
+            <div className="text-sm font-medium text-gray-600">Paid Orders</div>
+            <div className="text-2xl font-bold text-green-600">{paidOrders}</div>
+          </div>
+        </AdminCard>
+        
+        <AdminCard>
+          <div className="text-center">
+            <div className="text-sm font-medium text-gray-600">Pending Orders</div>
+            <div className="text-2xl font-bold text-yellow-600">{pendingOrders}</div>
+          </div>
+        </AdminCard>
+      </div>
+
+      {/* Filters */}
+      <AdminCard>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Filters</h2>
+        <div className="flex flex-wrap gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <select
+              className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#ae0b0b] focus:border-transparent"
+              value={filters.status}
+              onChange={(e) => handleFilterChange('status', e.target.value)}
+            >
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="processing">Processing</option>
+              <option value="shipped">Shipped</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="refunded">Refunded</option>
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Payment Status</label>
+            <select
+              className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#ae0b0b] focus:border-transparent"
+              value={filters.paymentStatus}
+              onChange={(e) => handleFilterChange('paymentStatus', e.target.value)}
+            >
+              <option value="">All Payment Status</option>
+              <option value="pending">Pending</option>
+              <option value="paid">Paid</option>
+              <option value="failed">Failed</option>
+              <option value="refunded">Refunded</option>
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+            <select
+              className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#ae0b0b] focus:border-transparent"
+              value={filters.paymentMethod}
+              onChange={(e) => handleFilterChange('paymentMethod', e.target.value)}
+            >
+              <option value="">All Methods</option>
+              <option value="cod">Cash on Delivery</option>
+              <option value="razorpay">Razorpay</option>
+              <option value="upi">UPI</option>
+              <option value="card">Card</option>
+            </select>
+          </div>
+          
+          <div className="flex gap-2">
+            <AdminButton onClick={() => fetchOrders()}>
+              <MagnifyingGlassIcon className="h-4 w-4 mr-2" />
+              Search
+            </AdminButton>
+            
+            <AdminButton onClick={() => handleExport()}>
+              <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
+              Export
+            </AdminButton>
+            
+            <AdminButton onClick={() => resetFilters()}>
+              <ArrowTrendingUpIcon className="h-4 w-4 mr-2" />
+              Reset
+            </AdminButton>
+          </div>
+        </div>
+      </AdminCard>
+
+      {/* Orders Table */}
+      <AdminCard>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Method</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Paid</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredOrders.map((order) => (
+                <tr key={order._id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    #{order._id.toString().slice(-8).toUpperCase()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div>{order.userId?.name || 'Guest'}</div>
+                    <div className="text-xs text-gray-400">{order.customer?.email || 'N/A'}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPaymentMethodColor(order.paymentMethod)}`}>
+                      {order.paymentMethod?.toUpperCase() || 'N/A'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPaymentStatusColor(order.paymentStatus)}`}>
+                      {order.paymentStatus?.toUpperCase() || 'N/A'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatCurrency(order.amountPaid)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatCurrency(order.totalAmount)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div className="text-xs text-gray-400">
+                      {order.razorpayPaymentId || order.razorpayOrderId || 'N/A'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {order.paymentDate ? formatDate(order.paymentDate) : 'N/A'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getOrderStatusColor(order.status)}`}>
+                      {order.status?.toUpperCase() || 'N/A'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleViewDetails(order._id)}
+                        className="text-blue-600 hover:text-blue-900"
+                        title="View Details"
+                      >
+                        <MagnifyingGlassIcon className="h-4 w-4" />
+                      </button>
+                      {order.paymentMethod === 'cod' && order.paymentStatus !== 'paid' && (
+                        <button
+                          onClick={() => handleMarkCODAsPaid(order._id)}
+                          className="text-green-600 hover:text-green-900 ml-2"
+                          title="Mark as Paid"
+                        >
+                          <CheckCircleIcon className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </AdminCard>
+
+      {/* Order Details Modal */}
+      {selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Order Details</h3>
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XCircleIcon className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex justify-between">
+                <span className="font-medium">Order ID:</span>
+                <span className="text-gray-900">#{selectedOrder._id.toString().slice(-8).toUpperCase()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Customer:</span>
+                <span className="text-gray-900">{selectedOrder.customer?.firstName} {selectedOrder.customer?.lastName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Email:</span>
+                <span className="text-gray-900">{selectedOrder.customer?.email}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Mobile:</span>
+                <span className="text-gray-900">{selectedOrder.customer?.mobile}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Total Amount:</span>
+                <span className="text-gray-900">{formatCurrency(selectedOrder.totalAmount)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Transaction ID:</span>
+                <span className="text-xs text-gray-600">{selectedOrder.razorpayPaymentId || selectedOrder.razorpayOrderId || 'N/A'}</span>
+              </div>
+              
+              {selectedOrder.cardType && (
+                <div className="flex justify-between">
+                  <span className="font-medium">Card Details:</span>
+                  <span className="text-xs text-gray-600">{selectedOrder.cardType} •••• {selectedOrder.cardLast4}</span>
+                </div>
+              )}
+              
+              {selectedOrder.upiId && (
+                <div className="flex justify-between">
+                  <span className="font-medium">UPI ID:</span>
+                  <span className="text-xs text-gray-600">{selectedOrder.upiId}</span>
+                </div>
+              )}
+              
+              <div className="flex justify-between">
+                <span className="font-medium">Payment Date:</span>
+                <span>{selectedOrder.paymentDate ? formatDate(selectedOrder.paymentDate) : 'N/A'}</span>
+              </div>
+            </div>
+            
+            <div className="bg-gray-50 p-3 rounded max-h-48 overflow-y-auto">
+              <h4 className="text-md font-medium text-gray-900 mb-2">Order Items</h4>
+              <div className="bg-gray-50 p-3 rounded max-h-48 overflow-y-auto">
+                {selectedOrder.items?.map((item, index) => (
+                  <div key={index} className="flex justify-between py-2 border-b border-gray-200 last:border-0">
+                    <div>
+                      <p className="font-medium">{item.name}</p>
+                      <p className="text-sm text-gray-500">{item.quantity} x ₹{item.price}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">{formatCurrency(item.subtotal)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="flex justify-end">
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

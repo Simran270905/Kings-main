@@ -134,11 +134,11 @@ export const ProductProvider = ({ children }) => {
     } finally {
       setLoading(false)
     }
-  }, [lastFetch])
+  }, [])
 
   useEffect(() => {
     fetchData()
-  }, [fetchData])
+  }, [])
 
   // ========================================================================
   // REAL-TIME SYNC EVENT LISTENERS
@@ -149,7 +149,7 @@ export const ProductProvider = ({ children }) => {
     const unsubscribeProductCreated = dataSyncEvents.subscribe(EVENT_TYPES.PRODUCT_CREATED, (data) => {
       console.log('🔄 Real-time: Product created by admin:', data)
       setProducts(prev => [...prev, normalizeProduct(data)])
-      cache.invalidate('products')
+      // Don't invalidate cache for new products, just update state
     })
 
     const unsubscribeProductUpdated = dataSyncEvents.subscribe(EVENT_TYPES.PRODUCT_UPDATED, (data) => {
@@ -163,6 +163,7 @@ export const ProductProvider = ({ children }) => {
         }
         return product
       }))
+      // Only invalidate cache if product actually changed
       cache.invalidate('products')
     })
 
@@ -180,97 +181,11 @@ export const ProductProvider = ({ children }) => {
 
     window.addEventListener('adminProductUpdated', handleAdminProductUpdate)
 
-    // Real-time polling for continuous sync
+    // Real-time polling for continuous sync (DISABLED for performance)
     const startRealTimeSync = () => {
-      let retryCount = 0
-      const maxRetries = 3
-      const retryDelays = [2000, 4000, 8000] // Exponential backoff
-      
-      const syncInterval = setInterval(async () => {
-        try {
-          const latestProducts = await fetchProductsFromAPI()
-          retryCount = 0 // Reset retry count on success
-          
-          const currentProductIds = new Set(products.map(p => p.id || p._id))
-          
-          // Check for updated products (price changes, etc.)
-          const updatedProducts = latestProducts.filter(p => {
-            const productId = p.id || p._id
-            if (!currentProductIds.has(productId)) return false // Skip new products
-            
-            const currentProduct = products.find(cp => (cp.id || cp._id) === productId)
-            if (!currentProduct) return false
-            
-            // Check if prices changed
-            const currentPrice = parseFloat(currentProduct.price) || 0
-            const currentSellingPrice = parseFloat(currentProduct.selling_price) || 0
-            const newPrice = parseFloat(p.price) || 0
-            const newSellingPrice = parseFloat(p.selling_price) || 0
-            
-            const priceChanged = newPrice !== currentPrice
-            const sellingPriceChanged = newSellingPrice !== currentSellingPrice
-            
-            return priceChanged || sellingPriceChanged
-          })
-          
-          // Check for new products
-          const newProducts = latestProducts.filter(p => 
-            !currentProductIds.has(p.id || p._id)
-          )
-          
-          if (updatedProducts.length > 0) {
-            console.log(`🔄 Real-time sync: Updating ${updatedProducts.length} products`)
-            setProducts(prev => {
-              return prev.map(product => {
-                const updatedProduct = updatedProducts.find(up => (up.id || up._id) === (product.id || product._id))
-                if (updatedProduct) {
-                  // Safe merge - preserve existing data structure
-                  // DO NOT manually override price fields
-                  return {
-                    ...product,
-                    ...updatedProduct
-                  }
-                }
-                return product
-              })
-            })
-            cache.invalidate('products')
-          }
-          
-          if (newProducts.length > 0) {
-            console.log(`🔄 Real-time sync: Found ${newProducts.length} new products`)
-            setProducts(prev => {
-              const existingIds = new Set(prev.map(p => p.id || p._id))
-              const trulyNew = newProducts.filter(p => !existingIds.has(p.id || p._id))
-              
-              // Add new products without normalization to preserve backend data
-              return [...prev, ...trulyNew]
-            })
-            cache.invalidate('products')
-          }
-        } catch (error) {
-          console.error('❌ Real-time sync error:', error)
-          
-          // Handle timeout errors with retry logic
-          if (error.message.includes('timeout') || error.message.includes('AbortError')) {
-            retryCount++
-            if (retryCount <= maxRetries) {
-              const delay = retryDelays[retryCount - 1] || 8000
-              console.log(`🔄 Retry ${retryCount}/${maxRetries} in ${delay}ms...`)
-              setTimeout(() => {
-                // Retry will happen on next interval
-              }, delay)
-            } else {
-              console.error('❌ Max retries reached. Stopping sync.')
-              clearInterval(syncInterval)
-              // Show user-friendly message
-              setError('Unable to load products. Please refresh the page.')
-            }
-          }
-        }
-      }, 10000) // Check every 10 seconds
-
-      return syncInterval
+      // Disabled aggressive polling - using event-based sync only
+      console.log('🔄 Real-time polling disabled - using event-based sync only')
+      return null // Return null instead of interval
     }
 
     const syncInterval = startRealTimeSync()
@@ -291,7 +206,7 @@ export const ProductProvider = ({ children }) => {
       unsubscribeProductDeleted?.()
       unsubscribeCategoryUpdated?.()
       window.removeEventListener('adminProductUpdated', handleAdminProductUpdate)
-      clearInterval(syncInterval)
+      if (syncInterval) clearInterval(syncInterval)
     }
   }, [fetchData, products])
 

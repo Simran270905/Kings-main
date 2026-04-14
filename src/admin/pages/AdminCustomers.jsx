@@ -27,7 +27,7 @@ const AdminCustomers = () => {
         setError('')
         
         const token = localStorage.getItem('token')
-        const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://api.kkingsjewellery.com/api'}/admin/customers`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'}/admin/customers`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'

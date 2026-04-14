@@ -72,6 +72,30 @@ const getPaymentMethodColor = (method) => {
   }
 }
 
+const getShippingStatusColor = (status) => {
+  switch (status) {
+    case 'not_created': return 'error'
+    case 'pending': return 'warning'
+    case 'created': return 'info'
+    case 'shipped': return 'primary'
+    case 'delivered': return 'success'
+    case 'failed': return 'error'
+    default: return 'default'
+  }
+}
+
+const getShippingStatusIcon = (status) => {
+  switch (status) {
+    case 'not_created': return 'Not Created'
+    case 'pending': return 'Pending'
+    case 'created': return 'Created'
+    case 'shipped': return 'Shipped'
+    case 'delivered': return 'Delivered'
+    case 'failed': return 'Failed'
+    default: return status
+  }
+}
+
 export default function EnhancedOrders() {
   const {
     orders,
@@ -150,6 +174,35 @@ export default function EnhancedOrders() {
     } catch (error) {
       console.error('Failed to mark COD order as paid:', error)
       alert('Failed to mark COD order as paid. Please try again.')
+    }
+  }
+
+  // Handle shipment creation
+  const handleCreateShipment = async (orderId) => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'}/admin/orders/enhanced/${orderId}/create-shipment`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to create shipment')
+      }
+
+      // Show success message
+      alert('Shipment created successfully! AWB: ' + result.awbCode)
+      
+      // Refresh orders to show updated shipping status
+      fetchOrders()
+    } catch (error) {
+      console.error('Failed to create shipment:', error)
+      alert('Failed to create shipment: ' + error.message)
     }
   }
 
@@ -378,6 +431,7 @@ export default function EnhancedOrders() {
                 <TableCell>Total Amount</TableCell>
                 <TableCell>Transaction ID</TableCell>
                 <TableCell>Payment Date</TableCell>
+                <TableCell>Shipping Status</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
@@ -434,6 +488,13 @@ export default function EnhancedOrders() {
                   </TableCell>
                   <TableCell>
                     <Chip
+                      label={getShippingStatusIcon(order.shippingStatus)}
+                      color={getShippingStatusColor(order.shippingStatus)}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Chip
                       label={order.status?.toUpperCase() || 'N/A'}
                       color={getStatusColor(order.status)}
                       size="small"
@@ -448,6 +509,32 @@ export default function EnhancedOrders() {
                       >
                         <MagnifyingGlassIcon fontSize="small" />
                       </IconButton>
+                      
+                      {/* Create Shipment Button */}
+                      {order.paymentStatus === 'paid' && order.shippingStatus === 'not_created' && (
+                        <Tooltip title="Create Shipment">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleCreateShipment(order._id)}
+                            color="info"
+                          >
+                            <DownloadIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                      
+                      {/* Track Shipment Button */}
+                      {order.shippingStatus !== 'not_created' && order.trackingUrl && (
+                        <Tooltip title="Track Shipment">
+                          <IconButton
+                            size="small"
+                            onClick={() => window.open(order.trackingUrl, '_blank')}
+                            color="primary"
+                          >
+                            <MagnifyingGlassIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                       
                       {order.paymentMethod === 'cod' && order.paymentStatus === 'pending' && order.status === 'delivered' && (
                         <IconButton

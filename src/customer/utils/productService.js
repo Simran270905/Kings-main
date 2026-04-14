@@ -9,6 +9,7 @@
  */
 
 import { API_BASE_URL } from '@config/api.js'
+import safeFetch from '../../utils/safeFetch.js'
 
 // ============================================================================
 // PRODUCT OPERATIONS
@@ -47,82 +48,21 @@ export const loadProducts = async () => {
  */
 export const fetchProductsFromAPI = async () => {
   try {
-    // Add timeout to prevent hanging
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
-
-    // Fix: Fetch ALL products by setting high limit
+    // Use safeFetch with timeout and retry logic
     const apiUrl = `${API_BASE_URL}/products?limit=500`
-
-    const response = await fetch(apiUrl, {
-      signal: controller.signal
+    console.log('🌐 API CALL:', apiUrl)
+    
+    const data = await safeFetch.fetch(apiUrl, {
+      method: 'GET'
     })
-    
-    clearTimeout(timeoutId)
-    
-    if (!response.ok) {
-      console.error(`❌ API Error: HTTP ${response.status}`)
-      
-      // Handle 429 rate limit errors specifically
-      if (response.status === 429) {
-        const error = new Error('HTTP 429: Too many requests - rate limit exceeded')
-        error.status = 429
-        throw error
-      }
-      
-      return []
-    }
-    
-    const data = await response.json()
     
     // Fix: API response is {success: true, data: {products: [...], pagination: {...}}}
     const products = data.data?.products || []
     
-    // 🔧 TEMPORARY FIX: If no products found, provide sample data for testing
-    if (products.length === 0) {
-      console.warn('⚠️ No products found in API - using sample data for testing')
-      return [
-        {
-          id: 'sample-1',
-          _id: 'sample-1',
-          name: 'Sample Gold Bracelet',
-          description: 'Beautiful gold bracelet for testing',
-          originalPrice: 5000,
-          sellingPrice: 4500,
-          category: 'Bracelets',
-          brand: 'Test Brand',
-          stock: 10,
-          images: [],
-          isActive: true,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 'sample-2',
-          _id: 'sample-2',
-          name: 'Sample Silver Ring',
-          description: 'Elegant silver ring for testing',
-          originalPrice: 3000,
-          sellingPrice: 2500,
-          category: 'Rings',
-          brand: 'Test Brand',
-          stock: 5,
-          images: [],
-          isActive: true,
-          createdAt: new Date().toISOString()
-        }
-      ]
-    }
-    
-    return products
+    console.log(`📦 Enhanced Products updated: ${products.length} products (using real API)`)
+    return Array.isArray(products) ? products : []
   } catch (error) {
-    if (error.name === 'AbortError') {
-      console.error('❌ API timeout: Request took too long')
-    } else if (error.status === 429) {
-      console.error('❌ Rate limit exceeded:', error.message)
-      throw error // Re-throw to let ProductContext handle the retry
-    } else {
-      console.error('❌ Error fetching products from API:', error.message)
-    }
+    console.error('❌ Error fetching products from API:', error.message)
     return []
   }
 }
@@ -183,25 +123,13 @@ export const loadCategories = async () => {
  */
 export const fetchCategoriesFromAPI = async () => {
   try {
-    // Add timeout to prevent hanging
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
-
     const apiUrl = `${API_BASE_URL}/categories`
-    console.log("API CALL:", apiUrl)
-
-    const response = await fetch(apiUrl, {
-      signal: controller.signal
+    console.log("🔗 API Call: GET /categories")
+    
+    const data = await safeFetch.fetch(apiUrl, {
+      method: 'GET'
     })
     
-    clearTimeout(timeoutId)
-    
-    if (!response.ok) {
-      console.error(`❌ API Error: HTTP ${response.status}`)
-      return []
-    }
-    
-    const data = await response.json()
     let categories = []
     
     // Handle both old and new response structures
@@ -211,13 +139,10 @@ export const fetchCategoriesFromAPI = async () => {
       categories = data.data.categories
     }
     
-    return categories
+    console.log(`📂 Loaded ${categories.length} categories from API`)
+    return Array.isArray(categories) ? categories : []
   } catch (error) {
-    if (error.name === 'AbortError') {
-      console.error('❌ API timeout: Request took too long')
-    } else {
-      console.error('❌ Error fetching categories from API:', error.message)
-    }
+    console.error('❌ Error fetching categories from API:', error.message)
     return []
   }
 }

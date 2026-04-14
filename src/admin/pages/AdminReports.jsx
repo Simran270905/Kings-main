@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import useRealAnalytics from '../hooks/useRealAnalytics'
 import { extractData, logApiCall, logApiResponse } from '../../utils/dataExtractionHelper.js'
 import { useOrder } from '../context/OrderContext'
+import { useProduct } from '../../context/ProductContext'
 import AdminCard from '../layout/AdminCard'
 import AdminButton from '../layout/AdminButton'
 import {
@@ -55,56 +56,24 @@ export default function AdminReports() {
   // ✅ STEP 4: FORCE ARRAY NORMALIZATION
   const safeOrders = Array.isArray(orders) ? orders : [];
 
-  // ✅ STEP 9: DEBUG (MANDATORY)
-  console.log("ORDERS:", orders);
-  console.log("IS ARRAY:", Array.isArray(orders));
-  console.log("SAFE ORDERS:", safeOrders);
-  console.log("SAFE ORDERS LENGTH:", safeOrders.length);
-
-  // ✅ DEBUG: Inspect first order to understand data structure
-  if (safeOrders.length > 0) {
-    console.log('ORDER SAMPLE:', safeOrders[0]);
-    console.log('ORDER FIELDS:', Object.keys(safeOrders[0]));
-  } else {
-    console.log('NO ORDERS TO INSPECT');
-  }
-
-  // ✅ DEBUG: Inspect products structure for categories
-  if (products && Array.isArray(products) && products.length > 0) {
-    console.log('PRODUCT SAMPLE:', products[0]);
-    console.log('PRODUCT FIELDS:', Object.keys(products[0]));
-    console.log('PRODUCT CATEGORY FIELD:', products[0].category || products[0].categoryId || products[0].categoryName || 'NO CATEGORY FIELD');
-  } else {
-    console.log('NO PRODUCTS TO INSPECT');
+  // ✅ STEP 9: Data validation
+  if (!Array.isArray(orders)) {
+    console.error('❌ Orders is not an array:', orders);
   }
 
   // ✅ STEP 5: CREATE CHART DATA (ONLY FROM safeOrders)
   useEffect(() => {
-    console.log("🔧 CRITICAL FIX: Creating chart data from safeOrders...")
-    
     if (!safeOrders || safeOrders.length === 0) {
-      console.log("📊 No safe orders, setting empty chart data")
       setChartData([]);
       return;
     }
 
-    const newChartData = safeOrders.map((o, index) => {
-      console.log(`📊 Processing order ${index}:`, o)
-      console.log(`📊 Order ${index} createdAt:`, o.createdAt)
-      console.log(`📊 Order ${index} totalAmount:`, o.totalAmount)
-      
-      const chartItem = {
-        name: new Date(o.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-        revenue: Number(o.totalAmount) || 0,
-        orders: 1
-      }
-      
-      console.log(`📊 Chart item ${index}:`, chartItem)
-      return chartItem
-    });
+    const newChartData = safeOrders.map((o) => ({
+      name: new Date(o.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      revenue: Number(o.totalAmount) || 0,
+      orders: 1
+    }));
 
-    console.log("📊 New chart data:", newChartData)
-    console.log("📊 New chart data length:", newChartData.length)
     setChartData(newChartData);
     
   }, [safeOrders]);
@@ -122,13 +91,8 @@ export default function AdminReports() {
     )
   }
 
-  // ✅ STEP 7: DEBUG LOGS
-  console.log("FINAL chartData:", chartData);
-  console.log("IS ARRAY:", Array.isArray(chartData));
-
   // 📊 Bar Chart Data
   const barChartData = useMemo(() => {
-    // Convert totalRevenue to array format for BarChart
     return [
       {
         month: 'Revenue',
@@ -138,53 +102,30 @@ export default function AdminReports() {
     ]
   }, [totalRevenue, totalOrders])
 
-  // 📊 Category Distribution (moved above debug logs to fix TDZ error)
+  // 📊 Category Distribution
   const categoryData = useMemo(() => {
-    console.log("🔧 CATEGORY DATA TRANSFORMATION START")
-    console.log("📊 Products:", products)
-    console.log("📊 Products type:", typeof products)
-    console.log("📊 Products isArray:", Array.isArray(products))
     
     if (!products || !Array.isArray(products) || products.length === 0) {
-      console.log("📊 Category Chart: No products available, returning empty array")
       return []
     }
 
-    console.log("📊 Category Chart Data Processing:", products.length, "products")
-
     const categories = {}
 
-    products.forEach((p, index) => {
-      console.log(`📊 Processing product ${index}:`, p)
-      console.log(`📊 Product ${index} category field:`, p.category)
-      console.log(`📊 Product ${index} all fields:`, Object.keys(p))
-      
+    products.forEach((p) => {
       if (p.category) {
         categories[p.category] = (categories[p.category] || 0) + 1
-        console.log(`📊 Product ${index} category "${p.category}" count:`, categories[p.category])
-      } else {
-        console.log(`📊 Product ${index} has no category field`)
       }
     })
-
-    console.log("📊 Categories object:", categories)
 
     const result = Object.entries(categories).map(([name, value]) => ({
       name,
       value,
     }))
     
-    console.log("📊 Final Category Data:", result)
-    console.log("📊 Final Category Data length:", result.length)
     return result
   }, [products])
 
-  // ✅ DEBUG: Verify all chart data (moved after all declarations)
-  console.log("🔍 CHART DATA VERIFICATION:")
-  console.log("chartData:", chartData, "isArray:", Array.isArray(chartData))
-  console.log("barChartData:", barChartData, "isArray:", Array.isArray(barChartData))
-  console.log("categoryData:", categoryData, "isArray:", Array.isArray(categoryData))
-
+  
   const COLORS = ['#ae0b0b', '#b91c1c', '#f59e0b', '#10b981', '#3b82f6']
 
   const formatCurrency = (amount) =>
