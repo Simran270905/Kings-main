@@ -44,6 +44,13 @@ const ProductEdit = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  
+  // Pricing validation states
+  const [pricingErrors, setPricingErrors] = useState({
+    originalPrice: '',
+    sellingPrice: ''
+  })
+  const [isValidPricing, setIsValidPricing] = useState(true)
 
   // Fetch product data + categories + brands
   useEffect(() => {
@@ -105,6 +112,14 @@ const ProductEdit = () => {
 
         setCategories(Array.isArray(categories) ? categories : [])
         setBrands(Array.isArray(brands) ? brands : [])
+        
+        // Validate initial pricing data
+        const initialFormData = {
+          price: product.price || '',
+          selling_price: product.selling_price || '',
+          originalPrice: product.originalPrice || ''
+        }
+        validatePricing(initialFormData)
       } catch (err) {
         setError(err.message || 'Failed to load product')
       } finally {
@@ -116,12 +131,71 @@ const ProductEdit = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
+    const newValue = type === 'checkbox' ? checked : value
+    
     setFormData(prev => ({ 
       ...prev, 
-      [name]: type === 'checkbox' ? checked : value 
+      [name]: newValue 
     }))
+    
+    // Clear general error
     setError('')
     setSuccess('')
+    
+    // Validate pricing on change
+    if (name === 'originalPrice' || name === 'selling_price' || name === 'price') {
+      validatePricing({ ...formData, [name]: newValue })
+    }
+  }
+  
+  const validatePricing = (data) => {
+    const errors = {
+      originalPrice: '',
+      sellingPrice: ''
+    }
+    let isValid = true
+    
+    const originalPrice = Number(data.originalPrice || data.price || 0)
+    const sellingPrice = Number(data.selling_price || 0)
+    
+    // Validate original price (MRP)
+    if (originalPrice <= 0) {
+      errors.originalPrice = 'MRP must be greater than 0'
+      isValid = false
+    }
+    
+    // Validate selling price
+    if (sellingPrice > 0) {
+      if (sellingPrice > originalPrice) {
+        errors.sellingPrice = 'Selling price must be less than or equal to MRP'
+        isValid = false
+      }
+    }
+    
+    setPricingErrors(errors)
+    setIsValidPricing(isValid)
+    return isValid
+  }
+  
+  const handleAutoCorrection = () => {
+    const originalPrice = Number(formData.price || 0)
+    const sellingPrice = Number(formData.selling_price || 0)
+    
+    if (sellingPrice > originalPrice && originalPrice > 0) {
+      // Auto-swap values: make MRP the higher value
+      setFormData(prev => ({
+        ...prev,
+        price: sellingPrice.toString(),      // MRP becomes the selling price
+        selling_price: originalPrice.toString()  // Selling price becomes the MRP
+      }))
+      
+      // Clear errors and validate new values
+      setPricingErrors({ originalPrice: '', sellingPrice: '' })
+      setIsValidPricing(true)
+      
+      setSuccess('Auto-corrected: Swapped MRP and selling price to maintain valid pricing')
+      setTimeout(() => setSuccess(''), 3000)
+    }
   }
 
   const handleImageUpload = async (e, index) => {
@@ -423,28 +497,73 @@ const ProductEdit = () => {
                 required
               />
 
-              <FormInput
-                label="Original Price (₹)"
-                type="number"
-                name="price"
-                value={formData.price}
-                onChange={handleInputChange}
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                required
-              />
+              <div>
+                <FormInput
+                  label="Original Price (MRP) (₹)"
+                  type="number"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  required
+                  inputClassName={pricingErrors.originalPrice ? 'border-red-500 focus:border-red-500 bg-red-50' : ''}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Original price before discount (MRP)
+                </p>
+                {pricingErrors.originalPrice && (
+                  <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {pricingErrors.originalPrice}
+                  </p>
+                )}
+              </div>
 
-              <FormInput
-                label="Selling Price (₹)"
-                type="number"
-                name="selling_price"
-                value={formData.selling_price}
-                onChange={handleInputChange}
-                min="0"
-                step="0.01"
-                placeholder="Leave empty if same as price"
-              />
+              <div>
+                <FormInput
+                  label="Selling Price (₹)"
+                  type="number"
+                  name="selling_price"
+                  value={formData.selling_price}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.01"
+                  placeholder="Leave empty if same as MRP"
+                  inputClassName={pricingErrors.sellingPrice ? 'border-red-500 focus:border-red-500 bg-red-50' : ''}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Final price shown to customers
+                </p>
+                {pricingErrors.sellingPrice && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      {pricingErrors.sellingPrice}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleAutoCorrection}
+                      className="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition-colors"
+                    >
+                      Auto-fix: Swap values
+                    </button>
+                  </div>
+                )}
+                {formData.selling_price && Number(formData.selling_price) > 0 && Number(formData.price) > 0 && Number(formData.selling_price) <= Number(formData.price) && (
+                  <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Valid pricing: Selling price ≤ MRP
+                  </p>
+                )}
+              </div>
 
               {!formData.hasSizes && (
                 <FormInput
@@ -727,7 +846,7 @@ const ProductEdit = () => {
             <AdminButton
               type="submit"
               loading={isSubmitting}
-              disabled={isUploading}
+              disabled={isUploading || !isValidPricing}
               size="lg"
               className="flex-1"
             >
