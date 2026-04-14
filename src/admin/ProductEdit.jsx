@@ -12,6 +12,9 @@ import { events } from '../utils/eventSystem'
 const ProductEdit = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  
+  // STEP 1: DETECT EDIT MODE
+  const isEditMode = Boolean(id)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -51,6 +54,10 @@ const ProductEdit = () => {
     sellingPrice: ''
   })
   const [isValidPricing, setIsValidPricing] = useState(true)
+  
+  // STEP 2: STORE ORIGINAL DATA
+  const [initialData, setInitialData] = useState(null)
+  const [showInvalidPricingWarning, setShowInvalidPricingWarning] = useState(false)
 
   // Fetch product data + categories + brands
   useEffect(() => {
@@ -68,7 +75,9 @@ const ProductEdit = () => {
         if (!productRes.ok) throw new Error('Product not found')
 
         const product = productData.data || productData
-        setFormData({
+        
+        // STEP 2: STORE ORIGINAL DATA
+        const productFormData = {
           name: product.name || '',
           description: product.description || '',
           originalPrice: product.originalPrice || '',
@@ -88,7 +97,10 @@ const ProductEdit = () => {
           isBestSeller: product.isBestSeller || false,
           isOnSale: product.isOnSale || false,
           discountPercentage: product.discountPercentage || ''
-        })
+        }
+        
+        setFormData(productFormData)
+        setInitialData(productFormData)
 
         let categories = [];
         let brands = [];
@@ -113,13 +125,13 @@ const ProductEdit = () => {
         setCategories(Array.isArray(categories) ? categories : [])
         setBrands(Array.isArray(brands) ? brands : [])
         
-        // Validate initial pricing data
+        // Validate initial pricing data (non-blocking for existing products)
         const initialFormData = {
           price: product.price || '',
           selling_price: product.selling_price || '',
           originalPrice: product.originalPrice || ''
         }
-        validatePricing(initialFormData)
+        validatePricing(initialFormData, false) // Don't enforce on initial load
       } catch (err) {
         setError(err.message || 'Failed to load product')
       } finally {
@@ -142,13 +154,33 @@ const ProductEdit = () => {
     setError('')
     setSuccess('')
     
-    // Validate pricing on change
-    if (name === 'originalPrice' || name === 'selling_price' || name === 'price') {
-      validatePricing({ ...formData, [name]: newValue })
+    // STEP 3: TRACK PRICE CHANGES & STEP 4: APPLY CONDITIONAL VALIDATION
+    if (name === 'originalPrice' || name === 'selling_price' || name === 'price' || name === 'purchasePrice') {
+      const newFormData = { ...formData, [name]: newValue }
+      
+      if (initialData) {
+        const isPriceChanged = 
+          newFormData.purchasePrice !== initialData.purchasePrice ||
+          newFormData.price !== initialData.price ||
+          newFormData.originalPrice !== initialData.originalPrice ||
+          newFormData.selling_price !== initialData.selling_price
+        
+        if (isPriceChanged) {
+          // Only validate when pricing is actually changed
+          validatePricing(newFormData, true)
+          setShowInvalidPricingWarning(false)
+        } else {
+          // Skip validation if pricing unchanged
+          setPricingErrors({ originalPrice: '', sellingPrice: '' })
+          setIsValidPricing(true)
+        }
+      } else {
+        validatePricing(newFormData, true)
+      }
     }
   }
   
-  const validatePricing = (data) => {
+  const validatePricing = (data, enforceValidation = false) => {
     const errors = {
       originalPrice: '',
       sellingPrice: ''
@@ -158,17 +190,25 @@ const ProductEdit = () => {
     const originalPrice = Number(data.originalPrice || data.price || 0)
     const sellingPrice = Number(data.selling_price || 0)
     
-    // Validate original price (MRP)
-    if (originalPrice <= 0) {
-      errors.originalPrice = 'MRP must be greater than 0'
-      isValid = false
-    }
-    
-    // Validate selling price
-    if (sellingPrice > 0) {
-      if (sellingPrice > originalPrice) {
-        errors.sellingPrice = 'Selling price must be less than or equal to MRP'
+    // Only validate if enforcement is enabled (pricing changed or new product)
+    if (enforceValidation) {
+      // Validate original price (MRP)
+      if (originalPrice <= 0) {
+        errors.originalPrice = 'MRP must be greater than 0'
         isValid = false
+      }
+      
+      // Validate selling price
+      if (sellingPrice > 0) {
+        if (sellingPrice > originalPrice) {
+          errors.sellingPrice = 'Selling price must be less than or equal to MRP'
+          isValid = false
+        }
+      }
+    } else {
+      // Check for invalid pricing but don't block
+      if (originalPrice <= 0 || (sellingPrice > 0 && sellingPrice > originalPrice)) {
+        setShowInvalidPricingWarning(true)
       }
     }
     
@@ -192,9 +232,30 @@ const ProductEdit = () => {
       // Clear errors and validate new values
       setPricingErrors({ originalPrice: '', sellingPrice: '' })
       setIsValidPricing(true)
+      setShowInvalidPricingWarning(false)
       
       setSuccess('Auto-corrected: Swapped MRP and selling price to maintain valid pricing')
       setTimeout(() => setSuccess(''), 3000)
+    }
+  }
+  
+  // STEP 7: OPTIONAL AUTO FIX
+  const handleAutoFixInvalidPricing = () => {
+    const originalPrice = Number(formData.price || formData.originalPrice || 0)
+    const sellingPrice = Number(formData.selling_price || 0)
+    
+    if (originalPrice <= 0 && sellingPrice > 0) {
+      // Fix MRP if it's invalid
+      setFormData(prev => ({
+        ...prev,
+        price: sellingPrice.toString(),
+        originalPrice: sellingPrice.toString()
+      }))
+      setSuccess('Auto-fixed: Set MRP equal to selling price')
+      setShowInvalidPricingWarning(false)
+    } else if (sellingPrice > originalPrice && originalPrice > 0) {
+      // Use existing auto-correction
+      handleAutoCorrection()
     }
   }
 
@@ -415,6 +476,27 @@ const ProductEdit = () => {
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
             </svg>
             <span className="font-medium">{error}</span>
+          </div>
+        )}
+
+        {showInvalidPricingWarning && (
+          <div className="mb-6 p-4 bg-yellow-50 border-2 border-yellow-200 text-yellow-700 rounded-xl flex items-start gap-3">
+            <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            <div className="flex-1">
+              <span className="font-medium">⚠️ This product has invalid pricing. Please update it.</span>
+              <div className="mt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleAutoFixInvalidPricing}
+                  className="text-xs bg-yellow-600 text-white px-3 py-1 rounded hover:bg-yellow-700 transition-colors"
+                >
+                  Auto-fix Pricing
+                </button>
+                <span className="text-xs text-yellow-600">or update pricing manually</span>
+              </div>
+            </div>
           </div>
         )}
 
@@ -846,7 +928,7 @@ const ProductEdit = () => {
             <AdminButton
               type="submit"
               loading={isSubmitting}
-              disabled={isUploading || !isValidPricing}
+              disabled={isUploading || (isValidPricing === false && !showInvalidPricingWarning)}
               size="lg"
               className="flex-1"
             >
