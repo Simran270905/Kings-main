@@ -10,7 +10,6 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { Popover, Dialog, Transition } from '@headlessui/react'
-import { useAuth } from '../../../context/useAuth'
 import { useCart } from '../../../context/useCart'
 import { API_BASE_URL } from '@config/api.js'
 
@@ -24,7 +23,6 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [shopCategories, setShopCategories] = useState([])
   const navigate = useNavigate()
-  const { isAuthenticated } = useAuth()
   const { cartItems } = useCart()
 
   useEffect(() => {
@@ -51,14 +49,6 @@ export default function Navbar() {
     fetchCategories()
   }, [])
   const cartCount = cartItems?.reduce((sum, item) => sum + getQuantity(item), 0) || 0
-
-  const handleAccountClick = () => {
-    if (isAuthenticated) {
-      navigate('/account')
-    } else {
-      navigate('/login')
-    }
-  }
 
   return (
     <div className="sticky top-0 z-50 bg-white">
@@ -105,14 +95,6 @@ export default function Navbar() {
 
           {/* Icons */}
           <div className="flex items-center gap-5 text-[#ae0b0b]">
-            <button
-              onClick={handleAccountClick}
-              className="cursor-pointer hover:opacity-70 transition"
-              title={isAuthenticated ? 'My Account' : 'Login'}
-            >
-              <UserCircleIcon className="h-6 w-6" />
-            </button>
-
             <Link to="/cart" className="relative" title="Cart">
               <ShoppingBagIcon className="h-6 w-6 cursor-pointer" />
               {cartCount > 0 && (
@@ -245,14 +227,9 @@ export default function Navbar() {
             </nav>
 
             <div className="p-6 border-t space-y-3">
-              <button
-                onClick={() => { handleAccountClick(); setMobileOpen(false); }}
-                className="w-full py-3 border-2 border-[#ae0b0b] text-[#ae0b0b] font-semibold rounded-xl hover:bg-[#ae0b0b] hover:text-white transition-colors"
-              >
-                {isAuthenticated ? 'My Account' : 'Login / Sign Up'}
-              </button>
               <Link to="/cart" onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-center gap-2 w-full py-3 bg-[#ae0b0b] text-white font-semibold rounded-xl hover:bg-[#8f0a0a] transition-colors">
+                className="flex items-center justify-center gap-2 w-full py-3 bg-[#ae0b0b] text-white font-semibold rounded-xl hover:bg-[#8f0a0a] transition-colors"
+              >
                 <ShoppingBagIcon className="h-5 w-5" />
                 Cart {cartCount > 0 && `(${cartCount})`}
               </Link>

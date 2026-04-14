@@ -4,8 +4,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { CartProvider } from './context/CartContext'
 import { ProductProvider } from './context/ProductContext'
 import { CustomerOrderProvider } from './context/CustomerOrderContext'
-import { AuthProvider } from './context/AuthContext'
-import { AdminAuthProvider } from './admin/context/AdminAuthContext'
 import { OrderProvider } from './admin/context/OrderContext'
 import AdminProductProvider from './admin/context/AdminProductContext' // ✅ FIXED IMPORT
 import { EnhancedOrderProvider } from './admin/context/EnhancedOrderContext'
@@ -20,10 +18,6 @@ import HomePage from './customer/pages/HomePage/HomePage'
 import OurStory from './customer/pages/OurStory/OurStory'
 import Cart from './customer/components/Cart/Cart'
 import Checkout from './customer/components/Checkout/Checkout'
-import Login from './customer/components/Account/Login'
-import Auth from './customer/components/Account/Auth'
-import SignIn from './customer/components/Account/SignIn'
-import AccountPage from './customer/components/Account/AccountPage'
 import Payment from './customer/components/Payment/Payment'
 import OrderSuccess from './customer/pages/OrderSuccess/OrderSuccess'
 import Orders from './customer/pages/Orders/Orders'
@@ -41,7 +35,6 @@ import Contact from './customer/pages/Contact/Contact'
 
 import AdminLogin from './admin/AdminLogin'
 import { AdminRoute } from './admin/AdminRoute'
-import ProtectedRoute from './customer/components/ProtectedRoute'
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -94,8 +87,7 @@ return (
   <Router>
     <ScrollToTop />
 
-    <AuthProvider> 
-      <AdminAuthProvider>
+    <>
         <OrderProvider>
           <EnhancedOrderProvider>
             <AdminProductProvider>
@@ -115,12 +107,9 @@ return (
                           <Route path="/shop/:category" element={<CustomerLayout><ShopPage /></CustomerLayout>} />
                           <Route path="/our-story" element={<CustomerLayout><OurStory /></CustomerLayout>} />
                           <Route path="/cart" element={<CustomerLayout><Cart /></CustomerLayout>} />
-                          <Route path="/checkout" element={<CustomerLayout><ProtectedRoute><Checkout /></ProtectedRoute></CustomerLayout>} />
+                          <Route path="/checkout" element={<CustomerLayout><Checkout /></CustomerLayout>} />
                           <Route path="/payment" element={<CustomerLayout><Payment /></CustomerLayout>} />
-                          <Route path="/login" element={<CustomerLayout><Login /></CustomerLayout>} />
-                          <Route path="/signup" element={<CustomerLayout><Auth /></CustomerLayout>} />
-                          <Route path="/account" element={<CustomerLayout><ProtectedRoute><AccountPage /></ProtectedRoute></CustomerLayout>} />
-                          <Route path="/orders" element={<CustomerLayout><ProtectedRoute><Orders /></ProtectedRoute></CustomerLayout>} />
+                          <Route path="/orders" element={<CustomerLayout><Orders /></CustomerLayout>} />
                           <Route path="/order-success" element={<CustomerLayout><OrderSuccess /></CustomerLayout>} />
                           <Route path="/orders/track" element={<CustomerLayout><TrackOrderPage /></CustomerLayout>} />
                           <Route path="/orders/track/:orderId" element={<CustomerLayout><OrderTrack /></CustomerLayout>} />
@@ -273,8 +262,7 @@ return (
             </AdminProductProvider>
           </EnhancedOrderProvider>
         </OrderProvider>
-      </AdminAuthProvider>
-    </AuthProvider>
+      </>
 
   </Router>
 )

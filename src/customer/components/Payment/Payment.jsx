@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useCart } from '../../../context/useCart'
 import { useProduct } from '../../../context/ProductContext'
 import { useCustomerOrder } from '../../../context/CustomerOrderContext'
-import { useAuth } from '../../../context/useAuth'
 import { 
   CreditCardIcon, 
   InformationCircleIcon,
@@ -254,7 +253,6 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
   const navigate = useNavigate()
   const location = useLocation()
   const { cartItems, totalPrice, clearCart } = useCart()
-  const { user } = useAuth()
   const { createOrder } = useCustomerOrder()
 
   const [deliveryAddress] = useState(propDeliveryAddress || location.state?.deliveryAddress || {})
@@ -560,9 +558,9 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
         description: `Payment for ${orderData.items.length} items`,
         order_id: orderDataResponse.data.razorpayOrderId,
         prefill: {
-          name: user?.name || '',
-          email: user?.email || '',
-          contact: user?.phone || ''
+          name: deliveryAddress?.firstName && deliveryAddress?.lastName ? `${deliveryAddress.firstName} ${deliveryAddress.lastName}` : deliveryAddress?.name || '',
+          email: deliveryAddress?.email || '',
+          contact: deliveryAddress?.mobile || deliveryAddress?.phone || ''
         },
         notes: {
           paymentPlan: orderData.paymentPlan,
