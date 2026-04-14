@@ -52,7 +52,8 @@ export const EnhancedOrderProvider = ({ children }) => {
         const newOrders = Array.isArray(data.data?.orders) ? data.data.orders : 
                         Array.isArray(data.data) ? data.data : []
         
-        // Only update if orders have changed
+        // Enhanced orders now have customer objects, not userId
+        // So we don't need to populate anything - the customer data is already included
         const hasChanged = orders.length !== newOrders.length || 
           !orders.every((order, index) => order._id === newOrders[index]?._id)
         
@@ -66,12 +67,6 @@ export const EnhancedOrderProvider = ({ children }) => {
               pending: newOrders.filter(o => o.paymentStatus === 'pending').length,
               failed: newOrders.filter(o => o.paymentStatus === 'failed').length,
               refunded: newOrders.filter(o => o.paymentStatus === 'refunded').length
-            },
-            paymentMethodBreakdown: {
-              cod: newOrders.filter(o => o.paymentMethod === 'cod').length,
-              razorpay: newOrders.filter(o => o.paymentMethod === 'razorpay').length,
-              card: newOrders.filter(o => o.paymentMethod === 'card').length,
-              upi: newOrders.filter(o => o.paymentMethod === 'upi').length
             }
           })
           setLastFetch(new Date())
