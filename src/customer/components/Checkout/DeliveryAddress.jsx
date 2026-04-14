@@ -125,7 +125,7 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
                 <Grid size={{ xs: 12 }}>
                     <Box className="border rounded-s-md shadow-md p-5">
                         {/* ✅ LOCALSTORAGE SAVED ADDRESS */}
-                        {getSavedAddressFromLocalStorage() && savedAddresses.length === 0 && (
+                        {savedAddresses.length === 0 && (
                             <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
                                 <div className="flex justify-between items-center">
                                     <div>
