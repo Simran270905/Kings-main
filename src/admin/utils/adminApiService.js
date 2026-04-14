@@ -97,15 +97,23 @@ class AdminApiService {
       console.log(' Login response status:', response.status)
       console.log(' Login response data:', response.data)
 
-      const data = response.data || response || {}
-      const isSuccess = data.success === true || data.token || data.user
+      // Check if response is HTML (indicates routing issue)
+      const contentType = response.headers['content-type']
+      if (contentType && contentType.includes('text/html')) {
+        throw new Error('Server returned HTML instead of JSON - check API routing')
+      }
 
-      if (isSuccess) {
-        const token = data.data?.token || data.token
-        if (token) {
-          this.setToken(token)
-        }
+      const data = response.data || {}
+      
+      // Handle both response formats: { success: true, data: { token } } or { success: true, token }
+      const isSuccess = data.success === true
+      const token = data.data?.token || data.token
+
+      if (isSuccess && token) {
+        this.setToken(token)
         return { success: true, token, data }
+      } else if (isSuccess) {
+        throw new Error('Login successful but no token received')
       } else {
         throw new Error(data.message || 'Login failed')
       }
@@ -118,10 +126,19 @@ class AdminApiService {
       } else if (error.response) {
         // Handle different HTTP status codes
         const status = error.response.status
+        const contentType = error.response.headers['content-type']
+        
+        // Check if we got HTML instead of JSON
+        if (contentType && contentType.includes('text/html')) {
+          throw new Error('API routing error - server returned HTML instead of JSON')
+        }
+        
         if (status === 401) {
           throw new Error("Invalid password")
         } else if (status === 400) {
           throw new Error("Password is required")
+        } else if (status === 404) {
+          throw new Error("Admin login endpoint not found - check server routing")
         } else if (status === 500) {
           throw new Error("Server error - please try again")
         } else {

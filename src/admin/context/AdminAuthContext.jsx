@@ -28,11 +28,20 @@ export function AdminAuthProvider({ children }) {
     return () => window.removeEventListener('storage', verifyToken);
   }, []);
 
-  // ✅ LOGIN (FIXED)
+  //  LOGIN (FIXED)
   async function loginAdmin(password) {
     // STEP 7: FAIL SAFE UI - Wrap everything in try/catch
     try {
       const result = await adminApi.login(password);
+      
+      // Validate result structure
+      if (!result || typeof result !== 'object') {
+        throw new Error('Invalid login response from server');
+      }
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Login failed');
+      }
       
       // Force re-verify in all tabs/contexts
       window.dispatchEvent(new Event('storage'));
@@ -44,6 +53,8 @@ export function AdminAuthProvider({ children }) {
 
     } catch (error) {
       console.error(' Admin login failed:', error.message);
+      setIsAdminAuthenticated(false);
+      setAdminLoading(false);
       return { success: false, error: error.message };
     }
   };

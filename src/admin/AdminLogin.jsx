@@ -27,8 +27,9 @@ const AdminLogin = () => {
       // Use context (IMPORTANT)
       const result = await loginAdmin(password)
 
-      if (!result.success) {
-        throw new Error(result.error || 'Login failed')
+      // Add null guard for result
+      if (!result || typeof result !== 'object' || !result.success) {
+        throw new Error(result?.error || 'Login failed')
       }
 
       // redirect AFTER state update
