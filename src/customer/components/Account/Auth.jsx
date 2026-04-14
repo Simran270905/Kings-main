@@ -16,7 +16,7 @@ const Auth = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Handle simple registration
+  // Handle registration with OTP
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
@@ -53,10 +53,10 @@ const Auth = () => {
         phone: phone.trim()
       };
 
-      console.log("🔍 Registering user with details:", JSON.stringify(payload, null, 2));
+      console.log("🔍 Sending OTP for registration:", JSON.stringify(payload, null, 2));
 
-      // Direct registration API call
-      const response = await fetch(`${API_BASE_URL}/customers/register`, {
+      // Send OTP first (this will create user if not exists)
+      const response = await fetch(`${API_BASE_URL}/otp/send-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -67,15 +67,26 @@ const Auth = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'Registration failed');
+        throw new Error(result.message || 'Failed to send OTP');
       }
 
-      setSuccess('Registration successful! Redirecting to login...');
+      setSuccess('OTP sent successfully! Redirecting to verification...');
 
-      // After successful registration, redirect to login
+      // Store data for OTP verification
+      sessionStorage.setItem('registerName', name.trim());
+      sessionStorage.setItem('registerEmail', email.trim());
+      sessionStorage.setItem('registerPhone', phone.trim());
+
+      // Redirect to OTP verification
       setTimeout(() => {
-        navigate("/login");
-      }, 2000);
+        navigate("/verify-otp", { 
+          state: { 
+            identifier: email.trim(), 
+            name: name.trim(),
+            isLogin: false 
+          } 
+        });
+      }, 1500);
 
     } catch (err) {
       console.error("❌ Registration error:", err.message);

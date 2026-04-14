@@ -23,6 +23,7 @@ import Checkout from './customer/components/Checkout/Checkout'
 import Login from './customer/components/Account/Login'
 import Auth from './customer/components/Account/Auth'
 import SignIn from './customer/components/Account/SignIn'
+import VerifyOTP from './customer/components/Account/VerifyOTP'
 import Account from './customer/components/Account/Account'
 import Payment from './customer/components/Payment/Payment'
 import OrderSuccess from './customer/pages/OrderSuccess/OrderSuccess'
@@ -119,6 +120,7 @@ return (
                           <Route path="/payment" element={<CustomerLayout><Payment /></CustomerLayout>} />
                           <Route path="/login" element={<CustomerLayout><Login /></CustomerLayout>} />
                           <Route path="/signup" element={<CustomerLayout><Auth /></CustomerLayout>} />
+                          <Route path="/verify-otp" element={<CustomerLayout><VerifyOTP /></CustomerLayout>} />
                           <Route path="/account" element={<CustomerLayout><ProtectedRoute><Account /></ProtectedRoute></CustomerLayout>} />
                           <Route path="/orders" element={<CustomerLayout><ProtectedRoute><Orders /></ProtectedRoute></CustomerLayout>} />
                           <Route path="/order-success" element={<CustomerLayout><OrderSuccess /></CustomerLayout>} />

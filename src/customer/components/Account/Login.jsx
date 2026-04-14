@@ -12,7 +12,7 @@ const Login = () => {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Handle login
+  // Handle login - send OTP first
   const handleLogin = async (e) => {
     e.preventDefault();
     
@@ -33,25 +33,47 @@ const Login = () => {
         return;
       }
 
-      console.log('Calling login with:', input);
+      console.log('🔐 LOGIN: Sending OTP for:', input);
 
-      // Prepare payload based on input type
-      const payload = input.includes("@") ? { email: input } : { mobile: input };
+      // Prepare name from email or use default
+      const name = input.includes("@") ? input.split('@')[0] : `User${input.slice(-4)}`;
+      
+      // Send OTP first
+      const otpResponse = await fetch(`${API_BASE_URL}/otp/send-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: name,
+          email: input.includes("@") ? input : `${name}@temp.com`,
+          phone: input.includes("@") ? undefined : input
+        })
+      });
 
-      const result = await login(payload);
+      const otpResult = await otpResponse.json();
 
-      console.log(" FINAL LOGIN RESULT:", result)
-
-      if (!result || result.success === false) {
-        setError(result?.message || "Login failed")
-        return
+      if (!otpResponse.ok) {
+        throw new Error(otpResult.message || 'Failed to send OTP');
       }
 
-      // SUCCESS
-      navigate("/account");
+      console.log('✅ OTP sent successfully');
+      
+      // Store the identifier for OTP verification
+      sessionStorage.setItem('loginIdentifier', input);
+      sessionStorage.setItem('loginName', name);
+
+      // Redirect to OTP verification
+      navigate("/verify-otp", { 
+        state: { 
+          identifier: input, 
+          name: name,
+          isLogin: true 
+        } 
+      });
 
     } catch (err) {
-      console.error("Login error:", err.message);
+      console.error("❌ Login error:", err.message);
       setError(err.message);
     } finally {
       setIsLoading(false);
