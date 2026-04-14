@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import adminApi from '../utils/adminApiService'
-import { extractData, logApiCall, logApiResponse } from '../../utils/dataExtractionHelper.js'
+import { extractData } from '../../utils/dataExtractionHelper.js'
 import { API_BASE_URL } from '../../config/api.js'
 
 export const OrderContext = createContext(null)

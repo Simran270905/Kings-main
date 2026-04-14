@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { API_BASE_URL } from '../config/api.js';
-import { extractData, extractError, isSuccess, logApiCall, logApiResponse } from '../utils/dataExtractionHelper.js'
+import { extractData, extractError, isSuccess } from '../utils/dataExtractionHelper.js'
 
 const API_URL = API_BASE_URL
 const getToken = () => localStorage.getItem('token')
@@ -36,8 +36,6 @@ export function CustomerOrderProvider({ children }) {
     setError(null)
 
     try {
-      logApiCall('/customers/orders/my-orders', 'GET')
-      
       // Add timeout to prevent hanging requests
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 25000) // 25 second timeout
@@ -58,8 +56,6 @@ export function CustomerOrderProvider({ children }) {
         console.error("Failed to parse JSON response:", text)
         throw new Error('Invalid server response')
       }
-      
-      logApiResponse('/customers/orders/my-orders', body)
 
       if (!response.ok) {
         throw new Error(extractError(body))

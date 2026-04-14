@@ -37,7 +37,7 @@ import {
 } from '@mui/material'
 
 // Import data extraction helper
-import { extractData, extractError, isSuccess, logApiCall, logApiResponse } from '../../utils/dataExtractionHelper.js'
+import { extractData, extractError, isSuccess } from '../../utils/dataExtractionHelper.js'
 
 const getStatusColor = (status) => {
   switch (status) {

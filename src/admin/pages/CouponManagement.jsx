@@ -3,7 +3,7 @@ import { couponApi } from '../../services/api.js'
 import toast from 'react-hot-toast'
 import AdminCard from '../layout/AdminCard'
 import AdminButton from '../layout/AdminButton'
-import { extractData, extractError, isSuccess, logApiCall, logApiResponse } from '../../utils/dataExtractionHelper.js'
+import { extractData, extractError, isSuccess } from '../../utils/dataExtractionHelper.js'
 
 export default function CouponManagement() {
   const [coupons, setCoupons] = useState([])
@@ -30,9 +30,7 @@ export default function CouponManagement() {
 
   const fetchCoupons = async () => {
     try {
-      logApiCall('/api/coupons', 'GET')
       const response = await couponApi.getAll()
-      logApiResponse('/api/coupons', response)
       
       if (isSuccess(response)) {
         const couponsData = extractData(response)

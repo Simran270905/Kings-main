@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import useRealAnalytics from '../hooks/useRealAnalytics'
-import { extractData, logApiCall, logApiResponse } from '../../utils/dataExtractionHelper.js'
+import { extractData } from '../../utils/dataExtractionHelper.js'
 import { useOrder } from '../context/OrderContext'
 import { useProduct } from '../../context/ProductContext'
 import AdminCard from '../layout/AdminCard'
