@@ -96,6 +96,10 @@ function PaymentPlanSelector({
     }
   }
 
+  // Payment methods that require full payment only
+  const fullPaymentOnlyMethods = ['upi', 'netbanking', 'card']
+  const shouldHidePartialPayment = paymentMethod && fullPaymentOnlyMethods.includes(paymentMethod)
+
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
       <div className="flex items-center gap-2 mb-4">
@@ -146,15 +150,16 @@ function PaymentPlanSelector({
           </div>
         </div>
 
-        {/* Partial Payment Option */}
-        <div
-          className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${
-            selectedPlan === 'partial'
-              ? 'border-[#ae0b0b] bg-[#ffe9e9] text-[#950000]'
-              : 'border-gray-200 bg-white text-gray-900 hover:border-gray-300'
-          } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-          onClick={() => handlePlanChange('partial')}
-        >
+        {/* Partial Payment Option - Hidden for UPI, Net Banking, Card */}
+        {!shouldHidePartialPayment && (
+          <div
+            className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${
+              selectedPlan === 'partial'
+                ? 'border-[#ae0b0b] bg-[#ffe9e9] text-[#950000]'
+                : 'border-gray-200 bg-white text-gray-900 hover:border-gray-300'
+            } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+            onClick={() => handlePlanChange('partial')}
+          >
           <div className="flex items-center">
             <div className="flex items-center h-5">
               <input
@@ -187,10 +192,11 @@ function PaymentPlanSelector({
             </div>
           </div>
         </div>
+        )}
       </div>
 
-      {/* Partial Payment Info Note */}
-      {selectedPlan === 'partial' && (
+      {/* Partial Payment Info Note - Hidden for UPI, Net Banking, Card */}
+      {selectedPlan === 'partial' && !shouldHidePartialPayment && (
         <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
           <div className="flex items-start gap-2">
             <InformationCircleIcon className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
@@ -250,6 +256,20 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
   const [deliveryAddress] = useState(propDeliveryAddress || location.state?.deliveryAddress || {})
   const [selectedMethod, setSelectedMethod] = useState('')
   const [paymentPlan, setPaymentPlan] = useState('full')
+
+  // Payment methods that require full payment only
+  const fullPaymentOnlyMethods = ['upi', 'netbanking', 'card']
+
+  // Auto-set full payment when payment method changes
+  const handlePaymentMethodChange = (method) => {
+    setSelectedMethod(method)
+    if (fullPaymentOnlyMethods.includes(method)) {
+      setPaymentPlan('full')
+    }
+  }
+
+  // Check if partial payment should be hidden
+  const shouldHidePartialPayment = selectedMethod && fullPaymentOnlyMethods.includes(selectedMethod)
   const [loading, setLoading] = useState(false)
   const [couponCode, setCouponCode] = useState('')
   const [appliedCoupon, setAppliedCoupon] = useState(null)
@@ -487,6 +507,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           receipt: `order_${Date.now()}`,
           notes: {
             paymentPlan: orderData.paymentPlan,
+            paymentMethod: selectedMethod,
             items: orderData.items.length
           }
         })
@@ -533,6 +554,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
         },
         notes: {
           paymentPlan: orderData.paymentPlan,
+          paymentMethod: selectedMethod,
           address: JSON.stringify(deliveryAddress)
         },
         handler: async (response) => {
@@ -641,7 +663,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
             {paymentOptions.map((method) => (
               <div
                 key={method.id}
-                onClick={() => setSelectedMethod(method.id)}
+                onClick={() => handlePaymentMethodChange(method.id)}
                 className={`
                   // ADDED: Enhanced payment method card UI
                   relative border-2 rounded-xl p-5 cursor-pointer transition-all duration-200 group
@@ -689,7 +711,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
                     name="paymentMethod"
                     value={method.id}
                     checked={selectedMethod === method.id}
-                    onChange={() => setSelectedMethod(method.id)}
+                    onChange={() => handlePaymentMethodChange(method.id)}
                     className="w-4 h-4 text-[#ae0b0b] focus:ring-[#ae0b0b] focus:ring-2 focus:ring-offset-2 border-gray-300"
                   />
                 </div>
@@ -816,6 +838,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
             totalAmount={cartTotal}
             paymentMethod={selectedMethod}
             paymentCalculation={paymentCalculation}
+            disabled={shouldHidePartialPayment && paymentPlan === 'full'}
           />
         )}
 
