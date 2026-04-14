@@ -124,72 +124,13 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                     <Box className="border rounded-s-md shadow-md p-5">
-                        {/* ✅ LOCALSTORAGE SAVED ADDRESS */}
-                        {savedAddresses.length === 0 && (
-                            <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                                <div className="flex justify-between items-center">
-                                    <div>
-                                        <p className="text-sm font-medium text-blue-900">Saved Address Available</p>
-                                        <p className="text-xs text-blue-700">Use your previously entered address</p>
-                                    </div>
-                                    <Button
-                                        variant="outlined"
-                                        size="small"
-                                        onClick={() => {
-                                            const savedAddr = getSavedAddressFromLocalStorage();
-                                            setFormData(savedAddr);
-                                            if (onAddressChange && typeof onAddressChange === 'function') {
-                                                onAddressChange(savedAddr);
-                                            }
-                                            toast.success('Address loaded from saved data');
-                                        }}
-                                    >
-                                        Use Saved Address
-                                    </Button>
-                                </div>
+                        {/* ✅ SIMPLIFIED FOR GUEST CHECKOUT */}
+                        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <div className="text-center">
+                                <p className="text-sm font-medium text-gray-700">Enter Your Delivery Address</p>
+                                <p className="text-xs text-gray-500">Fill in the form below to continue</p>
                             </div>
-                        )}
-                        
-                        {savedAddresses.length > 0 && (
-                            <div className="mb-6">
-                                <FormControl fullWidth>
-                                    <InputLabel>Select Saved Address</InputLabel>
-                                    <Select
-                                        value={selectedAddressIndex}
-                                        onChange={(e) => {
-                                            const index = e.target.value;
-                                            setSelectedAddressIndex(index);
-                                            if (index >= 0) {
-                                                const addr = savedAddresses[index];
-                                                const addrData = {
-                                                    firstName: addr.firstName,
-                                                    lastName: addr.lastName,
-                                                    email: addr.email,
-                                                    streetAddress: addr.streetAddress,
-                                                    city: addr.city,
-                                                    state: addr.state,
-                                                    zipCode: addr.zipCode,
-                                                    mobile: addr.mobile,
-                                                };
-                                                setFormData(addrData);
-                                                // ✅ SAVE TO LOCALSTORAGE WHEN SELECTING SAVED ADDRESS
-                                                saveAddressToLocalStorage(addrData);
-                                                if (onAddressChange && typeof onAddressChange === 'function') {
-                                                    onAddressChange(addrData);
-                                                }
-                                            }
-                                        }}
-                                    >
-                                        <MenuItem value={-1}>Use New Address</MenuItem>
-                                        {savedAddresses.map((addr, index) => (
-                                            <MenuItem key={index} value={index}>
-                                                {addr.firstName} {addr.lastName}, {addr.city}, {addr.state}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                            </div>
-                        )}
+                        </div>
                         <form onSubmit={handleSubmit}>
                             <Grid container spacing={3}>
                                 <Grid size={{ xs: 12, sm: 6 }}>
