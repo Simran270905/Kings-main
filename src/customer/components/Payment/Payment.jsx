@@ -241,10 +241,34 @@ function PaymentPlanSelector({
 // Razorpay loader
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
+    // Check if Razorpay is already loaded
+    if (window.Razorpay) {
+      console.log('Razorpay already loaded')
+      resolve(true)
+      return
+    }
+    
+    console.log('Loading Razorpay script...')
     const script = document.createElement('script')
     script.src = 'https://checkout.razorpay.com/v1/checkout.js'
-    script.onload = () => resolve(true)
-    script.onerror = () => resolve(false)
+    script.async = true
+    
+    script.onload = () => {
+      console.log('Razorpay script loaded successfully')
+      if (window.Razorpay) {
+        console.log('Razorpay object available:', window.Razorpay)
+        resolve(true)
+      } else {
+        console.error('Razorpay script loaded but Razorpay object not found')
+        resolve(false)
+      }
+    }
+    
+    script.onerror = (error) => {
+      console.error('Failed to load Razorpay script:', error)
+      resolve(false)
+    }
+    
     document.body.appendChild(script)
   })
 }
@@ -524,16 +548,28 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
       console.log('Backend Amount (Rs):', orderDataResponse.data.amount / 100)
 
       const loaded = await loadRazorpayScript()
-      if (!loaded) return toast.error('Razorpay failed to load')
+      if (!loaded) {
+        console.error('Razorpay failed to load')
+        return toast.error('Razorpay failed to load. Please refresh and try again.')
+      }
 
-      console.log('💳 RAZORPAY CHECKOUT DEBUG ===')
-      console.log('💳 Amount from backend (paise):', orderDataResponse.data.amount)
-      console.log('💳 Amount for Razorpay (should be paise):', orderDataResponse.data.amount)
+      console.log('=== RAZORPAY INITIALIZATION DEBUG ===')
+      console.log('Window.Razorpay available:', !!window.Razorpay)
+      console.log('Razorpay Key ID:', import.meta.env.VITE_RAZORPAY_KEY_ID)
+      console.log('Amount from backend (paise):', orderDataResponse.data.amount)
+      console.log('Currency:', orderDataResponse.data.currency)
+      console.log('Order ID:', orderDataResponse.data.razorpayOrderId)
+      
+      // Check if Razorpay is available
+      if (!window.Razorpay) {
+        console.error('Razorpay object not available after loading script')
+        return toast.error('Razorpay not available. Please refresh and try again.')
+      }
       
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: orderDataResponse.data.amount, // Already in paise from backend
-        currency: orderDataResponse.data.currency,
+        currency: orderDataResponse.data.currency || 'INR',
         name: 'KKings Jewellery',
         description: `Payment for ${orderData.items.length} items`,
         order_id: orderDataResponse.data.razorpayOrderId,
@@ -548,6 +584,9 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           address: JSON.stringify(deliveryAddress)
         },
         handler: async (response) => {
+          console.log('=== RAZORPAY PAYMENT SUCCESS ===')
+          console.log('Payment response:', response)
+          
           // Verify payment on backend
           const verifyRes = await fetch(`${API_URL}/payments/verify`, {
             method: 'POST',
@@ -558,6 +597,18 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
+              customer: {
+                firstName: deliveryAddress?.firstName || '',
+                lastName: deliveryAddress?.lastName || '',
+                email: deliveryAddress?.email || '',
+                mobile: deliveryAddress?.mobile || deliveryAddress?.phone || '',
+                streetAddress: deliveryAddress?.streetAddress || '',
+                city: deliveryAddress?.city || '',
+                state: deliveryAddress?.state || '',
+                zipCode: deliveryAddress?.zipCode || ''
+              },
+              cartItems: orderData.items,
+              totalAmount: orderData.totalAmount,
               orderData: orderData
             })
           })
@@ -585,6 +636,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
         },
         modal: {
           ondismiss: function() {
+            console.log('Razorpay modal dismissed')
             toast.error('Payment cancelled')
           },
           escape: false,
@@ -595,13 +647,23 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
         }
       };
 
-      const rzp = new window.Razorpay(options)
-      rzp.open()
+      console.log('Creating Razorpay instance with options:', options)
+      
+      try {
+        const rzp = new window.Razorpay(options)
+        console.log('Razorpay instance created successfully')
+        console.log('Opening Razorpay checkout...')
+        rzp.open()
+        console.log('Razorpay checkout opened')
+      } catch (error) {
+        console.error('Error creating Razorpay instance:', error)
+        toast.error('Failed to open payment gateway. Please try again.')
       }
-    } catch (error) {
-      console.error('Payment processing error:', error)
-      toast.error(error.message || 'Payment failed. Please try again.')
     }
+  } catch (error) {
+    console.error('Payment processing error:', error)
+    toast.error(error.message || 'Payment failed. Please try again.')
+  }
   }
 
   // Handle empty cart (only show empty cart if no items, not if total is 0)
