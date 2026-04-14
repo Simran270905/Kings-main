@@ -5,8 +5,10 @@ import toast from 'react-hot-toast'
 
 import { getAvailableSizes } from '../../utils/productSchemaNormalizer'
 import HomeSectionCard from '../HomeSectionCard/HomeSectionCard'
+import ProductCardSkeleton from '../ProductCardSkeleton/ProductCardSkeleton'
 import { useCart } from '../../../context/useCart'
 import { API_BASE_URL } from '@config/api.js'
+import { optimizeCloudinaryUrl } from '../../../utils/cloudinary'
 // ✅ IMPORT SHARED HELPERS
 import {
   getProductImage,
@@ -118,6 +120,8 @@ export default function ProductDetails() {
   const [similarProducts, setSimilarProducts] = useState([])
   const [selectedSize, setSelectedSize] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [similarLoading, setSimilarLoading] = useState(false)
+  const [similarError, setSimilarError] = useState(false)
 
   // 🔥 FETCH SINGLE PRODUCT
   useEffect(() => {
@@ -168,46 +172,51 @@ export default function ProductDetails() {
     return () => window.removeEventListener('keydown', esc)
   }, [])
 
-  // 🔥 FETCH SIMILAR PRODUCTS
+  // LAZY LOAD SIMILAR PRODUCTS - OPTIMIZED WITH NEW API
   useEffect(() => {
     if (!currentProduct) return
 
     const fetchSimilar = async () => {
+      setSimilarLoading(true)
+      setSimilarError(false)
+      
       try {
+        // Use new optimized API endpoint
         const res = await fetch(
-          `${API_URL}?category=${currentProduct.category}`
+          `${API_URL}/similar/${encodeURIComponent(currentProduct.category)}/${currentProduct.id}?limit=6`
         )
-        const data = await res.json()
-
-        // Handle different response structures
-        const productsData = data.data?.products ? data.data.products : (Array.isArray(data) ? data : [])
         
-        // ✅ FIXED: Use shared helpers for similar products
-        const filtered = productsData
-          .filter(p => (p._id || p.id) !== currentProduct.id)
-          .map(product => ({
-            ...product,
-            id: product._id || product.id,
-            name: getProductName(product),
-            sellingPrice: getSellingPrice(product),
-            originalPrice: getOriginalPrice(product),
-            images: getProductImages(product),
-            inStock: isProductInStock(product)
-          }))
-
-        const shuffled = [...filtered]
-        for (let i = shuffled.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1))
-          ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+        if (!res.ok) {
+          throw new Error('Failed to fetch similar products')
         }
+        
+        const data = await res.json()
+        const productsData = data.data ? data.data : []
+        
+        // Use shared helpers for similar products
+        const normalizedProducts = productsData.map(product => ({
+          ...product,
+          id: product._id || product.id,
+          name: getProductName(product),
+          sellingPrice: getSellingPrice(product),
+          originalPrice: getOriginalPrice(product),
+          images: getProductImages(product),
+          inStock: isProductInStock(product)
+        }))
 
-        setSimilarProducts(shuffled.slice(0, 8))
+        setSimilarProducts(normalizedProducts)
       } catch (err) {
-        console.error(err)
+        console.error('Error fetching similar products:', err)
+        setSimilarError(true)
+        setSimilarProducts([])
+      } finally {
+        setSimilarLoading(false)
       }
     }
 
-    fetchSimilar()
+    // Fetch similar products after a short delay to prioritize main product
+    const timer = setTimeout(fetchSimilar, 500)
+    return () => clearTimeout(timer)
   }, [currentProduct])
 
   // auto select size
@@ -247,15 +256,19 @@ export default function ProductDetails() {
         {/* PRODUCT */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
 
-          {/* Gallery */}
+          {/* Gallery - Optimized with lazy loading */}
           <div className="flex flex-col items-center">
             {selectedImage && (
               <div className="relative w-full aspect-square max-w-md rounded-lg overflow-hidden border">
                 <img
-                  src={selectedImage.src}
+                  src={optimizeCloudinaryUrl(selectedImage.src)}
                   alt={selectedImage.alt}
                   onDoubleClick={() => setIsFullscreen(true)}
                   className="absolute inset-0 w-full h-full object-cover cursor-zoom-in"
+                  loading="eager" // Main image loads immediately
+                  onError={(e) => {
+                    e.target.src = '/api/placeholder/400/400'
+                  }}
                 />
               </div>
             )}
@@ -272,7 +285,15 @@ export default function ProductDetails() {
                     'h-20 w-20 rounded-md overflow-hidden'
                   )}
                 >
-                  <img src={img.src} alt={img.alt} className="h-full w-full object-cover" />
+                  <img 
+                    src={optimizeCloudinaryUrl(img.src)} 
+                    alt={img.alt} 
+                    className="h-full w-full object-cover"
+                    loading="lazy" // Thumbnail images load lazily
+                    onError={(e) => {
+                      e.target.src = '/api/placeholder/80/80'
+                    }}
+                  />
                 </button>
               ))}
             </div>
@@ -378,29 +399,51 @@ export default function ProductDetails() {
           </div>
         </div>
 
-        {/* Similar */}
+        {/* Similar Products - Optimized with skeleton loading */}
         <section className="pt-20">
           <h2 className="text-2xl font-bold mb-6">Similar Products</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {similarProducts.map(item => (
+            {/* Show skeleton loaders while loading */}
+            {similarLoading && Array.from({ length: 6 }).map((_, index) => (
+              <ProductCardSkeleton key={`skeleton-${index}`} />
+            ))}
+            
+            {/* Show actual products when loaded */}
+            {!similarLoading && similarProducts.map(item => (
               <HomeSectionCard key={item.id} product={item} />
             ))}
+            
+            {/* Show error state */}
+            {!similarLoading && similarError && (
+              <div className="col-span-full text-center py-8">
+                <p className="text-gray-500">Unable to load similar products</p>
+                <p className="text-sm text-gray-400 mt-2">Please check back later</p>
+              </div>
+            )}
+            
+            {/* Show empty state */}
+            {!similarLoading && !similarError && similarProducts.length === 0 && (
+              <div className="col-span-full text-center py-8">
+                <p className="text-gray-500">No similar products found</p>
+              </div>
+            )}
           </div>
         </section>
       </div>
 
-      {/* Fullscreen */}
+      {/* Fullscreen - Optimized */}
       {isFullscreen && selectedImage && (
         <div
           className="fixed inset-0 bg-black/90 flex items-center justify-center"
           onClick={() => setIsFullscreen(false)}
         >
           <img
-            src={selectedImage.src}
+            src={optimizeCloudinaryUrl(selectedImage.src)}
             alt={selectedImage.alt}
             className="max-h-[90vh] max-w-[90vw] object-contain"
             onClick={e => e.stopPropagation()}
+            loading="eager"
           />
         </div>
       )}
