@@ -255,17 +255,11 @@ const loadRazorpayScript = () => {
     
     script.onload = () => {
       console.log('Razorpay script loaded successfully')
-      if (window.Razorpay) {
-        console.log('Razorpay object available:', window.Razorpay)
-        resolve(true)
-      } else {
-        console.error('Razorpay script loaded but Razorpay object not found')
-        resolve(false)
-      }
+      resolve(true)
     }
     
-    script.onerror = (error) => {
-      console.error('Failed to load Razorpay script:', error)
+    script.onerror = () => {
+      console.error('Failed to load Razorpay script')
       resolve(false)
     }
     
@@ -531,21 +525,24 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
         
         console.log('BACKEND RESPONSE DEBUG ===')
         console.log('Order Response:', orderDataResponse)
-        console.log('Response success:', orderDataResponse.success)
-        console.log('Response data:', orderDataResponse.data)
         
-        if (!orderDataResponse.success) {
-          console.error('Backend error:', orderDataResponse.message)
-          throw new Error(orderDataResponse.message || 'Failed to create order')
-        }
-        
-        if (!orderDataResponse.data) {
-          console.error('No data in response:', orderDataResponse)
-          throw new Error('Invalid response from server: missing data')
+        // Handle direct Razorpay order response
+        if (orderDataResponse.id) {
+          // This is a direct Razorpay order object
+          console.log('Direct Razorpay order received:', orderDataResponse.id)
+        } else if (orderDataResponse.success) {
+          // This is a wrapped response
+          console.log('Wrapped response received')
+        } else {
+          console.error('Invalid response format:', orderDataResponse)
+          throw new Error('Invalid response from server')
         }
       
-      console.log('Backend Amount (paise):', orderDataResponse.data.amount)
-      console.log('Backend Amount (Rs):', orderDataResponse.data.amount / 100)
+      // Use direct Razorpay order response
+      const razorpayOrder = orderDataResponse.id ? orderDataResponse : orderDataResponse.data
+      
+      console.log('Backend Amount (paise):', razorpayOrder.amount)
+      console.log('Backend Amount (Rs):', razorpayOrder.amount / 100)
 
       const loaded = await loadRazorpayScript()
       if (!loaded) {
@@ -556,9 +553,9 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
       console.log('=== RAZORPAY INITIALIZATION DEBUG ===')
       console.log('Window.Razorpay available:', !!window.Razorpay)
       console.log('Razorpay Key ID:', import.meta.env.VITE_RAZORPAY_KEY_ID)
-      console.log('Amount from backend (paise):', orderDataResponse.data.amount)
-      console.log('Currency:', orderDataResponse.data.currency)
-      console.log('Order ID:', orderDataResponse.data.razorpayOrderId)
+      console.log('Amount from backend (paise):', razorpayOrder.amount)
+      console.log('Currency:', razorpayOrder.currency)
+      console.log('Order ID:', razorpayOrder.id)
       
       // Check if Razorpay is available
       if (!window.Razorpay) {
@@ -568,11 +565,11 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
       
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: orderDataResponse.data.amount, // Already in paise from backend
-        currency: orderDataResponse.data.currency || 'INR',
+        amount: razorpayOrder.amount, // Already in paise from backend
+        currency: razorpayOrder.currency || 'INR',
         name: 'KKings Jewellery',
         description: `Payment for ${orderData.items.length} items`,
-        order_id: orderDataResponse.data.razorpayOrderId,
+        order_id: razorpayOrder.id,
         prefill: {
           name: deliveryAddress?.firstName && deliveryAddress?.lastName ? `${deliveryAddress.firstName} ${deliveryAddress.lastName}` : deliveryAddress?.name || '',
           email: deliveryAddress?.email || '',
@@ -650,8 +647,24 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
       console.log('Creating Razorpay instance with options:', options)
       
       try {
+        console.log('About to create Razorpay instance...')
+        console.log('Options key:', options.key)
+        console.log('Options amount:', options.amount)
+        
+        // SAFETY CHECK: Ensure Razorpay is loaded
+        if (!window.Razorpay) {
+          toast.error("Razorpay not loaded")
+          return
+        }
+        
+        // Create Razorpay instance
         const rzp = new window.Razorpay(options)
-        console.log('Razorpay instance created successfully')
+        
+        // SAFETY CHECK: Ensure instance has open method
+        if (!rzp || typeof rzp.open !== "function") {
+          throw new Error("Razorpay failed to initialize")
+        }
+        
         console.log('Opening Razorpay checkout...')
         rzp.open()
         console.log('Razorpay checkout opened')
@@ -664,7 +677,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
     console.error('Payment processing error:', error)
     toast.error(error.message || 'Payment failed. Please try again.')
   }
-  }
+}
 
   // Handle empty cart (only show empty cart if no items, not if total is 0)
   if (!cartItems || cartItems.length === 0) {
