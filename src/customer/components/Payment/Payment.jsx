@@ -33,7 +33,7 @@ const safeNum = (value, fallback = 0) => {
 };
 
 const API_URL = API_BASE_URL
-const COD_CHARGE = 50
+const COD_CHARGE = 150
 
 // Payment Method Icon Component
 function PaymentMethodIcon({ method }) {
@@ -98,7 +98,10 @@ function PaymentPlanSelector({
 
   // Payment methods that require full payment only
   const fullPaymentOnlyMethods = ['upi', 'netbanking', 'card']
+  // Payment methods that require partial payment only
+  const partialPaymentOnlyMethods = ['cod']
   const shouldHidePartialPayment = paymentMethod && fullPaymentOnlyMethods.includes(paymentMethod)
+  const shouldHideFullPayment = paymentMethod && partialPaymentOnlyMethods.includes(paymentMethod)
 
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
@@ -108,8 +111,9 @@ function PaymentPlanSelector({
       </div>
 
       <div className="space-y-3">
-        {/* Full Payment Option */}
-        <div
+        {/* Full Payment Option - Hidden for COD */}
+        {!shouldHideFullPayment && (
+          <div
           className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${
             selectedPlan === 'full'
               ? 'border-[#ae0b0b] bg-[#ffe9e9] text-[#950000]'
@@ -140,7 +144,7 @@ function PaymentPlanSelector({
             <div className="text-right">
               <p className="font-bold text-lg">{formatPrice(paymentCalculation.finalAmount)}</p>
               <p className="text-xs text-gray-500">One-time payment</p>
-              {paymentCalculation.hasDiscount && (
+              {paymentCalculation.hasDiscount && !partialPaymentOnlyMethods.includes(paymentMethod) && (
                 <p className="text-xs text-green-600">10% discount applied</p>
               )}
               {paymentCalculation.hasCODCharge && (
@@ -149,6 +153,7 @@ function PaymentPlanSelector({
             </div>
           </div>
         </div>
+        )}
 
         {/* Partial Payment Option - Hidden for UPI, Net Banking, Card */}
         {!shouldHidePartialPayment && (
@@ -204,8 +209,7 @@ function PaymentPlanSelector({
               <p className="font-medium mb-1">Pay just 10% now, rest 90% later!</p>
               <ul className="space-y-1 text-blue-700">
                 <li>Remaining amount must be paid before your order is shipped</li>
-                <li>For UPI/Netbanking: 10% discount applies first, then 10/90 split</li>
-                <li>For COD/Card: No discount, direct 10/90 split on original amount</li>
+                <li>For COD: Pay 10% now + ₹150 COD charge, 90% later (no discount)</li>
                 <li>You will receive a payment reminder for the remaining amount</li>
                 <li>Order processing begins after advance payment confirmation</li>
               </ul>
@@ -222,7 +226,7 @@ function PaymentPlanSelector({
             <div className="text-sm text-green-800">
               <p className="font-medium mb-1">Benefits of Full Payment:</p>
               <ul className="space-y-1 text-green-700">
-                <li>Eligible for 10% prepaid discount on UPI/NetBanking</li>
+                <li>10% instant discount on UPI/Net Banking/Card payments</li>
                 <li>Order processing starts immediately</li>
                 <li>No additional payment steps required</li>
                 <li>Faster order fulfillment</li>
@@ -259,17 +263,25 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
 
   // Payment methods that require full payment only
   const fullPaymentOnlyMethods = ['upi', 'netbanking', 'card']
+  
+  // Payment methods that require partial payment only
+  const partialPaymentOnlyMethods = ['cod']
 
-  // Auto-set full payment when payment method changes
+  // Auto-set payment plan when payment method changes
   const handlePaymentMethodChange = (method) => {
     setSelectedMethod(method)
     if (fullPaymentOnlyMethods.includes(method)) {
       setPaymentPlan('full')
+    } else if (partialPaymentOnlyMethods.includes(method)) {
+      setPaymentPlan('partial')
     }
   }
 
   // Check if partial payment should be hidden
   const shouldHidePartialPayment = selectedMethod && fullPaymentOnlyMethods.includes(selectedMethod)
+  
+  // Check if full payment should be hidden
+  const shouldHideFullPayment = selectedMethod && partialPaymentOnlyMethods.includes(selectedMethod)
   const [loading, setLoading] = useState(false)
   const [couponCode, setCouponCode] = useState('')
   const [appliedCoupon, setAppliedCoupon] = useState(null)
@@ -838,7 +850,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
             totalAmount={cartTotal}
             paymentMethod={selectedMethod}
             paymentCalculation={paymentCalculation}
-            disabled={shouldHidePartialPayment && paymentPlan === 'full'}
+            disabled={(shouldHidePartialPayment && paymentPlan === 'full') || (shouldHideFullPayment && paymentPlan === 'partial')}
           />
         )}
 

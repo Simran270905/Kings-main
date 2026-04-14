@@ -44,8 +44,8 @@ const Loader = () => (
 
 export default function Dashboard() {
   // ✅ ALL HOOKS MUST BE AT TOP LEVEL
-  const { products, loading: productsLoading, getTotalStock, getLowStockCount } = useAdminProduct()
-  const { orders, loading: ordersLoading } = useOrder()
+  const { products, loading: productsLoading, getTotalStock, getLowStockCount, refreshProducts } = useAdminProduct()
+  const { orders, loading: ordersLoading, refreshOrders } = useOrder()
   const analytics = useAnalytics()
   
   // ✅ Add loading state for initial data load
@@ -53,18 +53,6 @@ export default function Dashboard() {
   
   // ✅ Add error state for error handling
   const [error, setError] = useState(null)
-  
-  // ✅ Add loading check for products (AFTER all hooks)
-  if (!products || products.length === 0) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ae0b0b] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
-        </div>
-      </div>
-    )
-  }
   
   // ✅ Calculate metrics from context data (only when data is available)
   const metrics = useMemo(() => {
@@ -256,6 +244,18 @@ export default function Dashboard() {
     return <Loader />
   }
 
+  // ✅ Add loading check for products (AFTER all hooks)
+  if (!products || products.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ae0b0b] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
 
@@ -273,8 +273,6 @@ export default function Dashboard() {
           <button
             onClick={() => {
               // Refresh contexts
-              const { refreshProducts } = useAdminProduct()
-              const { refreshOrders } = useOrder()
               refreshProducts()
               refreshOrders()
             }}
