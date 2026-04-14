@@ -17,6 +17,7 @@ const ProductEdit = () => {
     name: '',
     description: '',
     purchasePrice: '',
+    originalPrice: '',
     price: '',
     selling_price: '',
     category: '',
@@ -63,6 +64,7 @@ const ProductEdit = () => {
         setFormData({
           name: product.name || '',
           description: product.description || '',
+          originalPrice: product.originalPrice || '',
           price: product.price || '',
           selling_price: product.selling_price || '',
           category: product.category || '',
@@ -212,13 +214,18 @@ const ProductEdit = () => {
     setError('')
     setSuccess('')
 
-    if (!formData.name || !formData.price || !formData.category) {
+    if (!formData.name || !formData.price || !formData.category || !formData.originalPrice) {
       setError('Please fill required fields')
       return
     }
 
     if (!formData.purchasePrice || Number(formData.purchasePrice) < 0) {
       setError('Purchase price must be a positive number')
+      return
+    }
+
+    if (!formData.originalPrice || Number(formData.originalPrice) < 0) {
+      setError('Original price (MRP) must be a positive number')
       return
     }
 
@@ -229,6 +236,7 @@ const ProductEdit = () => {
 
     const price = Number(formData.price)
     const purchasePrice = Number(formData.purchasePrice)
+    const originalPrice = Number(formData.originalPrice)
     
     if (price <= 0) {
       setError('Price must be greater than 0')
@@ -240,6 +248,12 @@ const ProductEdit = () => {
       return
     }
 
+    // ✅ NEW VALIDATION: Selling price cannot be greater than MRP (original price)
+    if (formData.selling_price && Number(formData.selling_price) > originalPrice) {
+      setError('Selling price cannot be greater than MRP (original price)')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -248,6 +262,7 @@ const ProductEdit = () => {
       const product = {
         ...formData,
         purchasePrice: Number(formData.purchasePrice) || 0,
+        originalPrice: Number(formData.originalPrice) || 0,
         price,
         selling_price: formData.selling_price ? Number(formData.selling_price) : null,
         stock: formData.hasSizes ? 0 : (Number(formData.stock) || 1),

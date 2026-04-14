@@ -35,6 +35,17 @@ const ProductCard = ({ product, onAddToCart }) => {
   const sellingPrice = getSellingPrice(product);
   const originalPrice = getOriginalPrice(product);
   const discount = getDiscountPercentage(product);
+
+  // ✅ PRICE VALIDATION: Check for invalid pricing
+  if (sellingPrice > originalPrice) {
+    console.warn('⚠️ INVALID PRICING: Selling price is greater than MRP', {
+      productId: product._id,
+      title,
+      sellingPrice,
+      originalPrice,
+      difference: sellingPrice - originalPrice
+    });
+  }
   
   const isBestSeller = product.isBestSeller || false;
   const isOnSale = product.isOnSale || false;
@@ -106,9 +117,17 @@ const ProductCard = ({ product, onAddToCart }) => {
         {brand && <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{brand}</p>}
         <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug flex-1">{title}</h3>
 
-        {/* ✅ UPDATED: New pricing display with MRP strikethrough - Match HomeSectionCard pattern */}
+        {/* ✅ UPDATED: New pricing display with MRP strikethrough and validation */}
         <div className="mt-2">
-          {originalPrice && originalPrice > sellingPrice ? (
+          {sellingPrice > originalPrice ? (
+            // Invalid pricing: selling price > MRP
+            <div className="flex items-center gap-2">
+              <span className="text-red-700 font-bold text-base">
+                ₹{(parseFloat(originalPrice) || 0).toLocaleString('en-IN')}
+              </span>
+            </div>
+          ) : originalPrice && originalPrice > sellingPrice ? (
+            // Valid discount: MRP > selling price
             <div className="flex items-center gap-2">
               <span className="text-red-700 font-bold text-base">
                 ₹{(parseFloat(sellingPrice) || 0).toLocaleString('en-IN')}
@@ -118,11 +137,14 @@ const ProductCard = ({ product, onAddToCart }) => {
               </span>
             </div>
           ) : (
-            <span className="text-red-700 font-bold text-base">
-              ₹{(parseFloat(sellingPrice) || 0).toLocaleString('en-IN')}
-            </span>
+            // No discount or equal prices
+            <div className="flex items-center gap-2">
+              <span className="text-red-700 font-bold text-base">
+                ₹{(parseFloat(sellingPrice) || 0).toLocaleString('en-IN')}
+              </span>
+            </div>
           )}
-          {discount > 0 && (
+          {originalPrice > sellingPrice && discount > 0 && sellingPrice <= originalPrice && (
             <div className="text-green-600 text-xs font-medium">
               Save {discount}%
             </div>

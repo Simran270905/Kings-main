@@ -266,6 +266,12 @@ const ProductUpload = () => {
       return
     }
 
+    // ✅ NEW VALIDATION: Selling price cannot be greater than MRP (original price)
+    if (sellingPrice > originalPrice) {
+      setError('Selling price cannot be greater than MRP (original price)')
+      return
+    }
+
     if (!formData.description) {
       setError('Product description is required')
       return

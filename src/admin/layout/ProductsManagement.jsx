@@ -31,6 +31,7 @@ export default function ProductsManagement() {
   const [sortBy, setSortBy] = useState('createdAt')
   const [sortOrder, setSortOrder] = useState('desc')
   const [deletingId, setDeletingId] = useState(null) // Track which product is being deleted
+  const [currentPage, setCurrentPage] = useState(1) // Track current page for pagination
 
   // Safe data handling
   const safeProducts = safeArray(products)
@@ -107,6 +108,27 @@ export default function ProductsManagement() {
       }
     } finally {
       setDeletingId(null) // Clear loading state
+    }
+  }
+
+  const fetchPage = async (page) => {
+    try {
+      setCurrentPage(page)
+      const response = await adminApi.getProducts({ page, limit: 100 })
+      let list = []
+      if (response?.data?.products) list = response.data.products
+      else if (Array.isArray(response?.data)) list = response.data
+      else if (Array.isArray(response)) list = response
+      
+      // Update products in context
+      if (window.updateAdminProducts) {
+        window.updateAdminProducts(list)
+      } else {
+        // Fallback if context update function not available
+        console.log('Updating products with pagination:', list.length, 'items')
+      }
+    } catch (error) {
+      console.error('Failed to fetch page:', error)
     }
   }
 
@@ -323,6 +345,46 @@ export default function ProductsManagement() {
               })}
             </tbody>
           </table>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {products.length > 0 && (
+          <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-200">
+            <div className="text-sm text-gray-700">
+              Showing {filteredProducts.length} products
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => fetchPage(1)}
+                disabled={true}
+                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                First
+              </button>
+              <button
+                onClick={() => fetchPage(Math.max(1, (currentPage || 1) - 1))}
+                disabled={(currentPage || 1) <= 1}
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <span className="px-4 py-2 text-sm text-gray-700">
+                Page {currentPage || 1}
+              </span>
+              <button
+                onClick={() => fetchPage((currentPage || 1) + 1)}
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Next
+              </button>
+              <button
+                onClick={() => fetchPage(999)}
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Last
+              </button>
+            </div>
           </div>
         )}
       </AdminCard>

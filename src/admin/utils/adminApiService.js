@@ -172,7 +172,9 @@ class AdminApiService {
 
   // Get all products
   async getProducts(params = {}) {
-    const query = new URLSearchParams(params).toString()
+    // Set default limit to 100 products for admin
+    const defaultParams = { limit: 100, ...params }
+    const query = new URLSearchParams(defaultParams).toString()
     return this.request(`/products${query ? '?' + query : ''}`)
   }
 
