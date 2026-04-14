@@ -9,6 +9,9 @@ const VerifyOTP = () => {
   const location = useLocation();
   const { authenticateWithOTP } = useAuth();
 
+  // Debug: Verify API_BASE_URL is available
+  console.log("🔐 VerifyOTP component - API_BASE_URL:", API_BASE_URL);
+
   // Get data from navigation state or sessionStorage
   const { identifier, name, isLogin } = location.state || {
     identifier: sessionStorage.getItem('loginIdentifier'),

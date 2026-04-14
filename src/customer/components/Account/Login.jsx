@@ -2,10 +2,14 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../../context/useAuth";
 import { ExclamationCircleIcon, UserIcon } from "@heroicons/react/24/outline";
+import { API_BASE_URL } from "../../../config/api.js";
 
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+
+  // Debug: Verify API_BASE_URL is available
+  console.log("🔐 Login component - API_BASE_URL:", API_BASE_URL);
 
   // Form state
   const [identifier, setIdentifier] = useState("");
