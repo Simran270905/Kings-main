@@ -135,14 +135,11 @@ return (
                           } />
 
                           {/* ================= ADMIN ROUTES ================= */}
-
-                          {/* Dashboard */}
-                          <Route
-                            path="/admin"
-                            element={
+                          <Route path="/admin" element={
+                            <AdminAuthProvider>
                               <AdminRoute><DashboardWrapper /></AdminRoute>
-                            }
-                          />
+                            </AdminAuthProvider>
+                          } />
 
                           {/* Products */}
                           <Route
