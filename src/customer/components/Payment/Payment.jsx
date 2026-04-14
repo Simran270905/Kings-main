@@ -606,8 +606,8 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
       const rzp = new window.Razorpay(options)
       rzp.open()
     } catch (error) {
-      console.error('Razorpay payment error:', error)
-      toast.error(error.message || 'Payment failed')
+      console.error('Payment processing error:', error)
+      toast.error(error.message || 'Payment failed. Please try again.')
     }
   }
 
