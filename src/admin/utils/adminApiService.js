@@ -178,6 +178,14 @@ class AdminApiService {
     return this.request(`/products${query ? '?' + query : ''}`)
   }
 
+  // Get recent products (for dashboard)
+  async getRecentProducts(params = {}) {
+    // Set default limit to 5 products for dashboard
+    const defaultParams = { limit: 5, ...params }
+    const query = new URLSearchParams(defaultParams).toString()
+    return this.request(`/products/recent${query ? '?' + query : ''}`)
+  }
+
   // Get single product
   async getProduct(id) {
     return this.request(`/products/${id}`)
@@ -228,6 +236,41 @@ class AdminApiService {
       events.productDeleted(id)
       cache.invalidate('products') // Invalidate products cache
     }
+    
+    return result
+  }
+
+  // Create order
+  async createOrder(orderData) {
+    console.log('🔧 Creating order:', orderData)
+    
+    const result = await this.request('/orders', {
+      method: 'POST',
+      body: JSON.stringify(orderData)
+    })
+    
+    return result
+  }
+
+  // Update order status
+  async updateOrderStatus(orderId, status) {
+    console.log('🔧 Updating order status:', { orderId, status })
+    
+    const result = await this.request(`/orders/${orderId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status })
+    })
+    
+    return result
+  }
+
+  // Delete order
+  async deleteOrder(orderId) {
+    console.log('🔧 Deleting order:', orderId)
+    
+    const result = await this.request(`/orders/${orderId}`, {
+      method: 'DELETE'
+    })
     
     return result
   }

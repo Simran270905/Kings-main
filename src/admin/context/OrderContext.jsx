@@ -20,10 +20,7 @@ const [error, setError] = useState(null)
 const [lastFetch, setLastFetch] = useState(null)
 
 useEffect(() => {
-const token = localStorage.getItem('kk_admin_token')
-if (token && token !== 'undefined') {
 fetchOrders()
-}
 }, [])
 
 const fetchOrders = async (silent = false) => {
@@ -47,21 +44,8 @@ if (!silent) setLoading(true)
 
 const createOrder = async (orderData) => {
 try {
-const token = localStorage.getItem('token')
-
-  const res = await fetch(`${API_BASE_URL}/orders`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify(orderData)
-  })
-
-  const data = await res.json()
-  if (!res.ok) throw new Error(data.message)
-
-  return { success: true, order: data.data }
+  const data = await adminApi.createOrder(orderData)
+  return { success: true, order: data.order }
 } catch (err) {
   return { success: false, error: err.message }
 }
@@ -83,20 +67,13 @@ const res = await adminApi.updateOrderStatus(orderId, status)
 
 const deleteOrder = async (orderId) => {
 try {
-const token = localStorage.getItem('kk_admin_token')
-
-  await fetch(`${API_BASE_URL}/orders/${orderId}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` }
-  })
+const res = await adminApi.deleteOrder(orderId)
 
   setOrders(prev => prev.filter(o => o._id !== orderId))
-
   return { success: true }
 } catch (err) {
   return { success: false, error: err.message }
 }
-
 }
 
 const getStats = () => {

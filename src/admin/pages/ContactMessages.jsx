@@ -32,21 +32,34 @@ const ContactMessages = () => {
       })
       
       const token = localStorage.getItem('kk_admin_token')
+      console.log('Debug - Token exists:', !!token)
+      console.log('Debug - API URL:', `${API_BASE_URL}/contact?${params}`)
+      
+      if (!token) {
+        throw new Error('No admin token found. Please log in first.')
+      }
+      
       const response = await fetch(`${API_BASE_URL}/contact?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       })
       
+      console.log('Debug - Response status:', response.status)
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch messages')
+        const errorData = await response.json()
+        throw new Error(errorData.message || `HTTP ${response.status}: Failed to fetch messages`)
       }
       
       const data = await response.json()
-      setMessages(data.data.messages)
-      setTotalPages(data.data.pagination.totalPages)
-      setStats(data.data.stats)
+      console.log('Debug - Response data:', data)
+      
+      setMessages(data.data?.messages || [])
+      setTotalPages(data.data?.pagination?.totalPages || 1)
+      setStats(data.data?.stats || { new: 0, read: 0, replied: 0 })
     } catch (err) {
+      console.error('Debug - Fetch error:', err)
       setError(err.message)
     } finally {
       setLoading(false)

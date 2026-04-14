@@ -132,7 +132,7 @@ export default function Dashboard() {
   }, [ordersLoading, productsLoading])
   
   // ✅ Combined loading state
-  const isLoading = loading || ordersLoading || productsLoading
+  const isLoading = loading || ordersLoading || productsLoading || recentProductsLoading
   
   // Fallback data in case analytics fails
   const fallbackData = {
@@ -182,11 +182,77 @@ export default function Dashboard() {
     return `₹${(amount || 0).toLocaleString('en-IN')}`
   }
 
-  // ✅ REAL-TIME CALCULATIONS
-  const recentProducts = useMemo(() => {
-    const productsArray = Array.isArray(products) ? products : []
-    return productsArray.slice(-5).reverse()
-  }, [products])
+  // REAL-TIME CALCULATIONS
+  const [recentProducts, setRecentProducts] = useState([])
+  const [recentProductsLoading, setRecentProductsLoading] = useState(true)
+
+  // Fetch recent products separately for better performance
+  useEffect(() => {
+    const fetchRecentProducts = async () => {
+      try {
+        setRecentProductsLoading(true)
+        const token = localStorage.getItem('kk_admin_token')
+        if (!token) {
+          console.log('No admin token found for recent products')
+          return
+        }
+
+        const response = await fetch(`${API_BASE_URL}/products/recent`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch recent products')
+        }
+
+        const data = await response.json()
+        const products = data.data || data || []
+        setRecentProducts(Array.isArray(products) ? products : [])
+        console.log('Dashboard - Recent products fetched:', products.length)
+      } catch (error) {
+        console.error('Dashboard - Error fetching recent products:', error)
+        setRecentProducts([])
+      } finally {
+        setRecentProductsLoading(false)
+      }
+    }
+
+    fetchRecentProducts()
+  }, [])
+
+  // Auto-refresh recent products when products are updated
+  useEffect(() => {
+    const handleProductUpdate = () => {
+      setTimeout(() => {
+        const fetchRecentProducts = async () => {
+          try {
+            const token = localStorage.getItem('kk_admin_token')
+            if (!token) return
+
+            const response = await fetch(`${API_BASE_URL}/products/recent`, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            })
+
+            if (response.ok) {
+              const data = await response.json()
+              const products = data.data || data || []
+              setRecentProducts(Array.isArray(products) ? products : [])
+            }
+          } catch (error) {
+            console.error('Dashboard - Error refreshing recent products:', error)
+          }
+        }
+        fetchRecentProducts()
+      }, 500) // Small delay to ensure database is updated
+    }
+
+    window.addEventListener('adminProductUpdated', handleProductUpdate)
+    return () => window.removeEventListener('adminProductUpdated', handleProductUpdate)
+  }, [])
   
   const pendingOrdersCount = useMemo(() => {
     const ordersArray = Array.isArray(orders) ? orders : []
