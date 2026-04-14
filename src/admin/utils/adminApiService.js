@@ -89,15 +89,18 @@ class AdminApiService {
       console.log(' Login response status:', response.status)
       console.log(' Login response ok:', response.ok)
 
-      // Check if response exists before parsing
+      // STEP 1: SAFE RESPONSE HANDLING
       if (!response) {
-        throw new Error('No response from server')
+        throw new Error("No response from server")
       }
 
       const data = await response.json()
       console.log(' Login response data:', data)
       console.log(' Data type:', typeof data)
       console.log(' Data.success:', data?.success)
+
+      // STEP 3: ADD DEBUG LOG
+      console.log("LOGIN RESPONSE:", response)
 
       if (!response.ok) {
         // Handle specific login errors
@@ -110,16 +113,28 @@ class AdminApiService {
         }
       }
 
-      if (data?.success && data?.data?.token) {
-        this.setToken(data.data.token)
-        return { success: true, token: data.data.token }
+      // STEP 2: FIX SUCCESS CHECK
+      // STEP 4: HANDLE BACKEND FORMAT
+      if (data?.success) {
+        this.setToken(data.data?.token || data.token)
+        return { success: true, token: data.data?.token || data.token }
+      }
+
+      // Alternative: Check for token directly if success field is missing
+      if (data?.token || data?.user) {
+        this.setToken(data.token)
+        return { success: true, token: data.token }
       }
 
       throw new Error('Login failed - invalid response format')
     } catch (error) {
-      console.error(` Login Error:`, error.message)
+      // STEP 5: ERROR HANDLING
+      console.error("Login error:", error)
       console.error(' Full error:', error)
-      throw error
+      
+      // Re-throw with user-friendly message
+      const userError = error.message || "Login failed"
+      throw new Error(userError)
     }
   }
 
