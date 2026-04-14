@@ -484,7 +484,8 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
       }
 
     } catch (err) {
-      // ADDED: Enhanced error handling
+      // ✅ FIXED: No login redirect since auth system is removed
+      // For all errors, show error message but don't redirect
       console.error('Payment error:', err)
       toast.error(err.message || 'Payment failed. Please try again.', {
         duration: 5000,
