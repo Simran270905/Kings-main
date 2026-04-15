@@ -20,6 +20,7 @@
     "@mui/material": "^7.3.7",
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.15.0",
+    "canvas-confetti": "^1.9.4",
     "heroicons": "^2.2.0",
     "lucide-react": "^0.562.0",
     "react": "^19.2.0",

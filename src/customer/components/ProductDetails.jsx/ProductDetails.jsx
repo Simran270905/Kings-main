@@ -9,6 +9,8 @@ import ProductCardSkeleton from '../ProductCardSkeleton/ProductCardSkeleton'
 import { useCart } from '../../../context/useCart'
 import { API_BASE_URL } from '@config/api.js'
 import { optimizeCloudinaryUrl } from '../../../utils/cloudinary'
+import FlyToCartAnimation from '../../../components/FlyToCartAnimation'
+import { showAddToCartToast } from '../../../components/AddToCartToast'
 // ✅ IMPORT SHARED HELPERS
 import {
   getProductImage,
@@ -116,12 +118,18 @@ export default function ProductDetails() {
 
   const [currentProduct, setCurrentProduct] = useState(null)
   const [selectedImage, setSelectedImage] = useState(null)
+  const [flyAnimation, setFlyAnimation] = useState(false)
+  const [added, setAdded] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [similarProducts, setSimilarProducts] = useState([])
   const [selectedSize, setSelectedSize] = useState(null)
   const [loading, setLoading] = useState(true)
   const [similarLoading, setSimilarLoading] = useState(false)
   const [similarError, setSimilarError] = useState(false)
+
+  const handleFlyAnimationComplete = () => {
+    setFlyAnimation(false);
+  };
 
   // 🔥 FETCH SINGLE PRODUCT
   useEffect(() => {
@@ -259,10 +267,11 @@ export default function ProductDetails() {
           {/* Gallery - Optimized with lazy loading */}
           <div className="flex flex-col items-center">
             {selectedImage && (
-              <div className="relative w-full aspect-square max-w-md rounded-lg overflow-hidden border">
+              <div className="relative w-full aspect-square max-w-md rounded-lg overflow-hidden border product-image-container">
                 <img
                   src={optimizeCloudinaryUrl(selectedImage.src)}
                   alt={selectedImage.alt}
+                  data-product-img={currentProduct.id}
                   onDoubleClick={() => setIsFullscreen(true)}
                   className="absolute inset-0 w-full h-full object-cover cursor-zoom-in"
                   loading="eager" // Main image loads immediately
@@ -382,19 +391,39 @@ export default function ProductDetails() {
                 }
 
                 if (typeof addToCart === 'function') {
-                  addToCart({
+                  const productToAdd = {
                     ...currentProduct,
                     selectedSize,
                     quantity: 1,
-                  })
+                  }
+                  
+                  // Add to cart
+                  addToCart(productToAdd)
+                  
+                  // Show toast notification
+                  showAddToCartToast(currentProduct.name)
+                  
+                  // Trigger fly animation
+                  setFlyAnimation(true)
+                  
+                  // Trigger cart bounce animation
+                  window.dispatchEvent(new CustomEvent('kk_cart_bounce'))
+                  
+                  // Update button state
+                  setAdded(true)
+                  setTimeout(() => setAdded(false), 1500)
                 } else {
                   console.error('addToCart is not a function')
                   toast.error('Unable to add to cart. Please refresh the page.')
                 }
               }}
-              className="mt-8 w-full rounded-md bg-[#ae0b0b] py-3 text-white"
+              className={`mt-8 w-full rounded-md py-3 text-white transition-all duration-200 ${
+                added 
+                  ? 'bg-green-600 cart-button-success' 
+                  : 'bg-[#ae0b0b] hover:bg-[#8f0a0a]'
+              }`}
             >
-              Add to Cart
+              {added ? 'Added!' : 'Add to Cart'}
             </button>
           </div>
         </div>
@@ -447,6 +476,14 @@ export default function ProductDetails() {
           />
         </div>
       )}
+      
+      {/* Fly to Cart Animation */}
+      <FlyToCartAnimation
+        productId={currentProduct.id}
+        productImage={selectedImage?.src}
+        isActive={flyAnimation}
+        onComplete={handleFlyAnimationComplete}
+      />
     </div>
   )
 }

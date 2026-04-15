@@ -60,3 +60,70 @@ html, body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;             /* Safari and Chrome */
 }
+
+/* Cart Badge Bounce Animation */
+.cart-bounce {
+  animation: bounce 0.4s ease;
+}
+
+@keyframes bounce {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Add to Cart Button Animation */
+.cart-button-success {
+  animation: buttonSuccess 0.3s ease;
+}
+
+@keyframes buttonSuccess {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+/* Toast Animation */
+.toast-enter {
+  animation: slideInRight 0.3s ease;
+}
+
+.toast-exit {
+  animation: slideOutRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Product Image Hover Effect */
+.product-image-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.product-image-container img {
+  transition: transform 0.3s ease;
+}
+
+.product-image-container:hover img {
+  transform: scale(1.05);
+}

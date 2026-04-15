@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import { HeartIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid'
 import { optimizeCloudinaryUrl } from '../../../utils/cloudinary'
+import FlyToCartAnimation from '../../../components/FlyToCartAnimation'
+import { showAddToCartToast } from '../../../components/AddToCartToast'
+import { useCart } from '../../../context/useCart'
 // ✅ IMPORT SHARED HELPERS
 import {
   getProductImage,
@@ -24,6 +27,8 @@ const ProductCard = ({ product, onAddToCart }) => {
   const [imgError, setImgError] = useState(false);
   const [wishlisted, setWishlisted] = useState(false);
   const [added, setAdded] = useState(false);
+  const [flyAnimation, setFlyAnimation] = useState(false);
+  const { addToCart } = useCart();
 
   // 🔍 DEBUG: Log full product object from LISTING component
   debugProductFields(product, 'PRODUCT CARD (LISTING)');
@@ -58,9 +63,57 @@ const ProductCard = ({ product, onAddToCart }) => {
 
   const handleAddToCart = (e) => {
     e.preventDefault();
-    if (onAddToCart) onAddToCart(product);
+    console.log('Add to Cart clicked!', product);
+    
+    // Check if product is in stock before adding to cart
+    if (!isProductInStock(product)) {
+      alert('This product is out of stock and cannot be added to cart.');
+      return;
+    }
+    
+    console.log('Adding to cart...');
+    // Add to cart
+    addToCart(product);
+    console.log('Product added to cart successfully');
+    
+    console.log('Showing toast...');
+    // Show toast notification
+    try {
+      showAddToCartToast(title);
+      console.log('Toast function called successfully');
+    } catch (error) {
+      console.error('Toast function failed:', error);
+    }
+    
+    console.log('Triggering fly animation...');
+    // Trigger fly animation
+    setFlyAnimation(true);
+    console.log('Fly animation state set to true');
+    
+    console.log('Triggering cart bounce...');
+    // Trigger cart bounce animation
+    try {
+      window.dispatchEvent(new CustomEvent('kk_cart_bounce'));
+      console.log('Cart bounce event dispatched');
+    } catch (error) {
+      console.error('Cart bounce event failed:', error);
+    }
+    
+    console.log('Updating button state...');
+    // Update button state
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
+    console.log('Button state updated');
+    
+    // Call external handler if provided
+    if (onAddToCart) {
+      console.log('Calling external onAddToCart handler');
+      onAddToCart(product);
+    }
+  };
+
+  const handleFlyAnimationComplete = () => {
+    setFlyAnimation(false);
   };
 
   return (
@@ -91,13 +144,14 @@ const ProductCard = ({ product, onAddToCart }) => {
       </div>
 
       {/* Image */}
-      <div className="relative aspect-square overflow-hidden bg-gray-50">
+      <div className="relative aspect-square overflow-hidden bg-gray-50 product-image-container">
         {productImage && !imgError ? (
           <img
             src={productImage}
             alt={title}
             loading="lazy"
             decoding="async"
+            data-product-img={product._id || product.id}
             onError={(e) => {
               setImgError(true);
               e.target.style.display = 'none';
@@ -164,16 +218,34 @@ const ProductCard = ({ product, onAddToCart }) => {
 
         <button
           onClick={handleAddToCart}
+          disabled={!isProductInStock(product)}
           className={`mt-3 w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
-            added
-              ? 'bg-green-600 text-white'
+            !isProductInStock(product)
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : added
+              ? 'bg-green-600 text-white cart-button-success'
               : 'bg-[#ae0b0b] hover:bg-[#8f0a0a] text-white'
           }`}
         >
           <ShoppingBagIcon className="h-4 w-4" />
-          {added ? 'Added!' : 'Add to Cart'}
+          {!isProductInStock(product) ? 'Out of Stock' : (added ? 'Added!' : 'Add to Cart')}
         </button>
       </div>
+      
+      {/* Fly to Cart Animation */}
+      <FlyToCartAnimation
+        productId={product._id || product.id}
+        productImage={productImage}
+        isActive={flyAnimation}
+        onComplete={handleFlyAnimationComplete}
+      />
+      
+      {/* Debug Info */}
+      {process.env.NODE_ENV === 'development' && (
+        <div style={{ fontSize: '10px', color: '#666', marginTop: '5px' }}>
+          Debug: productId={product._id || product.id}, flyAnimation={flyAnimation ? 'true' : 'false'}
+        </div>
+      )}
     </div>
   );
 };

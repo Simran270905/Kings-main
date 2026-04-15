@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Cart Animations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background: #ae0b0b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #8f0a0a;
+        }
+        .cart-icon {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: #ae0b0b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .cart-bounce {
+            animation: bounce 0.4s ease;
+        }
+        @keyframes bounce {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <h1>KKings Jewellery - Cart Animation Test</h1>
+    
+    <div class="cart-icon" id="cart-icon" data-cart-icon>
+        <span id="cart-count">0</span>
+    </div>
+
+    <div class="test-section">
+        <h2>Animation Components Test</h2>
+        <div id="test-results"></div>
+        
+        <button onclick="testToast()">Test Toast Notification</button>
+        <button onclick="testCartBounce()">Test Cart Bounce</button>
+        <button onclick="testFlyAnimation()">Test Fly Animation</button>
+        <button onclick="testAllAnimations()">Test All Animations</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Manual Testing Checklist</h2>
+        <ol>
+            <li>Navigate to <a href="http://localhost:5174" target="_blank">http://localhost:5174</a></li>
+            <li>Go to any product page or product listing</li>
+            <li>Click "Add to Cart" button</li>
+            <li>Verify the following animations occur:
+                <ul>
+                    <li>Product image flies to cart icon (should take ~700ms)</li>
+                    <li>Toast notification appears in top-right corner</li>
+                    <li>Cart icon bounces (scale animation)</li>
+                    <li>Button changes to "Added!" and turns green</li>
+                    <li>Cart count increases</li>
+                </ul>
+            </li>
+            <li>Test on both desktop and mobile (use browser dev tools)</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>Performance Requirements</h2>
+        <ul>
+            <li>Animations should complete within 800ms</li>
+            <li>No UI blocking during animations</li>
+            <li>Should work on mobile devices</li>
+            <li>Should not cause page reloads</li>
+        </ul>
+    </div>
+
+    <script>
+        let cartCount = 0;
+
+        function addStatus(message, type = 'info') {
+            const results = document.getElementById('test-results');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.textContent = message;
+            results.appendChild(div);
+        }
+
+        function updateCartCount() {
+            cartCount++;
+            document.getElementById('cart-count').textContent = cartCount;
+        }
+
+        function testToast() {
+            addStatus('Testing toast notification...', 'info');
+            
+            // Create a simple toast-like element
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: white;
+                padding: 15px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                border: 1px solid #e5e7eb;
+                z-index: 9999;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            `;
+            toast.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 20px; height: 20px; background: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">×</div>
+                    <div>
+                        <div style="font-weight: 600; color: #374151;">Added to cart!</div>
+                        <div style="font-size: 12px; color: #6b7280;">Test Product</div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => {
+                toast.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Remove after 2 seconds
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 2000);
+            
+            addStatus('Toast notification test completed!', 'success');
+        }
+
+        function testCartBounce() {
+            addStatus('Testing cart bounce animation...', 'info');
+            
+            const cartIcon = document.getElementById('cart-icon');
+            cartIcon.classList.add('cart-bounce');
+            
+            setTimeout(() => {
+                cartIcon.classList.remove('cart-bounce');
+                addStatus('Cart bounce animation test completed!', 'success');
+            }, 400);
+        }
+
+        function testFlyAnimation() {
+            addStatus('Testing fly animation (simulated)...', 'info');
+            
+            // Create a simple flying element
+            const flyElement = document.createElement('div');
+            flyElement.style.cssText = `
+                position: fixed;
+                width: 60px;
+                height: 60px;
+                background: #ae0b0b;
+                border-radius: 8px;
+                z-index: 9999;
+                pointer-events: none;
+                transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            `;
+            
+            document.body.appendChild(flyElement);
+            
+            // Start position (center of screen)
+            const startX = window.innerWidth / 2 - 30;
+            const startY = window.innerHeight / 2 - 30;
+            
+            // End position (cart icon)
+            const cartIcon = document.getElementById('cart-icon');
+            const endRect = cartIcon.getBoundingClientRect();
+            const endX = endRect.left + endRect.width / 2 - 30;
+            const endY = endRect.top + endRect.height / 2 - 30;
+            
+            flyElement.style.left = startX + 'px';
+            flyElement.style.top = startY + 'px';
+            
+            // Animate to cart
+            setTimeout(() => {
+                flyElement.style.transform = `translate(${endX - startX}px, ${endY - startY}px) scale(0.2)`;
+                flyElement.style.opacity = '0';
+            }, 100);
+            
+            // Clean up
+            setTimeout(() => {
+                document.body.removeChild(flyElement);
+                addStatus('Fly animation test completed!', 'success');
+            }, 800);
+        }
+
+        function testAllAnimations() {
+            addStatus('Testing all animations together...', 'info');
+            
+            testToast();
+            setTimeout(() => testCartBounce(), 200);
+            setTimeout(() => testFlyAnimation(), 400);
+            setTimeout(() => {
+                updateCartCount();
+                addStatus('All animations test completed!', 'success');
+            }, 1200);
+        }
+
+        // Listen for cart bounce events (simulating the real app)
+        window.addEventListener('kk_cart_bounce', () => {
+            const cartIcon = document.getElementById('cart-icon');
+            cartIcon.classList.add('cart-bounce');
+            setTimeout(() => {
+                cartIcon.classList.remove('cart-bounce');
+            }, 400);
+        });
+
+        // Initial status
+        addStatus('Animation test page loaded successfully!', 'success');
+    </script>
+</body>
+</html>

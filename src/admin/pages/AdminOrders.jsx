@@ -15,9 +15,7 @@ import {
   TruckIcon,
   CheckCircleIcon,
   XCircleIcon,
-  FunnelIcon,
-  CreditCardIcon,
-  CurrencyDollarIcon
+  FunnelIcon
 } from '@heroicons/react/24/outline'
 import {
   safeArray,
@@ -35,8 +33,7 @@ const AdminOrders = () => {
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [selectedOrderId, setSelectedOrderId] = useState(null)
   const [error, setError] = useState('')
-  const [updatingPayment, setUpdatingPayment] = useState(false)
-
+  
   // Safe data handling
   const safeOrders = safeArray(orders)
   logAdminData('AdminOrders', safeOrders, 'load')
@@ -59,39 +56,7 @@ const AdminOrders = () => {
     }
   }
 
-  // Handle remaining payment update
-  const handleMarkRemainingAsPaid = async (orderId) => {
-    if (!confirm('Are you sure you want to mark the remaining payment as received?')) {
-      return
-    }
-
-    setUpdatingPayment(true)
-    try {
-      const token = localStorage.getItem('adminToken')
-      const response = await fetch(`/api/orders/${orderId}/remaining-payment`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-      const result = await response.json()
-      
-      if (result.success) {
-        alert('Remaining payment marked as paid successfully!')
-        fetchOrders() // Refresh orders to show updated status
-      } else {
-        alert('Error: ' + (result.message || 'Failed to update payment status'))
-      }
-    } catch (error) {
-      console.error('Error updating remaining payment:', error)
-      alert('Error: Failed to update payment status')
-    } finally {
-      setUpdatingPayment(false)
-    }
-  }
-
+  
   // ✅ FIXED (_id instead of orderId)
   const selectedOrder = selectedOrderId
     ? safeOrders.find(o => o._id === selectedOrderId)
@@ -232,11 +197,15 @@ const AdminOrders = () => {
               <thead className="bg-gray-50 border-b-2 border-gray-200">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Order ID</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer Details</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Amount</th>
-                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Payment</th>
-                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Shipping Address</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Items</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Total Amount</th>
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Order Status</th>
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Shiprocket Status</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">AWB / Courier</th>
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Tracking</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Order Date</th>
                   <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
@@ -254,16 +223,23 @@ const AdminOrders = () => {
                         </p>
                         <p className="text-sm text-gray-500">{order.customer?.email || order.guestInfo?.email || '-'}</p>
                         <p className="text-xs text-gray-400">{order.customer?.phone || order.guestInfo?.mobile || '-'}</p>
-                        {order.shiprocketOrderId && (
-                          <p className="text-xs text-blue-600 font-medium">Shiprocket ID: {order.shiprocketOrderId}</p>
-                        )}
                       </div>
                     </td>
 
                     <td className="px-6 py-4">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{formatOrderDate(safeOrderDate(order))}</p>
-                        <p className="text-xs text-gray-500">{formatOrderTime(safeOrderDate(order))}</p>
+                        <p className="text-sm text-gray-900">
+                          {order.guestInfo?.city || order.shippingAddress?.city || 'N/A'}, 
+                          {order.guestInfo?.state || order.shippingAddress?.state || 'N/A'}
+                        </p>
+                        <p className="text-xs text-gray-500">{order.guestInfo?.zipCode || order.shippingAddress?.zipCode || 'N/A'}</p>
+                      </div>
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <div>
+                        <p className="text-sm text-gray-900">{order.items?.length || 0} items</p>
+                        <p className="text-xs text-gray-500 truncate">{order.items?.[0]?.name || 'N/A'}</p>
                       </div>
                     </td>
 
@@ -274,22 +250,60 @@ const AdminOrders = () => {
                     </td>
 
                     <td className="px-6 py-4 text-center">
-                      <StatusBadge status={order.paymentStatus || 'pending'} size="sm" />
-                      {order.paymentMethod && (
-                        <p className="text-xs text-gray-500 mt-1 capitalize">{order.paymentMethod}</p>
-                      )}
+                      <StatusBadge status={safeOrderStatus(order)} />
                     </td>
 
                     <td className="px-6 py-4 text-center">
-                      <StatusBadge status={safeOrderStatus(order)} />
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        order.shippingStatus === 'delivered' ? 'bg-green-100 text-green-800' :
+                        order.shippingStatus === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                        order.shippingStatus === 'created' ? 'bg-yellow-100 text-yellow-800' :
+                        order.shippingStatus === 'pending' ? 'bg-orange-100 text-orange-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {order.shippingStatus?.replace('_', ' ').toUpperCase() || 'NOT CREATED'}
+                      </span>
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <div>
+                        <p className="text-sm text-gray-900">{order.awbCode || 'N/A'}</p>
+                        <p className="text-xs text-gray-500">{order.courierName || 'N/A'}</p>
+                      </div>
+                    </td>
+
+                    <td className="px-6 py-4 text-center">
+                      {order.trackingUrl ? (
+                        <button
+                          onClick={() => window.open(order.trackingUrl, '_blank')}
+                          className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors"
+                        >
+                          Track
+                        </button>
+                      ) : (
+                        <span className="text-xs text-gray-400">N/A</span>
+                      )}
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <div>
+                        <p className="text-sm text-gray-900">{formatOrderDate(safeOrderDate(order))}</p>
+                        <p className="text-xs text-gray-500">{formatOrderTime(safeOrderDate(order))}</p>
+                      </div>
                     </td>
 
                     <td className="px-6 py-4 text-center">
                       <button
                         onClick={() => setSelectedOrderId(selectedOrderId === order._id ? null : order._id)}
-                        className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
+                        className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded transition-colors mr-1"
                       >
-                        {selectedOrderId === order._id ? 'Hide' : 'View'}
+                        View
+                      </button>
+                      <button
+                        onClick={() => handleStatusChange(order._id, 'cancelled')}
+                        className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded transition-colors"
+                      >
+                        Cancel
                       </button>
                     </td>
                   </tr>
@@ -344,111 +358,50 @@ const AdminOrders = () => {
             </div>
           </div>
 
-          {/* Payment Plan Information */}
-          {selectedOrder.paymentPlan === 'partial' && (
-            <div className="mb-6">
-              <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">
-                <CreditCardIcon className="inline h-4 w-4 mr-1" />
-                Payment Plan Details
-              </h4>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <p className="text-xs text-blue-600 font-medium uppercase">Payment Method</p>
-                    <p className="text-sm font-bold text-blue-900 capitalize">{selectedOrder.paymentMethod}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-blue-600 font-medium uppercase">Payment Plan</p>
-                    <p className="text-sm font-bold text-blue-900 capitalize">{selectedOrder.paymentPlan}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-600 font-medium uppercase">Original Amount</p>
-                    <p className="text-sm font-bold text-gray-900">{formatPrice(selectedOrder.originalAmount)}</p>
-                  </div>
-                  {selectedOrder.codCharge > 0 && (
-                    <div>
-                      <p className="text-xs text-orange-600 font-medium uppercase">COD Charge</p>
-                      <p className="text-sm font-bold text-orange-900">{formatPrice(selectedOrder.codCharge)}</p>
-                    </div>
+          
+          {/* Order Items */}
+          <div className="mb-6">
+            <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Ordered Items</h4>
+            <div className="bg-gray-50 rounded-lg p-4">
+              {selectedOrder.items?.map((item, index) => (
+                <div key={index} className="flex items-center gap-4 py-3 border-b border-gray-200 last:border-b-0">
+                  {item.image && (
+                    <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
                   )}
-                  <div>
-                    <p className="text-xs text-green-600 font-medium uppercase">Discount Applied</p>
-                    <p className="text-sm font-bold text-green-900">
-                      {selectedOrder.discountApplied ? `Yes (${selectedOrder.discountPercent}%)` : 'No'}
-                    </p>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">{item.name}</p>
+                    <p className="text-sm text-gray-500">Qty: {item.quantity} × {formatPrice(item.price)}</p>
                   </div>
-                  {selectedOrder.discountApplied && (
-                    <>
-                      <div>
-                        <p className="text-xs text-green-600 font-medium uppercase">Discounted Total</p>
-                        <p className="text-sm font-bold text-green-900">{formatPrice(selectedOrder.discountedTotal)}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-green-600 font-medium uppercase">Discount Amount</p>
-                        <p className="text-sm font-bold text-green-900">-{formatPrice(selectedOrder.paymentMethodDiscount)}</p>
-                      </div>
-                    </>
-                  )}
-                  <div>
-                    <p className="text-xs text-green-600 font-medium uppercase">Advance Paid ({selectedOrder.advancePercent}%)</p>
-                    <p className="text-sm font-bold text-green-900">{formatPrice(selectedOrder.advanceAmount)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-orange-600 font-medium uppercase">Remaining Due ({selectedOrder.remainingPercent}%)</p>
-                    <p className="text-sm font-bold text-orange-900">{formatPrice(selectedOrder.remainingAmount)}</p>
+                  <div className="text-right">
+                    <p className="font-semibold text-gray-900">{formatPrice(item.subtotal)}</p>
                   </div>
                 </div>
-                
-                {/* Final Total */}
-                <div className="flex items-center justify-between pt-3 border-t border-blue-200">
-                  <div>
-                    <p className="text-sm font-bold text-gray-900 uppercase">Final Total</p>
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold text-gray-900">{formatPrice(selectedOrder.totalAmount)}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-between pt-3 border-t border-blue-200">
-                  <div>
-                    <p className="text-xs text-gray-600">Remaining Payment Status:</p>
-                    <p className={`text-sm font-bold ${
-                      selectedOrder.remainingPaymentStatus === 'paid' 
-                        ? 'text-green-600' 
-                        : 'text-orange-600'
-                    }`}>
-                      {selectedOrder.remainingPaymentStatus === 'paid' ? '✓ Paid' : '⏳ Pending'}
-                    </p>
-                    {selectedOrder.remainingPaymentDate && (
-                      <p className="text-xs text-gray-500">
-                        Paid on: {new Date(selectedOrder.remainingPaymentDate).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
-                  
-                  {selectedOrder.remainingPaymentStatus === 'pending' && (
-                    <button
-                      onClick={() => handleMarkRemainingAsPaid(selectedOrder._id)}
-                      disabled={updatingPayment}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {updatingPayment ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          Updating...
-                        </>
-                      ) : (
-                        <>
-                          <CurrencyDollarIcon className="h-4 w-4" />
-                          Mark Remaining as Paid
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Amount Breakdown */}
+          <div className="mb-6">
+            <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Amount Breakdown</h4>
+            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Subtotal:</span>
+                <span className="text-sm font-medium">{formatPrice(selectedOrder.subtotal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Shipping:</span>
+                <span className="text-sm font-medium">{formatPrice(selectedOrder.shippingCost || 0)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Discount:</span>
+                <span className="text-sm font-medium text-red-600">-{formatPrice(selectedOrder.discount || 0)}</span>
+              </div>
+              <div className="flex justify-between pt-2 border-t border-gray-300">
+                <span className="text-sm font-semibold text-gray-900">Total:</span>
+                <span className="text-sm font-bold text-gray-900">{formatPrice(selectedOrder.totalAmount)}</span>
               </div>
             </div>
-          )}
+          </div>
 
           {/* Customer Details */}
           <div className="mb-6">
@@ -504,6 +457,30 @@ const AdminOrders = () => {
                 <p className="text-sm"><span className="font-medium">Estimated Delivery:</span> {new Date(selectedOrder.estimatedDelivery).toLocaleDateString()}</p>
               )}
             </div>
+          </div>
+
+          {/* Admin Notes */}
+          <div className="mb-6">
+            <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Admin Notes</h4>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <textarea
+                className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows="3"
+                placeholder="Add internal notes about this order..."
+                defaultValue={selectedOrder.notes || ''}
+              />
+              <button className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                Save Notes
+              </button>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3">
+            <button className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors">
+              <TruckIcon className="h-4 w-4" />
+              Sync Shiprocket Status
+            </button>
           </div>
         </AdminCard>
       )}

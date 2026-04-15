@@ -14,8 +14,7 @@ import {
   DocumentTextIcon,
   PencilSquareIcon,
   TicketIcon,
-  CurrencyDollarIcon,
-  EnvelopeIcon,
+    EnvelopeIcon,
 } from '@heroicons/react/24/outline'
 
 const AdminOnlyLayout = ({ children }) => {
@@ -27,8 +26,7 @@ const AdminOnlyLayout = ({ children }) => {
   const adminMenuItems = [
     { name: 'Dashboard', href: '/admin', icon: HomeIcon },
     { name: 'Orders', href: '/admin/orders', icon: ShoppingBagIcon },
-    { name: 'Payment Tracking', href: '/admin/payment-tracking', icon: CurrencyDollarIcon },
-    { name: 'Products', href: '/admin/products', icon: ShoppingBagIcon },
+        { name: 'Products', href: '/admin/products', icon: ShoppingBagIcon },
     { name: 'Add Product', href: '/admin/upload', icon: PlusCircleIcon },
     { name: 'Categories', href: '/admin/categories', icon: DocumentTextIcon },
     { name: 'Brands', href: '/admin/brands', icon: TicketIcon },

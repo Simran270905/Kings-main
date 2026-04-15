@@ -22,6 +22,7 @@ const getQuantity = (item) => {
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [shopCategories, setShopCategories] = useState([])
+  const [cartBounce, setCartBounce] = useState(false)
   const navigate = useNavigate()
   const { cartItems } = useCart()
 
@@ -48,6 +49,17 @@ export default function Navbar() {
     }
     fetchCategories()
   }, [])
+
+  useEffect(() => {
+    const handleCartBounce = () => {
+      setCartBounce(true);
+      setTimeout(() => setCartBounce(false), 400);
+    };
+
+    window.addEventListener('kk_cart_bounce', handleCartBounce);
+    return () => window.removeEventListener('kk_cart_bounce', handleCartBounce);
+  }, [])
+
   const cartCount = cartItems?.reduce((sum, item) => sum + getQuantity(item), 0) || 0
 
   return (
@@ -96,9 +108,12 @@ export default function Navbar() {
           {/* Icons */}
           <div className="flex items-center gap-5 text-[#ae0b0b]">
             <Link to="/cart" className="relative" title="Cart">
-              <ShoppingBagIcon className="h-6 w-6 cursor-pointer" />
+              <ShoppingBagIcon 
+                className={`h-6 w-6 cursor-pointer ${cartBounce ? 'cart-bounce' : ''}`}
+                data-cart-icon
+              />
               {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-[#ae0b0b] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow">
+                <span className={`absolute -top-2 -right-2 bg-[#ae0b0b] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow ${cartBounce ? 'cart-bounce' : ''}`}>
                   {cartCount > 99 ? '99+' : cartCount}
                 </span>
               )}

@@ -69,12 +69,13 @@ export function CartProvider({ children }) {
         name: product.name || product.title || 'Product',
         image: product.image || product.images?.[0] || '',
         quantity: qty,
-        // ✅ FIXED: Use consistent sellingPrice field
+        //  FIXED: Use consistent sellingPrice field
         sellingPrice: getSellingPrice(product),
         originalPrice: product.originalPrice || product.original_price || 0,
+        purchasePrice: product.purchasePrice || 0, // Include purchase price for profit calculation
         selectedSize: product.selectedSize || null,
-        // ✅ FIXED: Explicitly exclude unwanted price fields
-        // Remove: price, purchasePrice, cost, wholesalePrice, etc.
+        //  FIXED: Explicitly exclude unwanted price fields
+        // Remove: price, cost, wholesalePrice, etc.
       }
       
       return [...prev, newItem]

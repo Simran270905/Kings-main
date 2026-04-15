@@ -163,20 +163,7 @@ export default function EnhancedOrders() {
     }
   }
 
-  // Handle COD payment marking
-  const handleMarkCODAsPaid = async (orderId) => {
-    try {
-      // Update order status to paid
-      await updateOrderStatus(orderId, 'paid')
-      
-      // Show success message
-      alert('COD order marked as paid successfully!')
-    } catch (error) {
-      console.error('Failed to mark COD order as paid:', error)
-      alert('Failed to mark COD order as paid. Please try again.')
-    }
-  }
-
+  
   // Handle shipment creation
   const handleCreateShipment = async (orderId) => {
     try {
@@ -425,14 +412,14 @@ export default function EnhancedOrders() {
               <TableRow>
                 <TableCell>Order ID</TableCell>
                 <TableCell>Customer</TableCell>
-                <TableCell>Payment Method</TableCell>
-                <TableCell>Payment Status</TableCell>
-                <TableCell>Amount Paid</TableCell>
+                <TableCell>Items</TableCell>
+                <TableCell>Shipping Address</TableCell>
                 <TableCell>Total Amount</TableCell>
-                <TableCell>Transaction ID</TableCell>
-                <TableCell>Payment Date</TableCell>
-                <TableCell>Shipping Status</TableCell>
-                <TableCell>Status</TableCell>
+                <TableCell>Order Status</TableCell>
+                <TableCell>Shiprocket Status</TableCell>
+                <TableCell>AWB / Courier</TableCell>
+                <TableCell>Tracking</TableCell>
+                <TableCell>Order Date</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -453,22 +440,19 @@ export default function EnhancedOrders() {
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Chip
-                      label={order.paymentMethod?.toUpperCase() || 'N/A'}
-                      color={getPaymentMethodColor(order.paymentMethod)}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={order.paymentStatus?.toUpperCase() || 'N/A'}
-                      color={getPaymentStatusColor(order.paymentStatus)}
-                      size="small"
-                    />
+                    <Typography variant="body2">
+                      {order.items?.length || 0} items
+                    </Typography>
+                    <Typography variant="caption" color="text.gray">
+                      {order.items?.[0]?.name || 'N/A'}
+                    </Typography>
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2">
-                      {formatCurrency(order.amountPaid)}
+                      {order.guestInfo?.city || order.shippingAddress?.city || 'N/A'}, {order.guestInfo?.state || order.shippingAddress?.state || 'N/A'}
+                    </Typography>
+                    <Typography variant="caption" color="text.gray">
+                      {order.guestInfo?.zipCode || order.shippingAddress?.zipCode || 'N/A'}
                     </Typography>
                   </TableCell>
                   <TableCell>
@@ -477,14 +461,11 @@ export default function EnhancedOrders() {
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="body2" style={{ fontSize: '0.75rem' }}>
-                      {order.razorpayPaymentId || order.razorpayOrderId || 'N/A'}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">
-                      {order.paymentDate ? formatDate(order.paymentDate) : 'N/A'}
-                    </Typography>
+                    <Chip
+                      label={order.status?.toUpperCase() || 'N/A'}
+                      color={getStatusColor(order.status)}
+                      size="small"
+                    />
                   </TableCell>
                   <TableCell>
                     <Chip
@@ -494,11 +475,32 @@ export default function EnhancedOrders() {
                     />
                   </TableCell>
                   <TableCell>
-                    <Chip
-                      label={order.status?.toUpperCase() || 'N/A'}
-                      color={getStatusColor(order.status)}
-                      size="small"
-                    />
+                    <Typography variant="body2">
+                      {order.awbCode || 'N/A'}
+                    </Typography>
+                    <Typography variant="caption" color="text.gray">
+                      {order.courierName || 'N/A'}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    {order.trackingUrl ? (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => window.open(order.trackingUrl, '_blank')}
+                      >
+                        Track
+                      </Button>
+                    ) : (
+                      <Typography variant="caption" color="text.gray">
+                        N/A
+                      </Typography>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">
+                      {formatDate(order.createdAt)}
+                    </Typography>
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', gap: 1 }}>
@@ -510,42 +512,7 @@ export default function EnhancedOrders() {
                         <MagnifyingGlassIcon fontSize="small" />
                       </IconButton>
                       
-                      {/* Create Shipment Button */}
-                      {order.paymentStatus === 'paid' && order.shippingStatus === 'not_created' && (
-                        <Tooltip title="Create Shipment">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleCreateShipment(order._id)}
-                            color="info"
-                          >
-                            <DownloadIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                      
-                      {/* Track Shipment Button */}
-                      {order.shippingStatus !== 'not_created' && order.trackingUrl && (
-                        <Tooltip title="Track Shipment">
-                          <IconButton
-                            size="small"
-                            onClick={() => window.open(order.trackingUrl, '_blank')}
-                            color="primary"
-                          >
-                            <MagnifyingGlassIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                      
-                      {order.paymentMethod === 'cod' && order.paymentStatus === 'pending' && order.status === 'delivered' && (
-                        <IconButton
-                          size="small"
-                          onClick={() => handleMarkCODAsPaid(order._id)}
-                          color="success"
-                        >
-                          <CheckCircleIcon fontSize="small" />
-                        </IconButton>
-                      )}
-                      
+                                            
                       <IconButton
                         size="small"
                         color="error"
@@ -640,58 +607,7 @@ export default function EnhancedOrders() {
                   Address: {selectedOrder.shippingAddress?.streetAddress}, {selectedOrder.shippingAddress?.city}
                 </Typography>
                 
-                <Typography variant="h6" gutterBottom={2}>
-                  Payment Information
-                </Typography>
-                
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2">Payment Method:</Typography>
-                    <Chip
-                      label={selectedOrder.paymentMethod?.toUpperCase() || 'N/A'}
-                      color={getPaymentMethodColor(selectedOrder.paymentMethod)}
-                      size="small"
-                    />
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2">Payment Status:</Typography>
-                    <Chip
-                      label={selectedOrder.paymentStatus?.toUpperCase() || 'N/A'}
-                      color={getPaymentStatusColor(selectedOrder.paymentStatus)}
-                      size="small"
-                    />
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2">Amount Paid:</Typography>
-                    <Typography variant="body2" color="success.main">
-                      {formatCurrency(selectedOrder.amountPaid)}
-                    </Typography>
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2">Total Amount:</Typography>
-                    <Typography variant="body2" color="text.primary">
-                      {formatCurrency(selectedOrder.totalAmount)}
-                    </Typography>
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2">Transaction ID:</Typography>
-                    <Typography variant="body2" style={{ fontSize: '0.75rem' }}>
-                      {selectedOrder.razorpayPaymentId || selectedOrder.razorpayOrderId || 'N/A'}
-                    </Typography>
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2">Payment Date:</Typography>
-                    <Typography variant="body2">
-                      {selectedOrder.paymentDate ? formatDate(selectedOrder.paymentDate) : 'N/A'}
-                    </Typography>
-                  </Box>
-                </Box>
-                
+                                
                 <Typography variant="h6" gutterBottom={2}>
                   Order Items
                 </Typography>

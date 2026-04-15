@@ -28,7 +28,7 @@ export function CustomerOrderProvider({ children }) {
     
     if (!token) {
       setOrders([])
-      setError('Please log in to view orders')
+      setError('Guest checkout enabled - Orders are not available for guest users. Please register an account to view order history.')
       return
     }
 
@@ -40,7 +40,7 @@ export function CustomerOrderProvider({ children }) {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 25000) // 25 second timeout
       
-      const response = await fetch(API_URL + '/customers/orders/my-orders', {
+      const response = await fetch(API_URL + '/orders/my-orders', {
         headers: { Authorization: `Bearer ${token}` },
         signal: controller.signal
       })
@@ -69,6 +69,10 @@ export function CustomerOrderProvider({ children }) {
         setError('Request timed out. Please try again.')
       } else if (err.message && err.message.includes('Failed to fetch')) {
         setError('Network connection failed. Please check your internet connection.')
+      } else if (err.message && (err.message.includes('Session expired') || err.message.includes('token'))) {
+        setError('Your session has expired. Please log in again to view your orders.')
+        // Clear invalid token
+        localStorage.removeItem('token')
       } else {
         setError(extractError(err) || 'Network error while loading orders')
       }
@@ -142,7 +146,7 @@ export function CustomerOrderProvider({ children }) {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
       
-      const response = await fetch(API_URL + '/customers/orders', {
+      const response = await fetch(API_URL + '/orders', {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(orderData),

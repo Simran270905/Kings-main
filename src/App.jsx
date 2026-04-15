@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
 
 import { CartProvider } from './context/CartContext'
 import { ProductProvider } from './context/ProductContext'
@@ -14,6 +15,7 @@ import Navbar from './customer/components/navigation/Navbar'
 import Footer from './customer/components/Footer/Footer'
 import DebugInfo from './components/DebugInfo'
 import RazorpayTest from './components/debug/RazorpayTest'
+import TestAnimations from './components/TestAnimations'
 
 import HomePage from './customer/pages/HomePage/HomePage'
 import OurStory from './customer/pages/OurStory/OurStory'
@@ -37,6 +39,7 @@ import Contact from './customer/pages/Contact/Contact'
 
 import AdminLogin from './admin/AdminLogin'
 import AdminRoute from './admin/AdminRoute'
+import AdminOnlyLayout from './admin/AdminOnlyLayout.jsx'
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -55,7 +58,6 @@ const ProductDetails = lazy(() =>
 const ShopPage = lazy(() => import('./customer/pages/Shop/ShopPage'))
 
 // Admin lazy
-const AdminOnlyLayout = lazy(() => import('./admin/AdminOnlyLayout.jsx'))
 const Dashboard = lazy(() => import('./admin/layout/Dashboard.jsx'))
 const ProductsManagement = lazy(() => import('./admin/layout/ProductsManagement.jsx'))
 const Analytics = lazy(() => import('./admin/layout/Analytics.jsx'))
@@ -74,7 +76,6 @@ const Pages = lazy(() => import('./admin/layout/Pages.jsx'))
 const ContactMessages = lazy(() => import('./admin/pages/ContactMessages.jsx'))
 const BrandsManagement = lazy(() => import('./admin/layout/BrandsManagement.jsx'))
 const CategoriesManagement = lazy(() => import('./admin/layout/CategoriesManagement.jsx'))
-const PaymentTracking = lazy(() => import('./admin/pages/PaymentTracking.jsx'))
 
 // Customer Layout
 const CustomerLayout = ({ children }) => (
@@ -89,6 +90,25 @@ const App = () => {
 return (
   <Router>
     <ScrollToTop />
+    <Toaster 
+      position="top-right"
+      toastOptions={{
+        duration: 2000,
+        style: {
+          background: 'white',
+          color: '#374151',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+          border: '1px solid #e5e7eb',
+          borderRadius: '0.5rem',
+        },
+        success: {
+          iconTheme: {
+            primary: '#10b981',
+            secondary: 'white',
+          },
+        },
+      }}
+    />
 
     <AdminAuthProvider>
       <OrderProvider>
@@ -129,6 +149,7 @@ return (
 
                       {/* ================= DEBUG ROUTES ================= */}
                       <Route path="/debug/razorpay" element={<RazorpayTest />} />
+                      <Route path="/test-animations" element={<TestAnimations />} />
 
                       {/* ================= ADMIN LOGIN ================= */}
                       <Route path="/admin-login" element={<AdminLogin />} />
@@ -140,8 +161,7 @@ return (
                         <Route path="/admin/products/edit/:id" element={<ProductEditWrapper />} />
                         <Route path="/admin/orders" element={<OrdersWrapper />} />
                         <Route path="/admin/orders/confirm/:orderId" element={<OrderConfirmationWrapper />} />
-                        <Route path="/admin/payment-tracking" element={<PaymentTrackingWrapper />} />
-                        <Route path="/admin/analytics" element={<AnalyticsWrapper />} />
+                                                <Route path="/admin/analytics" element={<AnalyticsWrapper />} />
                         <Route path="/admin/reports" element={<ReportsWrapper />} />
                         <Route path="/admin/upload" element={<UploadWrapper />} />
                         <Route path="/admin/cms/home" element={<HomeCMSWrapper />} />
@@ -215,13 +235,6 @@ const OrderConfirmationWrapper = () => (
   </Suspense>
 )
 
-const PaymentTrackingWrapper = () => (
-  <Suspense fallback={<LoadingFallback />}>
-    <AdminOnlyLayout>
-      <PaymentTracking />
-    </AdminOnlyLayout>
-  </Suspense>
-)
 
 const AnalyticsWrapper = () => (
   <Suspense fallback={<LoadingFallback />}>

@@ -220,6 +220,22 @@ export const EnhancedOrderProvider = ({ children }) => {
     }
   }, [filters, initialized])
 
+  // Auto-refresh orders every 30 seconds for real-time updates
+  useEffect(() => {
+    if (!initialized) return // Wait for initialization first
+    
+    const token = localStorage.getItem('kk_admin_token')
+    if (!token || token === 'undefined') return
+
+    // Set up polling interval
+    const interval = setInterval(() => {
+      fetchOrders(true) // Silent fetch every 30 seconds
+    }, 30000) // 30 seconds
+
+    // Cleanup interval on unmount
+    return () => clearInterval(interval)
+  }, [initialized])
+
   return (
     <EnhancedOrderContext.Provider
       value={{

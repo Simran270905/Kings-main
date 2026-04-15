@@ -218,7 +218,7 @@ export const orderApi = {
     }).then(handleResponse),
 
   getHistory: (token) =>
-    fetch(`${API_BASE_URL}/customers/orders`, {
+    fetch(`${API_BASE_URL}/orders/my-orders`, {
       headers: getAuthHeader(token),
     }).then(handleResponse),
 }

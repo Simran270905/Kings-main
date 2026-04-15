@@ -458,6 +458,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
         productId: item.id || item._id,
         name: item.title || item.name,
         price: getSellingPrice(item),
+        purchasePrice: item.purchasePrice || 0, // Include purchase price for profit calculation
         quantity: getQuantity(item)
       })),
       totalAmount: paymentPlan === 'partial' ? paymentCalculation.advanceAmount : paymentCalculation.finalAmount,
@@ -591,9 +592,9 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
               customer: {
                 firstName: deliveryAddress?.firstName || '',
                 lastName: deliveryAddress?.lastName || '',
@@ -612,7 +613,9 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
 
           const verifyData = await verifyRes.json()
           
-          console.log('🔍 Payment verification response:', verifyData)
+          console.log(' PAYMENT VERIFICATION RESPONSE:', verifyData)
+          console.log(' RESPONSE STATUS:', verifyRes.status)
+          console.log(' RESPONSE OK:', verifyRes.ok)
           
           if (verifyData.success) {
             // ADDED: Enhanced success messages
@@ -929,6 +932,40 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
             <h2 className="text-xl font-semibold text-gray-900">Purchase Summary</h2>
           </div>
           
+          {/* Delivery Address */}
+          <div className="mb-6">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Delivery Address</h3>
+            <div className="bg-gray-50 rounded-lg p-4">
+              {deliveryAddress ? (
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-gray-900">
+                    {deliveryAddress.firstName && deliveryAddress.lastName 
+                      ? `${deliveryAddress.firstName} ${deliveryAddress.lastName}` 
+                      : deliveryAddress.name || 'Guest'}
+                  </p>
+                  {deliveryAddress.streetAddress && (
+                    <p className="text-sm text-gray-600">{deliveryAddress.streetAddress}</p>
+                  )}
+                  {(deliveryAddress.city || deliveryAddress.state || deliveryAddress.zipCode) && (
+                    <p className="text-sm text-gray-600">
+                      {[deliveryAddress.city, deliveryAddress.state, deliveryAddress.zipCode]
+                        .filter(Boolean)
+                        .join(', ')}
+                    </p>
+                  )}
+                  {deliveryAddress.mobile && (
+                    <p className="text-sm text-gray-600">Phone: {deliveryAddress.mobile}</p>
+                  )}
+                  {deliveryAddress.email && (
+                    <p className="text-sm text-gray-600">Email: {deliveryAddress.email}</p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">No delivery address provided</p>
+              )}
+            </div>
+          </div>
+
           {/* Items List */}
           <div className="mb-6 space-y-3">
             <h3 className="text-sm font-medium text-gray-700 mb-3">Items ({cartItems?.length || 0})</h3>

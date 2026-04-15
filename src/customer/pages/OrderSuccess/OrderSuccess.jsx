@@ -1,7 +1,8 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { CheckCircleIcon, ShoppingBagIcon, UserCircleIcon, TruckIcon, ClockIcon, MapPinIcon } from '@heroicons/react/24/outline'
 import PriceDisplay from '../../components/Shared/PriceDisplay.jsx'
+import confetti from 'canvas-confetti'
 
 // Format price function
 const formatPrice = (value) => {
@@ -17,6 +18,43 @@ export default function OrderSuccess() {
   const paymentId = location.state?.paymentId
   const amountPaid = location.state?.amountPaid
   const orderData = location.state?.orderData || {}
+
+  // Confetti animation effect
+  useEffect(() => {
+    // Prevent multiple triggers
+    if (sessionStorage.getItem("confettiShown")) return;
+
+    sessionStorage.setItem("confettiShown", "true");
+
+    // Initial burst
+    confetti({
+      particleCount: 150,
+      spread: 90,
+      origin: { y: 0.6 }
+    });
+
+    // Continuous smaller bursts
+    const duration = 3000;
+    const end = Date.now() + duration;
+
+    const interval = setInterval(() => {
+      if (Date.now() > end) {
+        clearInterval(interval);
+        return;
+      }
+
+      confetti({
+        particleCount: 30,
+        spread: 70,
+        origin: {
+          x: Math.random(),
+          y: Math.random() - 0.2
+        }
+      });
+    }, 300);
+
+    return () => clearInterval(interval);
+  }, []);
   
   const paymentText = paymentMethod === 'cod'
     ? 'Cash on Delivery (Pay when you receive your parcel)'
@@ -46,186 +84,30 @@ export default function OrderSuccess() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-lg">
-        <div className="bg-white rounded-2xl shadow-xl border border-green-100 p-10 text-center">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center px-4 py-12 relative">
+      <div className="relative bg-white p-8 rounded-xl shadow-lg text-center max-w-md overflow-hidden">
+        <div className="absolute top-5 left-5 text-3xl animate-bounce"></div>
+        <div className="absolute top-5 right-5 text-3xl animate-bounce"></div>
 
-          {/* Animated check */}
-          <div className="inline-flex items-center justify-center w-24 h-24 bg-green-100 rounded-full mb-6">
-            <CheckCircleIcon className="h-14 w-14 text-green-600" />
-          </div>
+        <h1 className="text-2xl font-bold text-green-600 mb-4">
+          Order Placed Successfully!
+        </h1>
 
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Order Placed Successfully!</h1>
-          <p className="text-gray-500 text-sm mb-6">
-            Thank you for shopping with KKings Jewellery. Your order has been confirmed.
-          </p>
+        <p className="text-gray-600 mb-2">
+          Your payment was successful.
+        </p>
 
-          {/* Tracking Confirmation Message */}
-          {orderId && (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-8 h-8 bg-green-500 rounded-full">
-                  <CheckCircleIcon className="h-5 w-5 text-white" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-green-800">Your order has been confirmed!</p>
-                  <p className="text-green-700 text-sm">
-                    You can track your shipment using your Order ID:{' '}
-                    <Link
-                      to={`/orders/track/${orderId}`}
-                      className="font-bold text-green-900 hover:underline underline"
-                    >
-                      #{String(orderId).slice(-12).toUpperCase()}
-                    </Link>
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Order Details */}
-          {orderId && (
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Order ID</p>
-              <p className="font-mono font-bold text-gray-900 text-sm">{String(orderId).slice(-12) || orderId}</p>
-            </div>
-          )}
-
-          {/* Payment Method */}
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Payment Method</p>
-            <p className="text-sm font-medium text-gray-800">{paymentText}</p>
-            {paymentMethod === 'razorpay' && paymentId && (
-              <div className="mt-2 text-xs text-gray-600">
-                <p>Transaction ID: {paymentId}</p>
-                {amountPaid && <p>Amount Paid: {formatPrice(amountPaid)}</p>}
-              </div>
-            )}
-          </div>
-
-          {/* Order Status */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <ClockIcon className="h-5 w-5 text-blue-600" />
-              <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider">Current Status</p>
-            </div>
-            <p className="text-sm font-medium text-gray-800">{getOrderStatusText(orderData.status || 'confirmed')}</p>
-          </div>
-
-          {/* Shipping Info */}
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <TruckIcon className="h-5 w-5 text-green-600" />
-              <p className="text-xs font-semibold text-green-600 uppercase tracking-wider">Shipping Information</p>
-            </div>
-            <p className="text-sm font-medium text-gray-800 mb-1">Estimated Delivery: {getEstimatedDelivery()}</p>
-            <p className="text-xs text-gray-600">You'll receive tracking details once your order is shipped</p>
-          </div>
-
-          {/* Shipping Address */}
-          {orderData.shippingAddress && (
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <MapPinIcon className="h-5 w-5 text-gray-600" />
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Delivery Address</p>
-              </div>
-              <div className="text-sm text-gray-700">
-                <p className="font-medium">{orderData.shippingAddress.firstName} {orderData.shippingAddress.lastName}</p>
-                <p>{orderData.shippingAddress.streetAddress}</p>
-                <p>{orderData.shippingAddress.city}, {orderData.shippingAddress.state} - {orderData.shippingAddress.zipCode}</p>
-                <p>{orderData.shippingAddress.mobile}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Order Summary */}
-          {orderData.totalAmount && (
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Order Summary</p>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Items:</span>
-                <span className="font-medium">{orderData.items?.length || 0}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Amount Paid:</span>
-                <PriceDisplay 
-                  sellingPrice={orderData.amountPaid || orderData.totalAmount}
-                  originalPrice={orderData.originalAmount}
-                  discount={orderData.discountPercent || 0}
-                  showOriginalPrice={!!orderData.originalAmount && orderData.originalAmount > (orderData.amountPaid || orderData.totalAmount)}
-                  showDiscountBadge={!!orderData.discountPercent}
-                />
-              </div>
-              {orderData.paymentPlan === 'partial' && (
-                <>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Advance Paid:</span>
-                    <span className="font-medium text-green-600">₹{(orderData.advanceAmount || 0).toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Remaining Due:</span>
-                    <span className="font-medium text-orange-600">₹{(orderData.remainingAmount || 0).toLocaleString('en-IN')}</span>
-                  </div>
-                </>
-              )}
-              {orderData.discountAmount > 0 && (
-                <div className="text-xs text-green-600 font-medium mt-1">
-                  You saved ₹{(orderData.discountAmount || 0).toLocaleString('en-IN')}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="space-y-3">
-            {orderId ? (
-              <Link
-                to={`/orders/track/${orderId}`}
-                className="flex items-center justify-center gap-2 w-full py-3.5 bg-[#ae0b0b] text-white font-bold rounded-xl hover:bg-[#8f0a0a] transition-colors shadow-lg shadow-[#ae0b0b]/20"
-              >
-                <TruckIcon className="h-5 w-5" />
-                Track Your Order
-              </Link>
-            ) : (
-              <Link
-                to="/orders/track"
-                className="flex items-center justify-center gap-2 w-full py-3.5 bg-[#ae0b0b] text-white font-bold rounded-xl hover:bg-[#8f0a0a] transition-colors shadow-lg shadow-[#ae0b0b]/20"
-              >
-                <TruckIcon className="h-5 w-5" />
-                Track Your Order
-              </Link>
-            )}
-            <Link
-              to="/shop"
-              className="flex items-center justify-center gap-2 w-full py-3.5 border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors"
-            >
-              <ShoppingBagIcon className="h-5 w-5" />
-              Continue Shopping
-            </Link>
-            <Link
-              to="/account"
-              className="flex items-center justify-center gap-2 w-full py-3.5 border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors"
-            >
-              <UserCircleIcon className="h-5 w-5" />
-              My Account
-            </Link>
-          </div>
-
-          {/* Additional Info */}
-          <div className="mt-6 space-y-2">
-            <p className="text-xs text-gray-400">
-              📧 A confirmation email will be sent to your registered address.
-            </p>
-            <p className="text-xs text-gray-400">
-              📱 You can track your order status in "My Orders" section.
-            </p>
-            {paymentMethod === 'cod' && (
-              <p className="text-xs text-gray-400">
-                💰 Please keep the exact amount ready for delivery.
-              </p>
-            )}
-          </div>
+        <div className="bg-gray-100 rounded-lg p-4 mt-4 text-left">
+          <p><strong>Order ID:</strong> {orderId}</p>
+          <p><strong>Payment ID:</strong> {paymentId}</p>
         </div>
+
+        <button
+          onClick={() => navigate("/shop")}
+          className="mt-6 bg-black text-white px-6 py-2 rounded-lg"
+        >
+          Continue Shopping
+        </button>
       </div>
     </div>
   )

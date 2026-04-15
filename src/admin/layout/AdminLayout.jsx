@@ -251,9 +251,9 @@ export default function AdminLayout({ children }) {
           </button>
           <div className="flex items-center justify-between flex-1">
             <h1 className="text-sm font-semibold text-gray-700 hidden sm:block">{currentPageName()}</h1>
-            <Link to="/" className="text-xs font-semibold text-[#ae0b0b] hover:opacity-80 ml-auto">
+            <a href="http://localhost:5173" className="text-xs font-semibold text-[#ae0b0b] hover:opacity-80 ml-auto">
               View Store →
-            </Link>
+            </a>
           </div>
         </header>
 

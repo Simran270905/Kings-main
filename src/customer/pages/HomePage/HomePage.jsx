@@ -286,57 +286,6 @@ function HomePage() {
         </div>
       </div>
 
-      {/* ================= TRACK YOUR ORDER SECTION ================= */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
-              Track Your Order
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Stay updated with your order status. Enter your Order ID to get real-time tracking information.
-            </p>
-          </div>
-          
-          <div className="bg-white rounded-2xl shadow-lg border border-blue-100 p-6 sm:p-8">
-            <TrackOrderInput />
-            
-            <div className="mt-6 text-center">
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm text-gray-600">
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l2-2z" clipRule="evenodd" />
-                  </svg>
-                  <span>Real-time Updates</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267.651-.13.835-.238.835-.238 0 0 .646.326 1.447.559.795.233 1.34.617 1.34.617 0 0-.415.233-.8.617C11.447 6.868 9.824 6.5 8 6.5c-1.824 0-3.447.368-4.782 1.117-.395.232-.745.617-.745.617 0 .415.233.8.617 1.34.617.495.13.835.238.835.238 0 0 .412-.164.567-.267.218-.103.412-.196.567-.267z" />
-                  </svg>
-                  <span>Email Notifications</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                  </svg>
-                  <span>Delivery Alerts</span>
-                </div>
-              </div>
-              
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <p className="text-xs text-gray-500 mb-2">
-                  <strong>Where to find your Order ID:</strong>
-                </p>
-                <ul className="text-xs text-gray-600 space-y-1 text-left max-w-md mx-auto">
-                  <li>• Check your confirmation email</li>
-                  <li>• View in SMS notifications</li>
-                  <li>• Check your account order history</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
