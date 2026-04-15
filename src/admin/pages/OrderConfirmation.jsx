@@ -8,7 +8,7 @@ import {
   EnvelopeIcon,
   PhoneIcon,
   ArrowLeftIcon,
-  RefreshIcon
+  ArrowPathIcon
 } from '@heroicons/react/24/outline'
 import AdminCard from '../layout/AdminCard'
 import StatusBadge from '../components/StatusBadge'
@@ -182,7 +182,7 @@ export default function OrderConfirmation() {
           disabled={refreshing}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
-          <RefreshIcon className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          <ArrowPathIcon className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
           {refreshing ? 'Refreshing...' : 'Refresh'}
         </button>
       </div>
