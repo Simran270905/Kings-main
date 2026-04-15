@@ -407,15 +407,18 @@ const ProductEdit = () => {
     e.preventDefault()
     if (isSubmitting) return
 
+    console.log('🔵 Form submission started')
     setError('')
     setSuccess('')
     setErrors({})
 
     // Frontend validation
     if (!validate()) {
+      console.log('❌ Frontend validation failed')
       return
     }
 
+    console.log('✅ Frontend validation passed')
     setIsSubmitting(true)
 
     try {
@@ -451,8 +454,11 @@ const ProductEdit = () => {
         body: JSON.stringify(payload)
       })
 
+      console.log('🌐 API Request Status:', res.status)
+      console.log('🌐 API Request OK:', res.ok)
+
       const json = await res.json()
-      console.log('API Response:', json)
+      console.log('📦 API Response:', json)
 
       if (!res.ok) {
         // Handle backend validation errors
@@ -468,6 +474,7 @@ const ProductEdit = () => {
       
       // Guard against undefined data
       if (json.success && json.data) {
+        console.log('✅ Update successful - setting success message')
         setSuccess('Product updated successfully!')
         
         // Update form state with returned data (sync)
@@ -486,6 +493,7 @@ const ProductEdit = () => {
           navigate('/admin/products')
         }, 1500)
       } else {
+        console.log('❌ Update failed - no success/data in response')
         throw new Error(json.message || 'Update failed - no data returned')
       }
     } catch (err) {
