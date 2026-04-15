@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, 
   useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../config/api.js';
 
 const AdminAuthContext = createContext(null);
 
@@ -50,9 +51,9 @@ export const AdminAuthProvider = ({ children }) => {
         const apiTimeout = setTimeout(() => 
           controller.abort(), 10000);
 
-        // USE THE ACTUAL VERIFY ENDPOINT FROM adminApiService.js
+        // USE THE ACTUAL VERIFY ENDPOINT WITH FULL API URL
         const response = await fetch(
-          `/api/admin/verify`,
+          `${API_BASE_URL}/admin/verify`,
           {
             method: 'GET',
             headers: {

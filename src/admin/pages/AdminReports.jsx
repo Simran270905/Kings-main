@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import useRealAnalytics from '../hooks/useRealAnalytics'
 import { extractData } from '../../utils/dataExtractionHelper.js'
-import { useOrder } from '../context/OrderContext'
+import { useEnhancedOrder } from '../context/EnhancedOrderContext'
 import { useProduct } from '../../context/ProductContext'
 import AdminCard from '../layout/AdminCard'
 import AdminButton from '../layout/AdminButton'
@@ -34,8 +34,8 @@ export default function AdminReports() {
   
   // ✅ STEP 3: FIX ADMIN REPORTS DATA SOURCE
   // DO NOT use raw API or analytics
-  // USE ONLY: const { orders } = useOrderContext();
-  const { orders } = useOrder()
+  // USE ONLY: const { orders } = useEnhancedOrder();
+  const { orders } = useEnhancedOrder()
   const analytics = useRealAnalytics()
 
   const [timeRange, setTimeRange] = useState('30days')

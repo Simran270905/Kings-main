@@ -7,6 +7,7 @@ import { CustomerOrderProvider } from './context/CustomerOrderContext'
 import AdminProductProvider from './admin/context/AdminProductContext' // FIXED IMPORT
 import { EnhancedOrderProvider } from './admin/context/EnhancedOrderContext'
 import { AdminAuthProvider } from './admin/context/AdminAuthContext'
+import { OrderProvider } from './admin/context/OrderContext'
 import ScrollToTop from './components/ScrollToTop'
 
 import Navbar from './customer/components/navigation/Navbar'
@@ -53,25 +54,25 @@ const ProductDetails = lazy(() =>
 const ShopPage = lazy(() => import('./customer/pages/Shop/ShopPage'))
 
 // Admin lazy
-const AdminOnlyLayout = lazy(() => import('./admin/AdminOnlyLayout'))
-const Dashboard = lazy(() => import('./admin/layout/Dashboard'))
-const ProductsManagement = lazy(() => import('./admin/layout/ProductsManagement'))
-const Analytics = lazy(() => import('./admin/layout/Analytics'))
-const AdminReports = lazy(() => import('./admin/pages/AdminReports'))
-const ProductUpload = lazy(() => import('./admin/ProductUpload'))
-const ProductEdit = lazy(() => import('./admin/ProductEdit'))
-const AdminOrders = lazy(() => import('./admin/pages/AdminOrders'))
-const AdminCustomers = lazy(() => import('./admin/pages/AdminCustomers'))
-const AdminSettings = lazy(() => import('./admin/pages/AdminSettings'))
-const CouponManagement = lazy(() => import('./admin/pages/CouponManagement'))
-const HomePageEditor = lazy(() => import('./admin/layout/HomePageEditor'))
-const FooterEditor = lazy(() => import('./admin/layout/FooterEditor'))
-const OurStoryEditor = lazy(() => import('./admin/layout/OurStoryEditor'))
-const Pages = lazy(() => import('./admin/layout/Pages'))
-const ContactMessages = lazy(() => import('./admin/pages/ContactMessages'))
-const BrandsManagement = lazy(() => import('./admin/layout/BrandsManagement'))
-const CategoriesManagement = lazy(() => import('./admin/layout/CategoriesManagement'))
-const PaymentTracking = lazy(() => import('./admin/pages/PaymentTracking'))
+const AdminOnlyLayout = lazy(() => import('./admin/AdminOnlyLayout.jsx'))
+const Dashboard = lazy(() => import('./admin/layout/Dashboard.jsx'))
+const ProductsManagement = lazy(() => import('./admin/layout/ProductsManagement.jsx'))
+const Analytics = lazy(() => import('./admin/layout/Analytics.jsx'))
+const AdminReports = lazy(() => import('./admin/pages/AdminReports.jsx'))
+const ProductUpload = lazy(() => import('./admin/ProductUpload.jsx'))
+const ProductEdit = lazy(() => import('./admin/ProductEdit.jsx'))
+const AdminOrders = lazy(() => import('./admin/pages/AdminOrders.jsx'))
+const AdminCustomers = lazy(() => import('./admin/pages/AdminCustomers.jsx'))
+const AdminSettings = lazy(() => import('./admin/pages/AdminSettings.jsx'))
+const CouponManagement = lazy(() => import('./admin/pages/CouponManagement.jsx'))
+const HomePageEditor = lazy(() => import('./admin/layout/HomePageEditor.jsx'))
+const FooterEditor = lazy(() => import('./admin/layout/FooterEditor.jsx'))
+const OurStoryEditor = lazy(() => import('./admin/layout/OurStoryEditor.jsx'))
+const Pages = lazy(() => import('./admin/layout/Pages.jsx'))
+const ContactMessages = lazy(() => import('./admin/pages/ContactMessages.jsx'))
+const BrandsManagement = lazy(() => import('./admin/layout/BrandsManagement.jsx'))
+const CategoriesManagement = lazy(() => import('./admin/layout/CategoriesManagement.jsx'))
+const PaymentTracking = lazy(() => import('./admin/pages/PaymentTracking.jsx'))
 
 // Customer Layout
 const CustomerLayout = ({ children }) => (
@@ -88,11 +89,12 @@ return (
     <ScrollToTop />
 
     <AdminAuthProvider>
-      <EnhancedOrderProvider>
-        <AdminProductProvider>
-          <CustomerOrderProvider>
-            <ProductProvider>
-              <CartProvider>
+      <OrderProvider>
+        <EnhancedOrderProvider>
+          <AdminProductProvider>
+            <CustomerOrderProvider>
+              <ProductProvider>
+                <CartProvider>
 
                 <Suspense fallback={<LoadingFallback />}>
 
@@ -160,6 +162,7 @@ return (
             </CustomerOrderProvider>
           </AdminProductProvider>
         </EnhancedOrderProvider>
+      </OrderProvider>
       </AdminAuthProvider>
 
     </Router>

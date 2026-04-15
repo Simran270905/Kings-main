@@ -126,7 +126,8 @@ export const EVENT_TYPES = {
  * Enhanced event emitter with validation
  */
 export const emitSafeEvent = (eventType, data, validator = null) => {
-  if (!EVENT_TYPES[eventType]) {
+  const eventValues = Object.values(EVENT_TYPES)
+  if (!eventValues.includes(eventType)) {
     console.warn(`⚠️ Unknown event type: ${eventType}`)
     return
   }
