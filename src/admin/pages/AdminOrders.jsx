@@ -31,7 +31,7 @@ import {
 } from '../utils/adminSafetyUtils'
 
 const AdminOrders = () => {
-  const { orders, fetchOrders, getOrderDetails, updateFilters, resetFilters, stats, loading, lastFetch } = useEnhancedOrder()
+  const { orders, fetchOrders, getOrderDetails, updateOrderStatus, updateFilters, resetFilters, stats, loading, lastFetch } = useEnhancedOrder()
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [selectedOrderId, setSelectedOrderId] = useState(null)
   const [error, setError] = useState('')
@@ -47,9 +47,14 @@ const AdminOrders = () => {
 
   // ✅ FIXED (async)
   const handleStatusChange = async (orderId, newStatus) => {
-    const result = await updateOrderStatus(orderId, newStatus)
-    if (!result.success) {
-      setError(result.error)
+    try {
+      const result = await updateOrderStatus(orderId, newStatus)
+      if (!result.success) {
+        setError(result.error || 'Failed to update order status')
+        setTimeout(() => setError(''), 3000)
+      }
+    } catch (error) {
+      setError('Failed to update order status')
       setTimeout(() => setError(''), 3000)
     }
   }
@@ -227,7 +232,7 @@ const AdminOrders = () => {
               <thead className="bg-gray-50 border-b-2 border-gray-200">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Order ID</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer Details</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
                   <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Amount</th>
                   <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Payment</th>
@@ -245,10 +250,13 @@ const AdminOrders = () => {
                     <td className="px-6 py-4">
                       <div>
                         <p className="font-semibold text-gray-900">
-                          {safeCustomerName(order)}
+                          {order.customer?.name || `${order.guestInfo?.firstName || ''} ${order.guestInfo?.lastName || ''}`.trim() || 'Guest User'}
                         </p>
-                        <p className="text-sm text-gray-500">{safeCustomerEmail(order)}</p>
-                        <p className="text-xs text-gray-400">{safeCustomerPhone(order)}</p>
+                        <p className="text-sm text-gray-500">{order.customer?.email || order.guestInfo?.email || '-'}</p>
+                        <p className="text-xs text-gray-400">{order.customer?.phone || order.guestInfo?.mobile || '-'}</p>
+                        {order.shiprocketOrderId && (
+                          <p className="text-xs text-blue-600 font-medium">Shiprocket ID: {order.shiprocketOrderId}</p>
+                        )}
                       </div>
                     </td>
 
@@ -442,16 +450,59 @@ const AdminOrders = () => {
             </div>
           )}
 
+          {/* Customer Details */}
+          <div className="mb-6">
+            <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Customer Details</h4>
+            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+              <p className="text-sm"><span className="font-medium">Name:</span> {selectedOrder.customer?.name || `${selectedOrder.guestInfo?.firstName || ''} ${selectedOrder.guestInfo?.lastName || ''}`.trim() || 'Guest User'}</p>
+              <p className="text-sm"><span className="font-medium">Email:</span> {selectedOrder.customer?.email || selectedOrder.guestInfo?.email || '-'}</p>
+              <p className="text-sm"><span className="font-medium">Phone:</span> {selectedOrder.customer?.phone || selectedOrder.guestInfo?.mobile || '-'}</p>
+            </div>
+          </div>
+
           {/* Shipping Address */}
           <div className="mb-6">
             <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Shipping Address</h4>
             <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-              <p className="text-sm"><span className="font-medium">Street Address:</span> {selectedOrder.shippingAddress?.streetAddress || 'N/A'}</p>
+              <p className="text-sm"><span className="font-medium">Street Address:</span> {selectedOrder.guestInfo?.streetAddress || selectedOrder.shippingAddress?.streetAddress || 'N/A'}</p>
               <div className="grid grid-cols-2 gap-4">
-                <p className="text-sm"><span className="font-medium">City:</span> {selectedOrder.shippingAddress?.city || 'N/A'}</p>
-                <p className="text-sm"><span className="font-medium">State:</span> {selectedOrder.shippingAddress?.state || 'N/A'}</p>
+                <p className="text-sm"><span className="font-medium">City:</span> {selectedOrder.guestInfo?.city || selectedOrder.shippingAddress?.city || 'N/A'}</p>
+                <p className="text-sm"><span className="font-medium">State:</span> {selectedOrder.guestInfo?.state || selectedOrder.shippingAddress?.state || 'N/A'}</p>
               </div>
-              <p className="text-sm"><span className="font-medium">ZIP Code:</span> {selectedOrder.shippingAddress?.zipCode || 'N/A'}</p>
+              <p className="text-sm"><span className="font-medium">ZIP Code:</span> {selectedOrder.guestInfo?.zipCode || selectedOrder.shippingAddress?.zipCode || 'N/A'}</p>
+            </div>
+          </div>
+
+          {/* Shipping Information */}
+          <div className="mb-6">
+            <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Shipping Information</h4>
+            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+              <p className="text-sm"><span className="font-medium">Shiprocket Order ID:</span> {selectedOrder.shiprocketOrderId || 'N/A'}</p>
+              <p className="text-sm"><span className="font-medium">AWB Code:</span> {selectedOrder.awbCode || 'N/A'}</p>
+              <p className="text-sm"><span className="font-medium">Courier Name:</span> {selectedOrder.courierName || 'N/A'}</p>
+              <p className="text-sm"><span className="font-medium">Tracking Number:</span> {selectedOrder.trackingNumber || 'N/A'}</p>
+              {selectedOrder.trackingUrl && (
+                <p className="text-sm">
+                  <span className="font-medium">Tracking URL:</span> 
+                  <a href={selectedOrder.trackingUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline ml-1">
+                    Track Shipment
+                  </a>
+                </p>
+              )}
+              <p className="text-sm"><span className="font-medium">Shipping Status:</span> 
+                <span className={`ml-1 px-2 py-1 rounded text-xs font-medium ${
+                  selectedOrder.shippingStatus === 'delivered' ? 'bg-green-100 text-green-800' :
+                  selectedOrder.shippingStatus === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                  selectedOrder.shippingStatus === 'created' ? 'bg-yellow-100 text-yellow-800' :
+                  selectedOrder.shippingStatus === 'pending' ? 'bg-orange-100 text-orange-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {selectedOrder.shippingStatus?.replace('_', ' ').toUpperCase() || 'N/A'}
+                </span>
+              </p>
+              {selectedOrder.estimatedDelivery && (
+                <p className="text-sm"><span className="font-medium">Estimated Delivery:</span> {new Date(selectedOrder.estimatedDelivery).toLocaleDateString()}</p>
+              )}
             </div>
           </div>
         </AdminCard>
