@@ -358,15 +358,20 @@ const ProductEdit = () => {
   const validate = () => {
     const newErrors = {}
     
+    console.log('🔍 VALIDATION DEBUG - Form data:', formData)
+    
     if (!formData.name?.trim()) {
+      console.log('❌ Name validation failed:', formData.name)
       newErrors.name = 'Product name is required'
     }
     
     if (!formData.description?.trim()) {
+      console.log('❌ Description validation failed:', formData.description)
       newErrors.description = 'Product description is required'
     }
     
     if (!formData.category) {
+      console.log('❌ Category validation failed:', formData.category)
       newErrors.category = 'Category is required'
     }
     
@@ -374,31 +379,40 @@ const ProductEdit = () => {
     const originalPrice = Number(formData.originalPrice)
     const sellingPrice = Number(formData.sellingPrice)
     
+    console.log('💰 Price validation debug:', { purchasePrice, originalPrice, sellingPrice })
+    
     if (!formData.purchasePrice || isNaN(purchasePrice) || purchasePrice < 0) {
+      console.log('❌ Purchase price validation failed')
       newErrors.purchasePrice = 'Valid purchase price is required'
     }
     
     if (!formData.originalPrice || isNaN(originalPrice) || originalPrice < 0) {
+      console.log('❌ Original price validation failed')
       newErrors.originalPrice = 'Valid MRP price is required'
     }
     
     if (formData.sellingPrice && (isNaN(sellingPrice) || sellingPrice < 0)) {
+      console.log('❌ Selling price validation failed')
       newErrors.sellingPrice = 'Valid selling price is required'
     }
     
     // Pricing logic validation
     if (sellingPrice > originalPrice) {
+      console.log('❌ Selling price > MRP validation failed')
       newErrors.sellingPrice = 'Selling price cannot be greater than MRP'
     }
     
     if (sellingPrice < purchasePrice) {
+      console.log('❌ Selling price < purchase price validation failed')
       newErrors.sellingPrice = 'Selling price must be higher than purchase price'
     }
     
     if (!formData.images || formData.images.length === 0) {
+      console.log('❌ Images validation failed:', formData.images)
       newErrors.images = 'At least one image is required'
     }
     
+    console.log('🚫 Final validation errors:', newErrors)
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
