@@ -21,8 +21,7 @@ const ProductEdit = () => {
     description: '',
     purchasePrice: '',
     originalPrice: '',
-    price: '',
-    selling_price: '',
+    sellingPrice: '',
     category: '',
     brand: '',
     images: [],
@@ -36,13 +35,7 @@ const ProductEdit = () => {
     isActive: true,
     isBestSeller: false,
     isOnSale: false,
-    discountPercentage: '',
-    // Ensure no undefined fields
-    discountAmount: '',
-    tags: '',
-    metaTitle: '',
-    metaDescription: '',
-    specifications: {}
+    discountPercentage: ''
   })
 
   const [categories, setCategories] = useState([])
@@ -87,9 +80,9 @@ const ProductEdit = () => {
         const productFormData = {
           name: product.name || '',
           description: product.description || '',
+          purchasePrice: product.purchasePrice || '',
           originalPrice: product.originalPrice || '',
-          price: product.price || '',
-          selling_price: product.selling_price || '',
+          sellingPrice: product.sellingPrice || product.selling_price || '',
           category: product.category?._id || product.category || '',
           brand: product.brand?._id || product.brand || '',
           images: product.images || [],
@@ -103,13 +96,7 @@ const ProductEdit = () => {
           isActive: product.isActive !== undefined ? product.isActive : true,
           isBestSeller: product.isBestSeller || false,
           isOnSale: product.isOnSale || false,
-          discountPercentage: product.discountPercentage || '',
-          // Ensure no undefined fields
-          discountAmount: product.discountAmount || '',
-          tags: product.tags || '',
-          metaTitle: product.metaTitle || '',
-          metaDescription: product.metaDescription || '',
-          specifications: product.specifications || {}
+          discountPercentage: product.discountPercentage || ''
         }
         
         setFormData(productFormData)
@@ -140,9 +127,8 @@ const ProductEdit = () => {
         
         // Validate initial pricing data (non-blocking for existing products)
         const initialFormData = {
-          price: product.price || '',
-          selling_price: product.selling_price || '',
-          originalPrice: product.originalPrice || ''
+          originalPrice: product.originalPrice || '',
+          sellingPrice: product.sellingPrice || product.selling_price || ''
         }
         validatePricing(initialFormData, false) // Don't enforce on initial load
       } catch (err) {
@@ -173,15 +159,14 @@ const ProductEdit = () => {
     setSuccess('')
     
     // STEP 3: TRACK PRICE CHANGES & STEP 4: APPLY CONDITIONAL VALIDATION
-    if (name === 'originalPrice' || name === 'selling_price' || name === 'price' || name === 'purchasePrice') {
+    if (name === 'originalPrice' || name === 'sellingPrice' || name === 'purchasePrice') {
       const newFormData = { ...formData, [name]: newValue }
       
       if (initialData) {
         const isPriceChanged = 
           newFormData.purchasePrice !== initialData.purchasePrice ||
-          newFormData.price !== initialData.price ||
           newFormData.originalPrice !== initialData.originalPrice ||
-          newFormData.selling_price !== initialData.selling_price
+          newFormData.sellingPrice !== initialData.sellingPrice
         
         if (isPriceChanged) {
           // Only validate when pricing is actually changed
@@ -205,8 +190,8 @@ const ProductEdit = () => {
     }
     let isValid = true
     
-    const originalPrice = Number(data.originalPrice || data.price || 0)
-    const sellingPrice = Number(data.selling_price || 0)
+    const originalPrice = Number(data.originalPrice || 0)
+    const sellingPrice = Number(data.sellingPrice || 0)
     
     // Only validate if enforcement is enabled (pricing changed or new product)
     if (enforceValidation) {
@@ -236,15 +221,15 @@ const ProductEdit = () => {
   }
   
   const handleAutoCorrection = () => {
-    const originalPrice = Number(formData.price || 0)
-    const sellingPrice = Number(formData.selling_price || 0)
+    const originalPrice = Number(formData.originalPrice || 0)
+    const sellingPrice = Number(formData.sellingPrice || 0)
     
     if (sellingPrice > originalPrice && originalPrice > 0) {
       // Auto-swap values: make MRP the higher value
       setFormData(prev => ({
         ...prev,
-        price: sellingPrice.toString(),      // MRP becomes the selling price
-        selling_price: originalPrice.toString()  // Selling price becomes the MRP
+        originalPrice: sellingPrice.toString(),      // MRP becomes the selling price
+        sellingPrice: originalPrice.toString()  // Selling price becomes the MRP
       }))
       
       // Clear errors and validate new values
@@ -256,17 +241,27 @@ const ProductEdit = () => {
       setTimeout(() => setSuccess(''), 3000)
     }
   }
+
+  // OPTIONAL: Auto-fill selling price if empty
+  const handleOriginalPriceChange = (e) => {
+    const { value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      originalPrice: value,
+      // If selling price is empty, set it to original price
+      sellingPrice: prev.sellingPrice || value
+    }))
+  }
   
   // STEP 7: OPTIONAL AUTO FIX
   const handleAutoFixInvalidPricing = () => {
-    const originalPrice = Number(formData.price || formData.originalPrice || 0)
-    const sellingPrice = Number(formData.selling_price || 0)
+    const originalPrice = Number(formData.originalPrice || 0)
+    const sellingPrice = Number(formData.sellingPrice || 0)
     
     if (originalPrice <= 0 && sellingPrice > 0) {
       // Fix MRP if it's invalid
       setFormData(prev => ({
         ...prev,
-        price: sellingPrice.toString(),
         originalPrice: sellingPrice.toString()
       }))
       setSuccess('Auto-fixed: Set MRP equal to selling price')
@@ -377,7 +372,7 @@ const ProductEdit = () => {
     
     const purchasePrice = Number(formData.purchasePrice)
     const originalPrice = Number(formData.originalPrice)
-    const sellingPrice = Number(formData.selling_price || formData.sellingPrice)
+    const sellingPrice = Number(formData.sellingPrice)
     
     if (!formData.purchasePrice || isNaN(purchasePrice) || purchasePrice < 0) {
       newErrors.purchasePrice = 'Valid purchase price is required'
@@ -387,17 +382,17 @@ const ProductEdit = () => {
       newErrors.originalPrice = 'Valid MRP price is required'
     }
     
-    if (formData.selling_price && (isNaN(sellingPrice) || sellingPrice < 0)) {
-      newErrors.selling_price = 'Valid selling price is required'
+    if (formData.sellingPrice && (isNaN(sellingPrice) || sellingPrice < 0)) {
+      newErrors.sellingPrice = 'Valid selling price is required'
     }
     
     // Pricing logic validation
     if (sellingPrice > originalPrice) {
-      newErrors.selling_price = 'Selling price cannot be greater than MRP'
+      newErrors.sellingPrice = 'Selling price cannot be greater than MRP'
     }
     
     if (sellingPrice < purchasePrice) {
-      newErrors.selling_price = 'Selling price must be higher than purchase price'
+      newErrors.sellingPrice = 'Selling price must be higher than purchase price'
     }
     
     if (!formData.images || formData.images.length === 0) {
@@ -431,17 +426,12 @@ const ProductEdit = () => {
         ...formData,
         purchasePrice: Number(formData.purchasePrice) || 0,
         originalPrice: Number(formData.originalPrice) || 0,
-        sellingPrice: Number(formData.sellingPrice), // Ensure number conversion
+        sellingPrice: Number(formData.sellingPrice),
         stock: formData.hasSizes ? 0 : (Number(formData.stock) || 1),
         weight: formData.weight ? Number(formData.weight) : undefined,
         discountPercentage: formData.discountPercentage ? Number(formData.discountPercentage) : 0,
-        discountAmount: Number(formData.discountAmount) || 0,
         updatedAt: new Date().toISOString()
       }
-
-      // Remove fields that shouldn't be sent
-      delete payload.selling_price
-      delete payload.price
 
       // Clean payload - remove empty strings and null values
       Object.keys(payload).forEach(key => {
@@ -645,11 +635,11 @@ const ProductEdit = () => {
 
               <div>
                 <FormInput
-                  label="Original Price (MRP) (₹)"
+                  label="Original Price / MRP (PK) *"
                   type="number"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleInputChange}
+                  name="originalPrice"
+                  value={formData.originalPrice}
+                  onChange={handleOriginalPriceChange}
                   min="0"
                   step="0.01"
                   placeholder="0.00"
@@ -671,14 +661,15 @@ const ProductEdit = () => {
 
               <div>
                 <FormInput
-                  label="Selling Price (₹)"
+                  label="Selling Price (₹) *"
                   type="number"
-                  name="selling_price"
-                  value={formData.selling_price}
+                  name="sellingPrice"
+                  value={formData.sellingPrice}
                   onChange={handleInputChange}
                   min="0"
                   step="0.01"
-                  placeholder="Leave empty if same as MRP"
+                  placeholder="Enter selling price (≤ MRP)"
+                  required
                   inputClassName={pricingErrors.sellingPrice ? 'border-red-500 focus:border-red-500 bg-red-50' : ''}
                 />
                 <p className="text-xs text-gray-500 mt-1">
@@ -701,7 +692,7 @@ const ProductEdit = () => {
                     </button>
                   </div>
                 )}
-                {formData.selling_price && Number(formData.selling_price) > 0 && Number(formData.price) > 0 && Number(formData.selling_price) <= Number(formData.price) && (
+                {formData.sellingPrice && Number(formData.sellingPrice) > 0 && Number(formData.originalPrice) > 0 && Number(formData.sellingPrice) <= Number(formData.originalPrice) && (
                   <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -825,14 +816,14 @@ const ProductEdit = () => {
                   <div className="flex items-end">
                     <div className="text-sm text-gray-600">
                       <p className="font-medium mb-2">Discount Preview:</p>
-                      {formData.discountPercentage && formData.price ? (
+                      {formData.discountPercentage && formData.sellingPrice ? (
                         <div className="space-y-1">
-                          <p>Original: ₹{Number(formData.price).toLocaleString('en-IN')}</p>
+                          <p>Original: ₹{Number(formData.sellingPrice).toLocaleString('en-IN')}</p>
                           <p className="text-red-600 font-semibold">
                             Discount: {formData.discountPercentage}% off
                           </p>
                           <p className="text-green-600 font-semibold">
-                            Final: ₹{(formData.price * (1 - formData.discountPercentage / 100)).toLocaleString('en-IN')}
+                            Final: ₹{(formData.sellingPrice * (1 - formData.discountPercentage / 100)).toLocaleString('en-IN')}
                           </p>
                         </div>
                       ) : (

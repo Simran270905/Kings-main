@@ -91,7 +91,7 @@ const ProductUpload = () => {
     description: '',
     purchasePrice: '',
     originalPrice: '',
-    selling_price: '',
+    sellingPrice: '',
     category: '',
     brand: '',
     images: ['', '', '', ''], // Support 4 images
@@ -223,6 +223,7 @@ const ProductUpload = () => {
   const validate = () => {
     const newErrors = {}
     
+    // Basic required fields
     if (!formData.name?.trim()) {
       newErrors.name = 'Product name is required'
     }
@@ -235,9 +236,10 @@ const ProductUpload = () => {
       newErrors.category = 'Category is required'
     }
     
+    // Pricing validation
     const purchasePrice = Number(formData.purchasePrice)
     const originalPrice = Number(formData.originalPrice)
-    const sellingPrice = Number(formData.selling_price)
+    const sellingPrice = Number(formData.sellingPrice)
     
     if (!formData.purchasePrice || isNaN(purchasePrice) || purchasePrice < 0) {
       newErrors.purchasePrice = 'Valid purchase price is required'
@@ -247,21 +249,27 @@ const ProductUpload = () => {
       newErrors.originalPrice = 'Valid MRP price is required'
     }
     
-    if (!formData.selling_price || isNaN(sellingPrice) || sellingPrice < 0) {
-      newErrors.selling_price = 'Valid selling price is required'
+    if (!formData.sellingPrice || isNaN(sellingPrice) || sellingPrice < 0) {
+      newErrors.sellingPrice = 'Valid selling price is required'
     }
     
     // Pricing logic validation
-    if (sellingPrice > originalPrice) {
-      newErrors.selling_price = 'Selling price cannot be greater than MRP'
-    }
-    
     if (sellingPrice < purchasePrice) {
-      newErrors.selling_price = 'Selling price must be higher than purchase price'
+      newErrors.sellingPrice = 'Selling price must be higher than purchase price'
     }
     
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
+  }
+
+  const handleOriginalPriceChange = (e) => {
+    const { value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      originalPrice: value,
+      // If selling price is empty, set it to original price
+      sellingPrice: prev.sellingPrice || value
+    }))
   }
 
   const testDirectAPICall = async () => {
@@ -332,9 +340,19 @@ const ProductUpload = () => {
     setSuccess('')
     setErrors({})
 
+    // STEP 2: LOG ALL FIELDS
+    console.log("FORM DATA:", formData)
+    
     // Frontend validation
     if (!validate()) {
-      console.log('Frontend validation failed')
+      console.log("Validation failed:", {
+        name: formData.name,
+        price: formData.originalPrice,
+        selling: formData.sellingPrice,
+        images: formData.images.filter(img => img && img.trim() !== '').length,
+        category: formData.category,
+        brand: formData.brand
+      })
       return
     }
     console.log('Frontend validation passed')
@@ -354,13 +372,13 @@ const ProductUpload = () => {
       const payload = {
         name: formData.name.trim(),
         description: formData.description.trim(),
-        // ✅ FIXED: Send correct field names - backend now handles both
-        originalPrice: originalPrice,
-        sellingPrice: sellingPrice, // Send as sellingPrice (camelCase)
+        purchasePrice: Number(formData.purchasePrice),
+        originalPrice: Number(formData.originalPrice),
+        sellingPrice: Number(formData.sellingPrice),
         category: formData.category,
         brand: formData.brand || null,
         images: validImages,
-        stock: formData.hasSizes ? 0 : stock,
+        stock: formData.hasSizes ? 0 : Number(formData.stock),
         hasSizes: formData.hasSizes,
         sizes: formData.sizes,
         material: formData.material || 'Gold',
@@ -415,7 +433,7 @@ const ProductUpload = () => {
         description: '',
         purchasePrice: '',
         originalPrice: '',
-        selling_price: '',
+        sellingPrice: '',
         category: '',
         brand: '',
         images: ['', '', '', ''],
@@ -495,6 +513,9 @@ const ProductUpload = () => {
               {errors.name && (
                 <p className="text-red-500 text-sm mt-1">{errors.name}</p>
               )}
+              {errors.images && (
+                <p className="text-red-500 text-sm mt-1">{errors.images}</p>
+              )}
             </div>
 
               <div>
@@ -517,6 +538,9 @@ const ProductUpload = () => {
                 </select>
                 {categories.length === 0 && (
                   <p className="text-xs text-orange-500 mt-1">⚠️ No categories found. <a href="/admin/categories" className="underline">Add categories first</a>.</p>
+                )}
+                {errors.category && (
+                  <p className="text-red-500 text-sm mt-1">{errors.category}</p>
                 )}
               </div>
             </div>
@@ -560,11 +584,11 @@ const ProductUpload = () => {
               />
 
               <FormInput
-                label="Discounted Price (₹)"
+                label="Original Price / MRP (PK) *"
                 type="number"
                 name="originalPrice"
                 value={formData.originalPrice}
-                onChange={handleInputChange}
+                onChange={handleOriginalPriceChange}
                 min="0"
                 step="0.01"
                 placeholder="0.00"
@@ -572,16 +596,22 @@ const ProductUpload = () => {
               />
 
               <FormInput
-                label="Original Price / MRP (₹)"
+                label="Selling Price (₹) *"
                 type="number"
-                name="selling_price"
-                value={formData.selling_price}
+                name="sellingPrice"
+                value={formData.sellingPrice}
                 onChange={handleInputChange}
                 min="0"
                 step="0.01"
-                placeholder="0.00"
+                placeholder="Enter selling price (≤ MRP)"
                 required
               />
+              {errors.originalPrice && (
+                <p className="text-red-500 text-sm mt-1">{errors.originalPrice}</p>
+              )}
+              {errors.sellingPrice && (
+                <p className="text-red-500 text-sm mt-1">{errors.sellingPrice}</p>
+              )}
 
               {!formData.hasSizes && (
                 <FormInput
@@ -761,14 +791,14 @@ const ProductUpload = () => {
                   <div className="flex items-end">
                     <div className="text-sm text-gray-600">
                       <p className="font-medium mb-2">Discount Preview:</p>
-                      {formData.discountPercentage && formData.selling_price ? (
+                      {formData.discountPercentage && formData.sellingPrice ? (
                         <div className="space-y-1">
-                          <p>Original: ₹{Number(formData.selling_price).toLocaleString('en-IN')}</p>
+                          <p>Original: ₹{Number(formData.sellingPrice).toLocaleString('en-IN')}</p>
                           <p className="text-red-600 font-semibold">
                             Discount: {formData.discountPercentage}% off
                           </p>
                           <p className="text-green-600 font-semibold">
-                            Final: ₹{(formData.selling_price * (1 - formData.discountPercentage / 100)).toLocaleString('en-IN')}
+                            Final: ₹{(formData.sellingPrice * (1 - formData.discountPercentage / 100)).toLocaleString('en-IN')}
                           </p>
                         </div>
                       ) : (
