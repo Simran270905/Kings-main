@@ -488,15 +488,38 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           clearCart()
           
           // Navigate to OrderSuccess with order data
-          navigate('/order-success', {
-            state: {
-              orderId: res.orderId,
-              paymentId: null,
+          const orderIdForNavigation = res.orderId || res.order?._id || res.order?.orderNumber
+          console.log('🚀 COD Navigating with:', { orderId: orderIdForNavigation })
+          
+          try {
+            navigate('/order-success', {
+              state: {
+                orderId: orderIdForNavigation,
+                paymentId: null,
+                paymentMethod: 'cod',
+                amountPaid: orderData.totalAmount,
+                orderData: res.order || {}
+              }
+            })
+            
+            // Fallback for COD as well
+            setTimeout(() => {
+              const params = new URLSearchParams({
+                orderId: orderIdForNavigation,
+                paymentMethod: 'cod',
+                amountPaid: orderData.totalAmount
+              })
+              window.location.href = `/order-success?${params.toString()}`
+            }, 2000)
+          } catch (error) {
+            console.error('COD Navigation error:', error)
+            const params = new URLSearchParams({
+              orderId: orderIdForNavigation,
               paymentMethod: 'cod',
-              amountPaid: orderData.totalAmount,
-              orderData: res.order || {}
-            }
-          })
+              amountPaid: orderData.totalAmount
+            })
+            window.location.href = `/order-success?${params.toString()}`
+          }
         } else {
           throw new Error(res?.message || 'Failed to place order')
         }
@@ -640,18 +663,56 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
             clearCart()
             
             // Pass order data to OrderSuccess page
-            const orderData = verifyData.order || verifyData.data?.order || {}
+            const orderData = verifyData.order || verifyData.data?.order || verifyData.data || {}
             console.log('📦 Order data for navigation:', orderData)
-            
-            navigate('/order-success', {
-              state: {
-                orderId: orderData.orderId || orderData._id,
-                paymentId: orderData.payment?.razorpayPaymentId || orderData.paymentId,
-                paymentMethod: 'razorpay',
-                amountPaid: orderData.total,
-                orderData: orderData
-              }
+            console.log('📦 Order data keys:', Object.keys(orderData))
+            console.log('📦 Order ID fields:', {
+              orderId: orderData.orderId,
+              _id: orderData._id,
+              orderNumber: orderData.orderNumber
             })
+            
+            const orderIdForNavigation = orderData.orderId || orderData._id || orderData.orderNumber
+            const paymentIdForNavigation = orderData.razorpayPaymentId || orderData.payment?.razorpayPaymentId || orderData.paymentId
+            
+            console.log('🚀 Navigating with:', {
+              orderId: orderIdForNavigation,
+              paymentId: paymentIdForNavigation
+            })
+            
+            // Try React Router navigation first
+            try {
+              navigate('/order-success', {
+                state: {
+                  orderId: orderIdForNavigation,
+                  paymentId: paymentIdForNavigation,
+                  paymentMethod: 'razorpay',
+                  amountPaid: orderData.totalAmount || orderData.total,
+                  orderData: orderData
+                }
+              })
+              
+              // Fallback: If React Router doesn't work within 2 seconds, use window.location
+              setTimeout(() => {
+                const params = new URLSearchParams({
+                  orderId: orderIdForNavigation,
+                  paymentId: paymentIdForNavigation,
+                  paymentMethod: 'razorpay',
+                  amountPaid: orderData.totalAmount || orderData.total
+                })
+                window.location.href = `/order-success?${params.toString()}`
+              }, 2000)
+            } catch (error) {
+              console.error('Navigation error:', error)
+              // Immediate fallback
+              const params = new URLSearchParams({
+                orderId: orderIdForNavigation,
+                paymentId: paymentIdForNavigation,
+                paymentMethod: 'razorpay',
+                amountPaid: orderData.totalAmount || orderData.total
+              })
+              window.location.href = `/order-success?${params.toString()}`
+            }
           } else {
             toast.error('Payment verification failed. Please contact support.', {
               duration: 5000,
