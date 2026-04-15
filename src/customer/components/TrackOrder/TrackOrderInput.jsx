@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { SearchIcon, TruckIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, TruckIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 
 export default function TrackOrderInput() {
@@ -44,7 +44,7 @@ export default function TrackOrderInput() {
       <form onSubmit={handleTrackOrder} className="flex gap-2">
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <SearchIcon className="h-4 w-4 text-gray-400" />
+            <MagnifyingGlassIcon className="h-4 w-4 text-gray-400" />
           </div>
           <input
             type="text"
