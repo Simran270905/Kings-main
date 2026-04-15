@@ -15,7 +15,7 @@ const LazyHomeSection = lazy(() =>
 )
 
 function HomePage() {
-  const { products, loading: productsLoading } = useProduct()
+  const { products, loading: productsLoading, refreshProducts } = useProduct()
   const [categories, setCategories] = useState([])
   const [productsByCategory, setProductsByCategory] = useState({})
   const [loading, setLoading] = useState(true)
@@ -46,20 +46,20 @@ function HomePage() {
   useEffect(() => {
     const unsubscribeUpdated = dataSyncEvents.subscribe(EVENT_TYPES.PRODUCT_UPDATED, (productData) => {
       console.log('🏠 HomePage received product update event:', productData)
-      // Refresh products when admin updates a product
-      fetchCategoriesAndProducts()
+      // STEP 3: FIX CONTEXT - Use refreshProducts from context
+      refreshProducts()
     })
 
     const unsubscribeCreated = dataSyncEvents.subscribe(EVENT_TYPES.PRODUCT_CREATED, (productData) => {
       console.log('🏠 HomePage received product creation event:', productData)
-      // Refresh products when admin creates a new product
-      fetchCategoriesAndProducts()
+      // STEP 3: FIX CONTEXT - Use refreshProducts from context
+      refreshProducts()
     })
 
     const unsubscribeDeleted = dataSyncEvents.subscribe(EVENT_TYPES.PRODUCT_DELETED, (productData) => {
       console.log('🏠 HomePage received product deletion event:', productData)
-      // Refresh products when admin deletes a product
-      fetchCategoriesAndProducts()
+      // STEP 3: FIX CONTEXT - Use refreshProducts from context
+      refreshProducts()
     })
 
     // Cleanup all listeners on unmount
@@ -70,7 +70,7 @@ function HomePage() {
     }
   }, [])
 
-  // Fetch categories and their products
+  // STEP 1: FORCE REFETCH - Ensure products are fetched on mount
   useEffect(() => {
     const fetchCategoriesAndProducts = async () => {
       try {
@@ -115,15 +115,15 @@ function HomePage() {
                   // Fetch products specifically for this category
                   const prodResponse = await fetch(`${API_BASE_URL}/products?category=${cat._id}&limit=100`)
                   const prodData = await prodResponse.json()
-                  
+                   
                   console.log(`Products API response for ${cat.name}:`, prodData)
-                  
+                   
                   const prods = prodData?.data?.products 
                              || prodData?.products 
                              || prodData?.data 
                              || prodData 
                              || []
-                  
+                   
                   const categoryProducts = Array.isArray(prods) ? prods : []
                   
                   console.log(`Category "${cat.name}" (${cat._id}):`)
@@ -143,6 +143,8 @@ function HomePage() {
             )
           }
           
+          // STEP 5: DEBUG LOG
+          console.log("STEP 5: DEBUG - Homepage products:", productsMap)
           console.log('Products by category map:', productsMap)
           console.log('Final verification - Categories with products:', Object.keys(productsMap).length)
           Object.keys(productsMap).forEach(catId => {
@@ -161,8 +163,10 @@ function HomePage() {
       }
     }
 
+    // STEP 1: FORCE REFETCH - Call refreshProducts on mount
     fetchCategoriesAndProducts()
-  }, [])
+    refreshProducts() // Also call context refresh for fresh data
+  }, []) // Empty dependency array ensures it runs on mount
 
   // Show loading state
   if (loading) {
