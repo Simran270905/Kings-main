@@ -197,7 +197,6 @@ const AdminOrders = () => {
               <thead className="bg-gray-50 border-b-2 border-gray-200">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Order ID</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Shipping Address</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Items</th>
                   <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Total Amount</th>
@@ -215,26 +214,6 @@ const AdminOrders = () => {
                   <tr key={order._id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <span className="font-mono text-sm text-gray-600">#{String(order._id || 'N/A').slice(-8)}</span>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div>
-                        <p className="font-semibold text-gray-900">
-                          {order.customer?.name || `${order.guestInfo?.firstName || ''} ${order.guestInfo?.lastName || ''}`.trim() || 'Guest User'}
-                        </p>
-                        <p className="text-sm text-gray-500">{order.customer?.email || order.guestInfo?.email || '-'}</p>
-                        <p className="text-xs text-gray-400">{order.customer?.phone || order.guestInfo?.mobile || '-'}</p>
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div>
-                        <p className="text-sm text-gray-900">
-                          {order.guestInfo?.city || order.shippingAddress?.city || 'N/A'}, 
-                          {order.guestInfo?.state || order.shippingAddress?.state || 'N/A'}
-                        </p>
-                        <p className="text-xs text-gray-500">{order.guestInfo?.zipCode || order.shippingAddress?.zipCode || 'N/A'}</p>
-                      </div>
                     </td>
 
                     <td className="px-6 py-4">
@@ -455,16 +434,7 @@ const AdminOrders = () => {
             </div>
           </div>
 
-          {/* Customer Details */}
-          <div className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Customer Details</h4>
-            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-              <p className="text-sm"><span className="font-medium">Name:</span> {selectedOrder.customer?.name || `${selectedOrder.guestInfo?.firstName || ''} ${selectedOrder.guestInfo?.lastName || ''}`.trim() || 'Guest User'}</p>
-              <p className="text-sm"><span className="font-medium">Email:</span> {selectedOrder.customer?.email || selectedOrder.guestInfo?.email || '-'}</p>
-              <p className="text-sm"><span className="font-medium">Phone:</span> {selectedOrder.customer?.phone || selectedOrder.guestInfo?.mobile || '-'}</p>
-            </div>
-          </div>
-
+          
           {/* Shipping Address */}
           <div className="mb-6">
             <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Shipping Address</h4>
