@@ -119,10 +119,11 @@ const AdminCustomers = () => {
     const ordersArray = safeArray(orders)
     
     return customers.map(customer => {
-      // Find orders for this customer
+      // 🔥 PHASE 3: FIX ANALYTICS - Include guest orders in customer count
+      // Find orders for this customer (including guest orders)
       const customerOrders = ordersArray.filter(order => {
-        const orderEmail = order.customer?.email || order.shippingAddress?.email
-        const orderPhone = order.customer?.phone || order.shippingAddress?.phone
+        const orderEmail = order.customer?.email || order.guestInfo?.email || order.shippingAddress?.email
+        const orderPhone = order.customer?.phone || order.guestInfo?.mobile || order.shippingAddress?.phone
         const customerEmail = customer.email
         const customerPhone = customer.phone
         
@@ -289,14 +290,18 @@ const AdminCustomers = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                            {safeString(c.firstName || c.name).charAt(0).toUpperCase()}
+                            {c.guestInfo ? 'G' : safeString(c.firstName || c.name).charAt(0).toUpperCase()}
                           </div>
                           <div>
                             <p className="font-semibold text-gray-900">
-                              {safeString(c.firstName) && safeString(c.lastName) 
-                                ? `${safeString(c.firstName)} ${safeString(c.lastName)}`
-                                : safeString(c.firstName || c.name)
-                              }
+                              {c.guestInfo 
+                                ? `Guest: ${safeString(c.firstName || c.name)} ${safeString(c.lastName || '')}`
+                                : safeString(c.firstName) && safeString(c.lastName) 
+                                  ? `${safeString(c.firstName)} ${safeString(c.lastName)}`
+                                  : safeString(c.firstName || c.name)}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {c.guestInfo ? 'Guest User' : 'Registered User'}
                             </p>
                             <p className="text-sm text-gray-500">
                               {c.totalOrders || 0} order{(c.totalOrders || 0) !== 1 ? 's' : ''}
