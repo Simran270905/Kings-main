@@ -486,7 +486,17 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
             position: 'top-center'
           })
           clearCart()
-          navigate('/order-success')
+          
+          // Navigate to OrderSuccess with order data
+          navigate('/order-success', {
+            state: {
+              orderId: res.orderId,
+              paymentId: null,
+              paymentMethod: 'cod',
+              amountPaid: orderData.totalAmount,
+              orderData: res.order || {}
+            }
+          })
         } else {
           throw new Error(res?.message || 'Failed to place order')
         }
@@ -629,16 +639,16 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
             })
             clearCart()
             
-            // Pass order data to PaymentConfirmation page
+            // Pass order data to OrderSuccess page
             const orderData = verifyData.order || verifyData.data?.order || {}
             console.log('📦 Order data for navigation:', orderData)
             
-            navigate('/payment-confirmation', {
+            navigate('/order-success', {
               state: {
-                orderId: orderData._id,
-                paymentId: orderData.paymentId,
+                orderId: orderData.orderId || orderData._id,
+                paymentId: orderData.payment?.razorpayPaymentId || orderData.paymentId,
                 paymentMethod: 'razorpay',
-                amountPaid: orderData.totalAmount,
+                amountPaid: orderData.total,
                 orderData: orderData
               }
             })
