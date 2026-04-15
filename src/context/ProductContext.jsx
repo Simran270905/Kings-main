@@ -223,9 +223,11 @@ export const ProductProvider = ({ children }) => {
    * Manually refresh products from API (call after adding/editing products)
    */
   const refreshProducts = useCallback(async () => {
+    console.log('🔄 Manually refreshing products from API...')
     setLastFetch(null) // Force refresh
     setLoaded(false) // Reset loaded state to allow refresh
     await fetchData()
+    console.log('✅ Products refreshed from API')
   }, [fetchData])
 
   // ========================================================================
