@@ -4,9 +4,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { CartProvider } from './context/CartContext'
 import { ProductProvider } from './context/ProductContext'
 import { CustomerOrderProvider } from './context/CustomerOrderContext'
-import { OrderProvider } from './admin/context/OrderContext'
-import AdminProductProvider from './admin/context/AdminProductContext' // ✅ FIXED IMPORT
+import AdminProductProvider from './admin/context/AdminProductContext' // FIXED IMPORT
 import { EnhancedOrderProvider } from './admin/context/EnhancedOrderContext'
+import { AdminAuthProvider } from './admin/context/AdminAuthContext'
 import ScrollToTop from './components/ScrollToTop'
 
 import Navbar from './customer/components/navigation/Navbar'
@@ -34,8 +34,7 @@ import ShippingPolicy from './customer/pages/Legal/ShippingPolicy'
 import Contact from './customer/pages/Contact/Contact'
 
 import AdminLogin from './admin/AdminLogin'
-import { AdminRoute } from './admin/AdminRoute'
-import { AdminAuthProvider } from './admin/context/AdminAuthContext'
+import AdminRoute from './admin/AdminRoute'
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -88,186 +87,83 @@ return (
   <Router>
     <ScrollToTop />
 
-    <>
-        <OrderProvider>
-          <EnhancedOrderProvider>
-            <AdminProductProvider>
-              <CustomerOrderProvider>
-                <ProductProvider>
-                  <CartProvider>
+    <AdminAuthProvider>
+      <EnhancedOrderProvider>
+        <AdminProductProvider>
+          <CustomerOrderProvider>
+            <ProductProvider>
+              <CartProvider>
 
-                    <Suspense fallback={<LoadingFallback />}>
+                <Suspense fallback={<LoadingFallback />}>
 
-                      <Routes>
+                  <Routes>
 
-                        {/* ================= CUSTOMER ROUTES ================= */}
-                        <Route path="/" element={<CustomerLayout><HomePage /></CustomerLayout>} />
+                    {/* ================= CUSTOMER ROUTES ================= */}
+                    <Route path="/" element={<CustomerLayout><HomePage /></CustomerLayout>} />
 
-                          <Route path="/product/:id" element={<CustomerLayout><ProductDetails /></CustomerLayout>} />
-                          <Route path="/shop" element={<CustomerLayout><ShopPage /></CustomerLayout>} />
-                          <Route path="/shop/:category" element={<CustomerLayout><ShopPage /></CustomerLayout>} />
-                          <Route path="/our-story" element={<CustomerLayout><OurStory /></CustomerLayout>} />
-                          <Route path="/cart" element={<CustomerLayout><Cart /></CustomerLayout>} />
-                          <Route path="/checkout" element={<CustomerLayout><Checkout /></CustomerLayout>} />
-                          <Route path="/payment" element={<CustomerLayout><Payment /></CustomerLayout>} />
-                          <Route path="/orders" element={<CustomerLayout><Orders /></CustomerLayout>} />
-                          <Route path="/order-success" element={<CustomerLayout><OrderSuccess /></CustomerLayout>} />
-                          <Route path="/orders/track" element={<CustomerLayout><TrackOrderPage /></CustomerLayout>} />
-                          <Route path="/orders/track/:orderId" element={<CustomerLayout><OrderTrack /></CustomerLayout>} />
+                      <Route path="/product/:id" element={<CustomerLayout><ProductDetails /></CustomerLayout>} />
+                      <Route path="/shop" element={<CustomerLayout><ShopPage /></CustomerLayout>} />
+                      <Route path="/shop/:category" element={<CustomerLayout><ShopPage /></CustomerLayout>} />
+                      <Route path="/our-story" element={<CustomerLayout><OurStory /></CustomerLayout>} />
+                      <Route path="/cart" element={<CustomerLayout><Cart /></CustomerLayout>} />
+                      <Route path="/checkout" element={<CustomerLayout><Checkout /></CustomerLayout>} />
+                      <Route path="/payment" element={<CustomerLayout><Payment /></CustomerLayout>} />
+                      <Route path="/orders" element={<CustomerLayout><Orders /></CustomerLayout>} />
+                      <Route path="/order-success" element={<CustomerLayout><OrderSuccess /></CustomerLayout>} />
+                      <Route path="/orders/track" element={<CustomerLayout><TrackOrderPage /></CustomerLayout>} />
+                      <Route path="/orders/track/:orderId" element={<CustomerLayout><OrderTrack /></CustomerLayout>} />
 
-                          {/* Legal Pages */}
-                          <Route path="/privacy-policy" element={<CustomerLayout><PrivacyPolicy /></CustomerLayout>} />
-                          <Route path="/terms-and-conditions" element={<CustomerLayout><TermsAndConditions /></CustomerLayout>} />
-                          <Route path="/refund-policy" element={<CustomerLayout><RefundPolicy /></CustomerLayout>} />
-                          <Route path="/shipping-policy" element={<CustomerLayout><ShippingPolicy /></CustomerLayout>} />
+                      {/* Legal Pages */}
+                      <Route path="/privacy-policy" element={<CustomerLayout><PrivacyPolicy /></CustomerLayout>} />
+                      <Route path="/terms-and-conditions" element={<CustomerLayout><TermsAndConditions /></CustomerLayout>} />
+                      <Route path="/refund-policy" element={<CustomerLayout><RefundPolicy /></CustomerLayout>} />
+                      <Route path="/shipping-policy" element={<CustomerLayout><ShippingPolicy /></CustomerLayout>} />
 
-                          {/* Contact Page */}
-                          <Route path="/contact" element={<CustomerLayout><Contact /></CustomerLayout>} />
+                      {/* Contact Page */}
+                      <Route path="/contact" element={<CustomerLayout><Contact /></CustomerLayout>} />
 
-                          {/* ================= DEBUG ROUTES ================= */}
-                          <Route path="/debug/razorpay" element={<RazorpayTest />} />
+                      {/* ================= DEBUG ROUTES ================= */}
+                      <Route path="/debug/razorpay" element={<RazorpayTest />} />
 
-                          {/* ================= ADMIN LOGIN ================= */}
-                          <Route path="/admin-login" element={
-                            <AdminAuthProvider>
-                              <AdminLogin />
-                            </AdminAuthProvider>
-                          } />
+                      {/* ================= ADMIN LOGIN ================= */}
+                      <Route path="/admin-login" element={<AdminLogin />} />
 
-                          {/* ================= ADMIN ROUTES ================= */}
-                          <Route path="/admin" element={
-                            <AdminAuthProvider>
-                              <AdminRoute><DashboardWrapper /></AdminRoute>
-                            </AdminAuthProvider>
-                          } />
+                      {/* ================= ADMIN ROUTES ================= */}
+                      <Route element={<AdminRoute />}>
+                        <Route path="/admin" element={<DashboardWrapper />} />
+                        <Route path="/admin/products" element={<ProductsWrapper />} />
+                        <Route path="/admin/products/edit/:id" element={<ProductEditWrapper />} />
+                        <Route path="/admin/orders" element={<OrdersWrapper />} />
+                        <Route path="/admin/payment-tracking" element={<PaymentTrackingWrapper />} />
+                        <Route path="/admin/analytics" element={<AnalyticsWrapper />} />
+                        <Route path="/admin/reports" element={<ReportsWrapper />} />
+                        <Route path="/admin/upload" element={<UploadWrapper />} />
+                        <Route path="/admin/cms/home" element={<HomeCMSWrapper />} />
+                        <Route path="/admin/cms/footer" element={<FooterCMSWrapper />} />
+                        <Route path="/admin/cms/our-story" element={<StoryCMSWrapper />} />
+                        <Route path="/admin/pages" element={<PagesWrapper />} />
+                        <Route path="/admin/contact-messages" element={<ContactMessagesWrapper />} />
+                        <Route path="/admin/customers" element={<CustomersWrapper />} />
+                        <Route path="/admin/settings" element={<SettingsWrapper />} />
+                        <Route path="/admin/brands" element={<BrandsWrapper />} />
+                        <Route path="/admin/categories" element={<CategoriesWrapper />} />
+                        <Route path="/admin/coupons" element={<CouponWrapper />} />
+                      </Route>
 
-                          {/* Products */}
-                          <Route
-                            path="/admin/products"
-                            element={
-                              <AdminRoute><ProductsWrapper /></AdminRoute>
-                            }
-                          />
+                      {/* Fallback */}
+                      <Route path="*" element={<CustomerLayout><HomePage /></CustomerLayout>} />
+                    </Routes>
+                  </Suspense>
 
-                          {/* Product Edit */}
-                          <Route
-                            path="/admin/products/edit/:id"
-                            element={
-                              <AdminRoute><ProductEditWrapper /></AdminRoute>
-                            }
-                          />
+                </CartProvider>
+              </ProductProvider>
+            </CustomerOrderProvider>
+          </AdminProductProvider>
+        </EnhancedOrderProvider>
+      </AdminAuthProvider>
 
-                          {/* Orders */}
-                          <Route
-                            path="/admin/orders"
-                            element={
-                              <AdminRoute><OrdersWrapper /></AdminRoute>
-                            }
-                          />
-
-                          {/* Payment Tracking */}
-                          <Route
-                            path="/admin/payment-tracking"
-                            element={
-                              <AdminRoute><PaymentTrackingWrapper /></AdminRoute>
-                            }
-                          />
-
-                          {/* Analytics */}
-                          <Route
-                            path="/admin/analytics"
-                            element={
-                              <AdminRoute><AnalyticsWrapper /></AdminRoute>
-                            }
-                          />
-
-                          {/* Reports */}
-                          <Route
-                            path="/admin/reports"
-                            element={
-                              <AdminRoute><ReportsWrapper /></AdminRoute>
-                            }
-                          />
-
-                          {/* Upload */}
-                          <Route
-                            path="/admin/upload"
-                            element={
-                              <AdminRoute><UploadWrapper /></AdminRoute>
-                            }
-                          />
-
-                          {/* CMS */}
-                          <Route
-                            path="/admin/cms/home"
-                            element={<AdminRoute><HomeCMSWrapper /></AdminRoute>}
-                          />
-                          <Route
-                            path="/admin/cms/footer"
-                            element={<AdminRoute><FooterCMSWrapper /></AdminRoute>}
-                          />
-                          <Route
-                            path="/admin/cms/our-story"
-                            element={<AdminRoute><StoryCMSWrapper /></AdminRoute>}
-                          />
-
-                          {/* Pages */}
-                          <Route
-                            path="/admin/pages"
-                            element={<AdminRoute><PagesWrapper /></AdminRoute>}
-                          />
-
-                          {/* Contact Messages */}
-                          <Route
-                            path="/admin/contact-messages"
-                            element={<AdminRoute><ContactMessagesWrapper /></AdminRoute>}
-                          />
-
-                          {/* Customers */}
-                          <Route
-                            path="/admin/customers"
-                            element={<AdminRoute><CustomersWrapper /></AdminRoute>}
-                          />
-
-                          {/* Settings */}
-                          <Route
-                            path="/admin/settings"
-                            element={<AdminRoute><SettingsWrapper /></AdminRoute>}
-                          />
-
-                          {/* Brands */}
-                          <Route
-                            path="/admin/brands"
-                            element={<AdminRoute><BrandsWrapper /></AdminRoute>}
-                          />
-
-                          {/* Categories */}
-                          <Route
-                            path="/admin/categories"
-                            element={<AdminRoute><CategoriesWrapper /></AdminRoute>}
-                          />
-
-                          {/* Coupons */}
-                          <Route
-                            path="/admin/coupons"
-                            element={<AdminRoute><CouponWrapper /></AdminRoute>}
-                          />
-
-                          {/* Fallback */}
-                          <Route path="*" element={<CustomerLayout><HomePage /></CustomerLayout>} />
-                        </Routes>
-                      </Suspense>
-
-                  </CartProvider>
-                </ProductProvider>
-              </CustomerOrderProvider>
-            </AdminProductProvider>
-          </EnhancedOrderProvider>
-        </OrderProvider>
-      </>
-
-  </Router>
-)
+    </Router>
+  )
 }
 
 // ================= WRAPPERS (CLEAN FIX) =================
@@ -347,7 +243,7 @@ const HomeCMSWrapper = () => (
 const FooterCMSWrapper = () => (
   <Suspense fallback={<LoadingFallback />}>
     <AdminOnlyLayout>
-      <FooterEditor />
+        <FooterEditor />
     </AdminOnlyLayout>
   </Suspense>
 )
@@ -355,7 +251,7 @@ const FooterCMSWrapper = () => (
 const StoryCMSWrapper = () => (
   <Suspense fallback={<LoadingFallback />}>
     <AdminOnlyLayout>
-      <OurStoryEditor />
+        <OurStoryEditor />
     </AdminOnlyLayout>
   </Suspense>
 )
@@ -395,7 +291,7 @@ const SettingsWrapper = () => (
 const CouponWrapper = () => (
   <Suspense fallback={<LoadingFallback />}>
     <AdminOnlyLayout>
-      <CouponManagement />
+        <CouponManagement />
     </AdminOnlyLayout>
   </Suspense>
 )

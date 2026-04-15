@@ -312,7 +312,7 @@ const ContactMessages = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Admin Notes</label>
                   <textarea
-                    value={selectedMessage.adminNotes || ''}
+                    value={selectedMessage.adminNotes ?? ""}
                     onChange={(e) => setSelectedMessage({...selectedMessage, adminNotes: e.target.value})}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#ae0b0b]"
                     rows={3}

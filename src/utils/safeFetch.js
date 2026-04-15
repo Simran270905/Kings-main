@@ -2,8 +2,8 @@
 class SafeFetch {
   constructor() {
     this.cache = new Map()
-    this.retryCount = 3
-    this.timeout = 5000 // 5 seconds
+    this.retryCount = 0 // Disable retry to prevent infinite loops
+    this.timeout = 15000 // 15 seconds
   }
 
   async fetch(url, options = {}) {
@@ -54,13 +54,13 @@ class SafeFetch {
         throw new Error('Request timeout - Please check your connection')
       }
 
-      // Retry logic
-      if (this.retryCount > 0) {
-        console.log(`🔄 Retrying fetch... (${this.retryCount} attempts left)`)
-        this.retryCount--
-        await new Promise(resolve => setTimeout(resolve, 1000)) // Wait 1 second
-        return this.fetch(url, options)
-      }
+      // Retry logic disabled to prevent infinite loops
+      // if (this.retryCount > 0) {
+      //   console.log(`🔄 Retrying fetch... (${this.retryCount} attempts left)`)
+      //   this.retryCount--
+      //   await new Promise(resolve => setTimeout(resolve, 1000)) // Wait 1 second
+      //   return this.fetch(url, options)
+      // }
 
       // Return fallback data if available
       const fallbackData = this.getFallbackData(url)

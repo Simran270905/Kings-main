@@ -1,95 +1,108 @@
 
-import React, { useState, useEffect } from 'react'
-import { AdminAuthContext } from './AdminAuthContextObject'
-import adminApi from '../utils/adminApiService'
+import React, { createContext, useContext, useState, 
+  useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-export function AdminAuthProvider({ children }) {
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false)
-  const [adminLoading, setAdminLoading] = useState(true)
+const AdminAuthContext = createContext(null);
 
-  // Production-ready: verify token on mount and on storage change
+export const AdminAuthProvider = ({ children }) => {
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const hasChecked = useRef(false);
+
   useEffect(() => {
-    const verifyToken = async () => {
-      setAdminLoading(true);
+    if (hasChecked.current) return;
+    hasChecked.current = true;
+
+    const checkAdmin = async () => {
+      // Emergency timeout - no matter what, stop loading after 8s
+      const emergencyTimer = setTimeout(() => {
+        setLoading(false);
+        setIsAdmin(false);
+        window.location.href = '/admin-login';
+      }, 8000);
+
       try {
-        const isValid = await adminApi.verifyToken();
-        setIsAdminAuthenticated(isValid);
-      } catch {
-        setIsAdminAuthenticated(false);
+        // Try ALL possible token key names
+        const token =
+          localStorage.getItem('kk_admin_token') ||
+          localStorage.getItem('adminToken') ||
+          localStorage.getItem('token') ||
+          localStorage.getItem('authToken') ||
+          localStorage.getItem('jwt') ||
+          localStorage.getItem('admin_token') ||
+          sessionStorage.getItem('kk_admin_token') ||
+          sessionStorage.getItem('adminToken') ||
+          sessionStorage.getItem('token');
+
+        if (!token) {
+          console.log('No token - redirecting to login');
+          setIsAdmin(false);
+          setLoading(false);
+          clearTimeout(emergencyTimer);
+          navigate('/admin/login');
+          return;
+        }
+
+        // Call verify API with 10s timeout
+        const controller = new AbortController();
+        const apiTimeout = setTimeout(() => 
+          controller.abort(), 10000);
+
+        // USE THE ACTUAL VERIFY ENDPOINT FROM adminApiService.js
+        const response = await fetch(
+          `/api/admin/verify`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            signal: controller.signal
+          }
+        );
+        clearTimeout(apiTimeout);
+
+        if (response.ok) {
+          const data = await response.json();
+          // Check all possible admin field names
+          const adminStatus = 
+            data?.isAdmin || 
+            data?.user?.isAdmin ||
+            data?.data?.isAdmin ||
+            data?.role === 'admin' ||
+            data?.user?.role === 'admin' ||
+            data?.data?.role === 'admin' ||
+            data?.success === true ||
+            false;
+
+          setIsAdmin(adminStatus);
+          if (!adminStatus) {
+            navigate('/admin/login');
+          }
+        } else {
+          setIsAdmin(false);
+          navigate('/admin/login');
+        }
+      } catch (error) {
+        console.error('Admin check failed:', error);
+        setIsAdmin(false);
+        navigate('/admin/login');
       } finally {
-        setAdminLoading(false);
+        clearTimeout(emergencyTimer);
+        setLoading(false); // ALWAYS runs no matter what
       }
     };
 
-    // Listen for storage changes (multi-tab support)
-    window.addEventListener('storage', verifyToken);
-    // Run on mount
-    verifyToken();
-    return () => window.removeEventListener('storage', verifyToken);
-  }, []);
-
-  //  LOGIN (FIXED)
-  async function loginAdmin(password) {
-    // STEP 7: FAIL SAFE UI - Wrap everything in try/catch
-    try {
-      const result = await adminApi.login(password);
-      
-      // Validate result structure
-      if (!result || typeof result !== 'object') {
-        throw new Error('Invalid login response from server');
-      }
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Login failed');
-      }
-      
-      // Force re-verify in all tabs/contexts
-      window.dispatchEvent(new Event('storage'));
-      setIsAdminAuthenticated(true);
-      setAdminLoading(false);
-
-      // Login successful - admin authenticated
-      return { success: true };
-
-    } catch (error) {
-      console.error(' AdminAuthContext login failed:', error.message);
-      setIsAdminAuthenticated(false);
-      setAdminLoading(false);
-      return { success: false, error: error.message };
-    }
-  };
-
-  // ✅ LOGOUT
-  const logoutAdmin = async () => {
-    try {
-      await adminApi.logout()
-    } catch (error) {
-      console.error('Logout error:', error)
-    } finally {
-      setIsAdminAuthenticated(false)
-    }
-  }
-
-  // ✅ VERIFY TOKEN MANUALLY
-  const verifyAdminToken = async () => {
-    try {
-      return await adminApi.verifyToken()
-    } catch {
-      return false
-    }
-  }
+    checkAdmin();
+  }, []); // empty - run ONCE only
 
   return (
-    <AdminAuthContext.Provider
-      value={{
-        isAdminAuthenticated,
-        adminLoading,
-        loginAdmin,
-        logoutAdmin,
-        verifyAdminToken,
-      }}
-    >
+    <AdminAuthContext.Provider value={{ isAdmin, loading, setIsAdmin, setLoading }}>
       {children}
     </AdminAuthContext.Provider>
-  )
-}
+  );
+};
+
+export const useAdminAuth = () => useContext(AdminAuthContext);

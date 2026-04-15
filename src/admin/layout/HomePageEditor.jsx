@@ -103,7 +103,7 @@ export default function HomePageEditor() {
 
         <input
           type="text"
-          value={content.announcement || ''}
+          value={content.announcement ?? ""}
           onChange={(e) =>
             handleFieldChange('announcement', e.target.value)
           }

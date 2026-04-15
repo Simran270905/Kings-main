@@ -184,7 +184,7 @@ export default function OurStoryEditor() {
         <div className="grid sm:grid-cols-2 gap-4">
           <Field label="Hero Title">
             <input
-              value={content.hero?.title || ''}
+              value={content.hero?.title ?? ""}
               onChange={e => set('hero.title', e.target.value)}
               placeholder="e.g. Wear Your Power"
               className={inputCls}
@@ -194,12 +194,12 @@ export default function OurStoryEditor() {
             <div className="flex items-center gap-3">
               <input
                 type="color"
-                value={content.hero?.bg || '#7a1c1c'}
+                value={content.hero?.bg ?? '#7a1c1c'}
                 onChange={e => set('hero.bg', e.target.value)}
                 className="h-10 w-14 cursor-pointer rounded border"
               />
               <input
-                value={content.hero?.bg || ''}
+                value={content.hero?.bg ?? ""}
                 onChange={e => set('hero.bg', e.target.value)}
                 placeholder="#7a1c1c"
                 className={`${inputCls} flex-1`}
@@ -209,7 +209,7 @@ export default function OurStoryEditor() {
         </div>
         <Field label="Hero Subtitle">
           <textarea
-            value={content.hero?.subtitle || ''}
+            value={content.hero?.subtitle ?? ""}
             onChange={e => set('hero.subtitle', e.target.value)}
             rows={2}
             placeholder="Short tagline under the title"
@@ -221,10 +221,10 @@ export default function OurStoryEditor() {
       {/* INTRO SECTION */}
       <Section title="Intro Block">
         <Field label="Intro Title">
-          <input value={content.intro?.title || ''} onChange={e => set('intro.title', e.target.value)} placeholder="e.g. Born From Power" className={inputCls} />
+          <input value={content.intro?.title ?? ""} onChange={e => set('intro.title', e.target.value)} placeholder="e.g. Born From Power" className={inputCls} />
         </Field>
         <Field label="Intro Description">
-          <textarea value={content.intro?.description || ''} onChange={e => set('intro.description', e.target.value)} rows={3} placeholder="Opening paragraph..." className={inputCls} />
+          <textarea value={content.intro?.description ?? ""} onChange={e => set('intro.description', e.target.value)} rows={3} placeholder="Opening paragraph..." className={inputCls} />
         </Field>
       </Section>
 
@@ -247,10 +247,10 @@ export default function OurStoryEditor() {
 
             <div className="grid sm:grid-cols-2 gap-3">
               <Field label="Title">
-                <input value={section.title || ''} onChange={e => updateSection(idx, 'title', e.target.value)} placeholder="Section title" className={inputCls} />
+                <input value={section.title ?? ""} onChange={e => updateSection(idx, 'title', e.target.value)} placeholder="Section title" className={inputCls} />
               </Field>
               <Field label="Layout">
-                <select value={section.layout || 'image-left'} onChange={e => updateSection(idx, 'layout', e.target.value)} className={inputCls}>
+                <select value={section.layout ?? 'image-left'} onChange={e => updateSection(idx, 'layout', e.target.value)} className={inputCls}>
                   <option value="image-left">Image Left</option>
                   <option value="image-right">Image Right</option>
                 </select>
@@ -258,7 +258,7 @@ export default function OurStoryEditor() {
             </div>
 
             <Field label="Description">
-              <textarea value={section.description || ''} onChange={e => updateSection(idx, 'description', e.target.value)} rows={3} placeholder="Section content..." className={inputCls} />
+              <textarea value={section.description ?? ""} onChange={e => updateSection(idx, 'description', e.target.value)} rows={3} placeholder="Section content..." className={inputCls} />
             </Field>
 
             <Field label="Section Image">
@@ -287,13 +287,13 @@ export default function OurStoryEditor() {
                     {uploadingIdx === `section.${idx}` ? 'Uploading...' : 'Upload Image'}
                   </button>
                   <input
-                    value={section.image || ''}
+                    value={section.image ?? ""}
                     onChange={e => updateSection(idx, 'image', e.target.value)}
                     placeholder="Or paste image URL"
                     className={inputCls}
                   />
                   <input
-                    value={section.imageAlt || ''}
+                    value={section.imageAlt ?? ""}
                     onChange={e => updateSection(idx, 'imageAlt', e.target.value)}
                     placeholder="Image alt text"
                     className={inputCls}
@@ -311,20 +311,20 @@ export default function OurStoryEditor() {
         action={<button onClick={addTimelineItem} className="flex items-center gap-1.5 text-xs font-semibold text-[#ae0b0b] hover:opacity-80"><PlusIcon className="h-3.5 w-3.5" />Add Item</button>}
       >
         <Field label="Timeline Section Title">
-          <input value={content.timeline?.title || ''} onChange={e => set('timeline.title', e.target.value)} placeholder="e.g. Our Journey" className={inputCls} />
+          <input value={content.timeline?.title ?? ""} onChange={e => set('timeline.title', e.target.value)} placeholder="e.g. Our Journey" className={inputCls} />
         </Field>
 
         <div className="space-y-2 mt-2">
           {(content.timeline?.items || []).map((item, idx) => (
             <div key={idx} className="flex items-center gap-3">
               <input
-                value={item.year || ''}
+                value={item.year ?? ""}
                 onChange={e => updateTimelineItem(idx, 'year', e.target.value)}
                 placeholder="Year"
                 className={`${inputCls} w-24`}
               />
               <input
-                value={item.event || ''}
+                value={item.event ?? ""}
                 onChange={e => updateTimelineItem(idx, 'event', e.target.value)}
                 placeholder="Milestone description"
                 className={`${inputCls} flex-1`}

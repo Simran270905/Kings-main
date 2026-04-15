@@ -26,6 +26,7 @@ export const EnhancedOrderProvider = ({ children }) => {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(false)
   const [lastFetch, setLastFetch] = useState(null)
+  const [initialized, setInitialized] = useState(false)
   const [filters, setFilters] = useState({
     status: '',
     paymentStatus: '',
@@ -44,7 +45,12 @@ export const EnhancedOrderProvider = ({ children }) => {
 
   // Fetch orders with enhanced payment details
   const fetchOrders = async (silent = false) => {
+    // Prevent duplicate calls
+    if (loading && !silent) return
+    
     try {
+      if (!silent) setLoading(true)
+      
       // Use adminApi for authenticated requests
       const data = await adminApi.getOrders()
       
@@ -74,11 +80,26 @@ export const EnhancedOrderProvider = ({ children }) => {
         }
       }
     } catch (error) {
-      console.error('❌ Enhanced orders fetch error:', error.message)
+      console.error('Enhanced orders fetch error:', error.message)
+      
+      // BUG 4: Stop retrying on session expired error
+      if (error.message?.includes('Session expired') || 
+          error.message?.includes('login again')) {
+        console.log('Session expired - clearing token and stopping retries')
+        localStorage.removeItem('kk_admin_token')
+        if (!silent) {
+          setOrders([])
+          setLoading(false)
+        }
+        return // Don't retry
+      }
+      
       if (!silent) {
         setOrders([])
         setLoading(false)
       }
+    } finally {
+      if (!silent) setLoading(false)
     }
   }
 
@@ -98,6 +119,31 @@ export const EnhancedOrderProvider = ({ children }) => {
     }
   }
 
+  // Update order status
+  const updateOrderStatus = async (orderId, status) => {
+    try {
+      const data = await adminApi.updateOrderStatus(orderId, status)
+
+      if (data.success) {
+        // Update the specific order in the list
+        setOrders(prev =>
+          prev.map(o => o._id === orderId ? { ...o, status } : o)
+        )
+        
+        // Update stats
+        await fetchOrders(true)
+        
+        console.log(`Order status updated: ${orderId} -> ${status}`)
+        return { success: true }
+      } else {
+        throw new Error(data.message || 'Failed to update order status')
+      }
+    } catch (error) {
+      console.error('Order status update error:', error.message)
+      return { success: false, error: error.message }
+    }
+  }
+
   // Mark COD order as paid
   const markCODOrderAsPaid = async (orderId, options = {}) => {
     try {
@@ -112,13 +158,13 @@ export const EnhancedOrderProvider = ({ children }) => {
         // Update stats
         await fetchOrders(true)
         
-        console.log(`💰 COD order marked as paid: ${orderId}`)
+        console.log(`COD order marked as paid: ${orderId}`)
         return data.data
       } else {
         throw new Error(data.message || 'Failed to mark COD order as paid')
       }
     } catch (error) {
-      console.error('❌ COD payment marking error:', error.message)
+      console.error('COD payment marking error:', error.message)
       throw error
     }
   }
@@ -153,31 +199,26 @@ export const EnhancedOrderProvider = ({ children }) => {
     }
   }
 
-  // Initial fetch and polling
+  // Initial fetch and polling - FIXED: Prevent duplicate calls
   useEffect(() => {
+    if (initialized) return // Prevent multiple initializations
+    
     const token = localStorage.getItem('kk_admin_token')
     if (token && token !== 'undefined') {
+      setInitialized(true)
       fetchOrders()
     }
-
-    // Poll every 30 seconds for real-time updates - DISABLED for development
-    // const interval = setInterval(() => {
-    //   const token = localStorage.getItem('kk_admin_token')
-    //   if (token && token !== 'undefined') {
-    //     fetchOrders(true) // silent fetch
-    //   }
-    // }, 30000)
-
-    // return () => clearInterval(interval)
   }, [])
 
-  // Refetch when filters change
+  // Refetch when filters change - FIXED: Only after initialization
   useEffect(() => {
+    if (!initialized) return // Wait for initialization first
+    
     const token = localStorage.getItem('kk_admin_token')
     if (token && token !== 'undefined') {
-      fetchOrders()
+      fetchOrders(true) // Silent fetch for filter changes
     }
-  }, [filters])
+  }, [filters, initialized])
 
   return (
     <EnhancedOrderContext.Provider
@@ -189,6 +230,7 @@ export const EnhancedOrderProvider = ({ children }) => {
         stats,
         fetchOrders,
         getOrderDetails,
+        updateOrderStatus,
         markCODOrderAsPaid,
         updateFilters,
         resetFilters,

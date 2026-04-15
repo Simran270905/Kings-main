@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useOrder } from '../context/OrderContext'
+import { useEnhancedOrder } from '../context/EnhancedOrderContext'
 import AdminCard from '../layout/AdminCard'
 import StatusBadge from '../components/StatusBadge'
 import StatCard from '../components/StatCard'
@@ -31,7 +31,7 @@ import {
 } from '../utils/adminSafetyUtils'
 
 const AdminOrders = () => {
-  const { orders, updateOrderStatus, getStats, loading, lastFetch, forceRefresh } = useOrder()
+  const { orders, fetchOrders, getOrderDetails, updateFilters, resetFilters, stats, loading, lastFetch } = useEnhancedOrder()
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [selectedOrderId, setSelectedOrderId] = useState(null)
   const [error, setError] = useState('')
@@ -44,8 +44,6 @@ const AdminOrders = () => {
   const filteredOrders = selectedStatus === 'all'
     ? safeOrders
     : safeOrders.filter(o => safeOrderStatus(o) === selectedStatus)
-
-  const stats = getStats()
 
   // ✅ FIXED (async)
   const handleStatusChange = async (orderId, newStatus) => {
@@ -77,7 +75,7 @@ const AdminOrders = () => {
       
       if (result.success) {
         alert('Remaining payment marked as paid successfully!')
-        forceRefresh() // Refresh orders to show updated status
+        fetchOrders() // Refresh orders to show updated status
       } else {
         alert('Error: ' + (result.message || 'Failed to update payment status'))
       }
@@ -110,7 +108,7 @@ const AdminOrders = () => {
           </p>
         </div>
         <button
-          onClick={forceRefresh}
+          onClick={fetchOrders}
           disabled={loading}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >

@@ -7,6 +7,7 @@ const FormInput = forwardRef(({
   required = false,
   className = '',
   inputClassName = '',
+  value,
   ...props 
 }, ref) => {
   return (
@@ -19,6 +20,7 @@ const FormInput = forwardRef(({
       )}
       <input
         ref={ref}
+        value={value ?? ""}
         className={`
           w-full px-4 py-2.5 
           border-2 rounded-xl

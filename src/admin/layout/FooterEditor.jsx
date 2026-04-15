@@ -128,19 +128,19 @@ export default function FooterEditor() {
         <h2 className="text-lg font-semibold mb-4">Brand Information</h2>
 
         <input
-          value={content.brandName || ''}
+          value={content.brandName ?? ""}
           onChange={(e) => handleFieldChange('brandName', e.target.value)}
           className="w-full px-3 py-2 border rounded-lg mb-3"
         />
 
         <textarea
-          value={content.tagline || ''}
+          value={content.tagline ?? ""}
           onChange={(e) => handleFieldChange('tagline', e.target.value)}
           className="w-full px-3 py-2 border rounded-lg mb-3"
         />
 
         <input
-          value={content.trustline || ''}
+          value={content.trustline ?? ""}
           onChange={(e) => handleFieldChange('trustline', e.target.value)}
           className="w-full px-3 py-2 border rounded-lg"
         />

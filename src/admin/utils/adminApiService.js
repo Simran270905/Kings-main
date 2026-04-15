@@ -8,6 +8,26 @@ class AdminApiService {
   constructor() {
     this.baseURL = API_BASE_URL
     this.token = null
+    
+    // Create axios instance with timeout configuration
+    this.axios = axios.create({
+      baseURL: this.baseURL,
+      timeout: 10000, // 10 second timeout
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    
+    // Add response interceptor for error handling
+    this.axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.code === 'ECONNABORTED') {
+          error.message = 'Request timeout - please try again'
+        }
+        return Promise.reject(error)
+      }
+    )
   }
 
   // SAFE API CALL WRAPPER - Does NOT swallow errors
@@ -22,7 +42,7 @@ class AdminApiService {
     }
   }
 
-  // 🔐 Get token from localStorage
+  // Get token from localStorage
   getToken() {
     if (!this.token) {
       this.token = localStorage.getItem('kk_admin_token')
@@ -30,7 +50,6 @@ class AdminApiService {
     return this.token
   }
 
-  // 🔐 Set token
   setToken(token) {
     this.token = token
     if (token) {
@@ -40,7 +59,7 @@ class AdminApiService {
     }
   }
 
-  // 🔐 Clear token (logout)
+  // Clear token (logout)
   clearToken() {
     this.token = null
     localStorage.removeItem('kk_admin_token')
@@ -88,8 +107,8 @@ class AdminApiService {
   // Admin login
   async login(password) {
     try {
-      // Use axios directly without safeApiCall
-      const response = await axios.post(`${this.baseURL}/admin/login`, { password })
+      // Use configured axios instance
+      const response = await this.axios.post('/admin/login', { password })
 
       // Check if response is HTML (indicates routing issue)
       const contentType = response.headers['content-type']
@@ -147,43 +166,68 @@ class AdminApiService {
   }
 
   // Verify admin token
-  async verifyToken() {
+  async verifyToken(signal = null) {
     try {
+      console.log("ð verifyToken: Starting verification");
       const token = this.getToken();
       
-      // Only call API if token exists
+      // STEP 4: FIX TOKEN ISSUE - Handle null token immediately
       if (!token) {
+        console.log("â No token found - returning false");
         return false;
       }
+
+      console.log("ð verifyToken: Token found, calling API");
+
+      // Add timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+      // Use provided signal or create our own
+      const finalSignal = signal || controller.signal;
 
       const response = await fetch(`${this.baseURL}/admin/verify`, {
         headers: {
           'Authorization': `Bearer ${token}`
-        }
-      })
+        },
+        signal: finalSignal
+      });
+
+      clearTimeout(timeoutId);
+
+      console.log("ð verifyToken: API response status:", response.status);
 
       if (response.status === 401) {
+        console.log("â 401 Unauthorized - clearing token");
         this.clearToken()
         return false
       }
 
       // Check if response is ok before parsing JSON
       if (!response.ok) {
+        console.log("â Response not ok - clearing token");
         this.clearToken()
         return false
       }
 
       const contentType = response.headers.get('content-type')
+      
       if (contentType && contentType.includes('application/json')) {
         const data = await response.json()
+        console.log("â API response data:", data);
         return data.success === true
       } else {
         // If not JSON, assume invalid
+        console.log("â Response not JSON - clearing token");
         this.clearToken()
         return false
       }
     } catch (error) {
-      console.error(`❌ Token verification error:`, error.message)
+      if (error.name === 'AbortError') {
+        console.error("â Token verification timeout");
+      } else {
+        console.error("â Token verification error:", error.message);
+      }
       this.clearToken()
       return false
     }

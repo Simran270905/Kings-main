@@ -19,7 +19,8 @@ const request = async (endpoint, options = {}) => {
     headers: {
       ...defaultHeaders,
       ...options.headers
-    }
+    },
+    signal: AbortSignal.timeout(15000) // 15 second timeout
   }
 
   const url = buildUrl(endpoint);

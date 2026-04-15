@@ -18,12 +18,18 @@ const [orders, setOrders] = useState([])
 const [loading, setLoading] = useState(false)
 const [error, setError] = useState(null)
 const [lastFetch, setLastFetch] = useState(null)
+const [initialized, setInitialized] = useState(false)
 
 useEffect(() => {
+if (initialized) return // Prevent multiple initializations
+setInitialized(true)
 fetchOrders()
 }, [])
 
 const fetchOrders = async (silent = false) => {
+// Prevent duplicate calls
+if (loading && !silent) return
+
 try {
 if (!silent) setLoading(true)
 
@@ -32,6 +38,18 @@ if (!silent) setLoading(true)
   setOrders(Array.isArray(newOrders) ? newOrders : [])
   setLastFetch(new Date())
 } catch (err) {
+  // BUG 4: Stop retrying on session expired error
+  if (err.message?.includes('Session expired') || 
+      err.message?.includes('login again')) {
+    console.log('Session expired - clearing token and stopping retries')
+    localStorage.removeItem('kk_admin_token')
+    if (!silent) {
+      setError(err.message)
+      setOrders([])
+      return // Don't retry
+    }
+  }
+  
   setError(err.message)
   if (!silent) setOrders([])
 } finally {

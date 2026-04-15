@@ -1,6 +1,6 @@
 import { useAdminProduct } from '../context/AdminProductContext'
 import { useCart } from '../../context/useCart'
-import { useOrder } from '../context/OrderContext'
+import { useEnhancedOrder } from '../context/EnhancedOrderContext'
 import { useAnalytics } from '../hooks/useRealAnalytics'
 import { useMemo, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -43,14 +43,15 @@ const Loader = () => (
 )
 
 export default function Dashboard() {
-  // ✅ ALL HOOKS MUST BE AT TOP LEVEL
+  // ALL HOOKS MUST BE AT TOP LEVEL
   const { products, loading: productsLoading, getTotalStock, getLowStockCount, refreshProducts } = useAdminProduct()
-  const { orders, loading: ordersLoading, refreshOrders } = useOrder()
+  const { orders, loading: ordersLoading, fetchOrders } = useEnhancedOrder()
   const analytics = useAnalytics()
   
-  // ✅ Add loading state for initial data load
+  // Add loading state for initial data load
   const [loading, setLoading] = useState(true)
   
+  // Add error state for error handling
   // ✅ Add error state for error handling
   const [error, setError] = useState(null)
   

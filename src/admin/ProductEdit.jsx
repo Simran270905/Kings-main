@@ -36,7 +36,13 @@ const ProductEdit = () => {
     isActive: true,
     isBestSeller: false,
     isOnSale: false,
-    discountPercentage: ''
+    discountPercentage: '',
+    // Ensure no undefined fields
+    discountAmount: '',
+    tags: '',
+    metaTitle: '',
+    metaDescription: '',
+    specifications: {}
   })
 
   const [categories, setCategories] = useState([])
@@ -64,7 +70,7 @@ const ProductEdit = () => {
     const fetchAll = async () => {
       try {
         const [productRes, catRes, brandRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/products/${id}`),
+          fetch(`${API_BASE_URL}/products/${id}?populate=category,brand`),
           fetch(`${API_BASE_URL}/categories`),
           fetch(`${API_BASE_URL}/brands`)
         ])
@@ -83,8 +89,8 @@ const ProductEdit = () => {
           originalPrice: product.originalPrice || '',
           price: product.price || '',
           selling_price: product.selling_price || '',
-          category: product.category || '',
-          brand: product.brand || '',
+          category: product.category?._id || product.category || '',
+          brand: product.brand?._id || product.brand || '',
           images: product.images || [],
           stock: product.stock || '1',
           hasSizes: product.hasSizes || false,
@@ -96,7 +102,13 @@ const ProductEdit = () => {
           isActive: product.isActive !== undefined ? product.isActive : true,
           isBestSeller: product.isBestSeller || false,
           isOnSale: product.isOnSale || false,
-          discountPercentage: product.discountPercentage || ''
+          discountPercentage: product.discountPercentage || '',
+          // Ensure no undefined fields
+          discountAmount: product.discountAmount || '',
+          tags: product.tags || '',
+          metaTitle: product.metaTitle || '',
+          metaDescription: product.metaDescription || '',
+          specifications: product.specifications || {}
         }
         
         setFormData(productFormData)
@@ -143,7 +155,12 @@ const ProductEdit = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
-    const newValue = type === 'checkbox' ? checked : value
+    let newValue = type === 'checkbox' ? checked : value
+    
+    // Handle number inputs properly
+    if (type === 'number') {
+      newValue = value === "" ? "" : Number(value)
+    }
     
     setFormData(prev => ({ 
       ...prev, 
@@ -394,17 +411,30 @@ const ProductEdit = () => {
     try {
       const token = localStorage.getItem('kk_admin_token')
       
-      const product = {
+      const payload = {
         ...formData,
         purchasePrice: Number(formData.purchasePrice) || 0,
         originalPrice: Number(formData.originalPrice) || 0,
-        price,
-        selling_price: formData.selling_price ? Number(formData.selling_price) : null,
+        sellingPrice: formData.selling_price ? Number(formData.selling_price) : null,
         stock: formData.hasSizes ? 0 : (Number(formData.stock) || 1),
-        weight: formData.weight ? Number(formData.weight) : null,
+        weight: formData.weight ? Number(formData.weight) : undefined,
         discountPercentage: formData.discountPercentage ? Number(formData.discountPercentage) : 0,
+        discountAmount: Number(formData.discountAmount) || 0,
         updatedAt: new Date().toISOString()
       }
+
+      // Remove fields that shouldn't be sent
+      delete payload.selling_price
+      delete payload.price
+
+      // Clean payload - remove empty strings and null values
+      Object.keys(payload).forEach(key => {
+        if (payload[key] === "" || payload[key] === null || payload[key] === undefined) {
+          delete payload[key]
+        }
+      })
+
+      console.log("FINAL PAYLOAD:", payload)
 
       const res = await fetch(`${API_BASE_URL}/products/${id}`, {
         method: 'PUT',
@@ -412,7 +442,7 @@ const ProductEdit = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(product)
+        body: JSON.stringify(payload)
       })
 
       if (!res.ok) {
@@ -538,7 +568,7 @@ const ProductEdit = () => {
                     {categories.length === 0 ? 'No categories — add from Admin → Categories' : 'Select a category...'}
                   </option>
                   {categories.map(cat => (
-                    <option key={cat._id} value={cat.name}>{cat.name}</option>
+                    <option key={cat._id} value={cat._id}>{cat.name}</option>
                   ))}
                 </select>
               </div>
@@ -549,7 +579,7 @@ const ProductEdit = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Brand</label>
                 <select
                   name="brand"
-                  value={formData.brand || ''}
+                  value={formData.brand ?? ""}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ae0b0b] focus:border-transparent"
                 >
@@ -557,7 +587,7 @@ const ProductEdit = () => {
                     {brands.length === 0 ? 'No brands — add from Admin → Brands' : 'Select a brand (optional)...'}
                   </option>
                   {brands.map(brand => (
-                    <option key={brand._id} value={brand.name}>{brand.name}</option>
+                    <option key={brand._id} value={brand._id}>{brand.name}</option>
                   ))}
                 </select>
               </div>

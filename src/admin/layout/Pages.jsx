@@ -139,7 +139,7 @@ function PageEditor({ page, onSave, onClose }) {
 
       <AdminCard>
         <input
-          value={content.title || ''}
+          value={content.title ?? ""}
           onChange={(e) =>
             setContent(prev => ({ ...prev, title: e.target.value }))
           }

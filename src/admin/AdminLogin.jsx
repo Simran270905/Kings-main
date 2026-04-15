@@ -1,13 +1,13 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAdminAuth } from './context/useAdminAuth'
+import { useAdminAuth } from './context/AdminAuthContext'
 import { API_BASE_URL } from '../config/api'
 
 const API_BASE = `${API_BASE_URL}/admin`
 
 const AdminLogin = () => {
   const navigate = useNavigate()
-  const { loginAdmin } = useAdminAuth()
+  const { setIsAdmin, setLoading } = useAdminAuth()
 
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -18,25 +18,42 @@ const AdminLogin = () => {
     setError('')
     setIsLoading(true)
 
-    // STEP 7: FAIL SAFE UI - Wrap everything in try/catch
     try {
       if (!password.trim()) {
         throw new Error('Password is required')
       }
 
-      // Use context (IMPORTANT)
-      const result = await loginAdmin(password)
+      // Direct API call for login
+      const response = await fetch(`${API_BASE}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password })
+      })
 
-      // Add null guard for result
-      if (!result || typeof result !== 'object' || !result.success) {
-        throw new Error(result?.error || 'Login failed')
+      if (!response.ok) {
+        throw new Error('Login failed')
       }
 
-      // redirect AFTER state update
+      const data = await response.json()
+      
+      if (!data.success || !data.data?.token) {
+        throw new Error(data.message || 'Login failed')
+      }
+
+      // Save token with correct key
+      localStorage.setItem('kk_admin_token', data.data.token)
+      
+      // Update context state
+      setIsAdmin(true)
+      setLoading(false)
+
+      // Navigate to admin
       navigate('/admin')
 
     } catch (err) {
-      console.error(' Login error:', err.message)
+      console.error('Login error:', err.message)
       setError(err.message || 'Login failed')
     } finally {
       setIsLoading(false)

@@ -8,6 +8,7 @@ const FormTextarea = forwardRef(({
   className = '',
   textareaClassName = '',
   rows = 4,
+  value,
   ...props 
 }, ref) => {
   return (
@@ -21,6 +22,7 @@ const FormTextarea = forwardRef(({
       <textarea
         ref={ref}
         rows={rows}
+        value={value ?? ""}
         className={`
           w-full px-4 py-2.5 
           border-2 rounded-xl

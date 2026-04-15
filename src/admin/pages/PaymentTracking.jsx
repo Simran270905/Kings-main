@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useOrder } from '../context/OrderContext'
+import { useEnhancedOrder } from '../context/EnhancedOrderContext'
 import AdminCard from '../layout/AdminCard'
 import AdminButton from '../layout/AdminButton'
 
@@ -23,8 +23,8 @@ export default function PaymentTracking() {
     fetchOrders,
     getOrderDetails,
     updateOrderStatus,
-    getStats
-  } = useOrder()
+    stats
+  } = useEnhancedOrder()
 
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [orderDetails, setOrderDetails] = useState(null)

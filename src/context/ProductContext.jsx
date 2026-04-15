@@ -74,6 +74,7 @@ export const ProductProvider = ({ children }) => {
   const lastProductsFetch = useRef(null)
 
   const [loading, setLoading] = useState(true)
+  const [loaded, setLoaded] = useState(false)
   const [lastFetch, setLastFetch] = useState(null)
   const [error, setError] = useState(null)
 
@@ -86,6 +87,11 @@ export const ProductProvider = ({ children }) => {
    * Enhanced with caching and error handling
    */
   const fetchData = useCallback(async () => {
+    // Prevent multiple calls
+    if (loaded) {
+      return
+    }
+    
     setLoading(true)
     setError(null)
     
@@ -95,6 +101,8 @@ export const ProductProvider = ({ children }) => {
       const lastFetch = lastProductsFetch.current
       
       if (lastFetch && (now - lastFetch) < 30 * 1000) {
+        setLoaded(true)
+        setLoading(false)
         return
       }
 
@@ -121,12 +129,13 @@ export const ProductProvider = ({ children }) => {
       setCategories(apiCategories || [])
       setLastFetch(Date.now())
       lastProductsFetch.current = Date.now() // Update ref for cache check
+      setLoaded(true) // Mark as loaded to prevent future calls
     } catch (error) {
       console.error('❌ Error fetching data:', error)
       
-      // Handle 429 rate limit errors specifically
+      // Handle 429 rate limit errors specifically - NO AUTO RETRY
       if (error.message.includes('429') || error.message.includes('Too many requests')) {
-        setTimeout(() => fetchData(), 10000)
+        setError('Rate limit exceeded. Please refresh the page.')
         return
       }
       
@@ -134,11 +143,11 @@ export const ProductProvider = ({ children }) => {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [loaded])
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [fetchData])
 
   // ========================================================================
   // REAL-TIME SYNC EVENT LISTENERS
@@ -196,7 +205,7 @@ export const ProductProvider = ({ children }) => {
       window.removeEventListener('adminProductUpdated', handleAdminProductUpdate)
       if (syncInterval) clearInterval(syncInterval)
     }
-  }, [fetchData, products])
+  }, [fetchData])
 
   /**
    * Fetch categories separately (for real-time updates)
@@ -215,6 +224,7 @@ export const ProductProvider = ({ children }) => {
    */
   const refreshProducts = useCallback(async () => {
     setLastFetch(null) // Force refresh
+    setLoaded(false) // Reset loaded state to allow refresh
     await fetchData()
   }, [fetchData])
 
