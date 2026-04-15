@@ -315,10 +315,6 @@ const ProductUpload = () => {
       return
     }
 
-    // ✅ STEP 4: ADD LOG BEFORE SUBMIT
-    console.log("Submitting:", formData)
-    console.log("Parsed values:", { purchasePrice, originalPrice, sellingPrice, stock })
-
     setIsSubmitting(true)
 
     try {
@@ -350,6 +346,8 @@ const ProductUpload = () => {
         isOnSale: formData.isOnSale || false,
         discountPercentage: formData.discountPercentage ? Number(formData.discountPercentage) : 0
       }
+
+      console.log("Final payload being sent:", payload)
 
       const res = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
@@ -476,7 +474,7 @@ const ProductUpload = () => {
                     {categories.length === 0 ? 'No categories — add from Admin → Categories' : 'Select a category...'}
                   </option>
                   {categories.map(cat => (
-                    <option key={cat._id} value={cat.name}>{cat.name}</option>
+                    <option key={cat._id} value={cat._id}>{cat.name}</option>
                   ))}
                 </select>
                 {categories.length === 0 && (
@@ -498,7 +496,7 @@ const ProductUpload = () => {
                     {brands.length === 0 ? 'No brands — add from Admin → Brands' : 'Select a brand (optional)...'}
                   </option>
                   {brands.map(brand => (
-                    <option key={brand._id} value={brand.name}>{brand.name}</option>
+                    <option key={brand._id} value={brand._id}>{brand.name}</option>
                   ))}
                 </select>
                 {brands.length === 0 && (
