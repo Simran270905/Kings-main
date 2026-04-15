@@ -113,6 +113,7 @@ const ProductUpload = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [errors, setErrors] = useState({})
   const [failedImages, setFailedImages] = useState(new Set()) // Track failed images
 
   const handleInputChange = (e) => {
@@ -219,23 +220,60 @@ const ProductUpload = () => {
     }))
   }
 
+  const validate = () => {
+    const newErrors = {}
+    
+    if (!formData.name?.trim()) {
+      newErrors.name = 'Product name is required'
+    }
+    
+    if (!formData.description?.trim()) {
+      newErrors.description = 'Product description is required'
+    }
+    
+    if (!formData.category) {
+      newErrors.category = 'Category is required'
+    }
+    
+    const purchasePrice = Number(formData.purchasePrice)
+    const originalPrice = Number(formData.originalPrice)
+    const sellingPrice = Number(formData.selling_price)
+    
+    if (!formData.purchasePrice || isNaN(purchasePrice) || purchasePrice < 0) {
+      newErrors.purchasePrice = 'Valid purchase price is required'
+    }
+    
+    if (!formData.originalPrice || isNaN(originalPrice) || originalPrice < 0) {
+      newErrors.originalPrice = 'Valid MRP price is required'
+    }
+    
+    if (!formData.selling_price || isNaN(sellingPrice) || sellingPrice < 0) {
+      newErrors.selling_price = 'Valid selling price is required'
+    }
+    
+    // Pricing logic validation
+    if (sellingPrice > originalPrice) {
+      newErrors.selling_price = 'Selling price cannot be greater than MRP'
+    }
+    
+    if (sellingPrice < purchasePrice) {
+      newErrors.selling_price = 'Selling price must be higher than purchase price'
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (isSubmitting) return
 
     setError('')
     setSuccess('')
+    setErrors({})
 
-    // ✅ STEP 1: FIX VALIDATION FIELD NAMES
-    // ✅ STEP 2: INCLUDE ALL REQUIRED FIELDS
-    if (
-      !formData.name ||
-      !formData.category ||
-      !formData.selling_price ||
-      !formData.originalPrice ||
-      !formData.purchasePrice
-    ) {
-      setError('Please fill all required fields')
+    // Frontend validation
+    if (!validate()) {
       return
     }
 
@@ -325,8 +363,14 @@ const ProductUpload = () => {
       const data = await res.json()
 
       if (!res.ok) {
-        const errMsg = data.message || data.error || 'Failed to add product'
-        setError(errMsg)
+        // Handle backend validation errors
+        if (data.errors && typeof data.errors === 'object') {
+          setErrors(data.errors)
+          setError('Please fix the validation errors below')
+        } else {
+          const errMsg = data.message || data.error || 'Failed to add product'
+          setError(errMsg)
+        }
         return
       }
 
@@ -403,6 +447,7 @@ const ProductUpload = () => {
           <div>
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
             <div className="grid md:grid-cols-2 gap-6">
+              <div>
               <FormInput
                 label="Product Name"
                 name="name"
@@ -411,6 +456,10 @@ const ProductUpload = () => {
                 placeholder="Enter product name"
                 required
               />
+              {errors.name && (
+                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+              )}
+            </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
