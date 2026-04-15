@@ -429,7 +429,7 @@ const ProductEdit = () => {
         purchasePrice: Number(formData.purchasePrice) || 0,
         originalPrice: Number(formData.originalPrice) || 0,
         sellingPrice: Number(formData.sellingPrice),
-        stock: formData.hasSizes ? 0 : (Number(formData.stock) || 1),
+        stock: formData.hasSizes ? 0 : Number(formData.stock),
         weight: formData.weight ? Number(formData.weight) : undefined,
         discountPercentage: formData.discountPercentage ? Number(formData.discountPercentage) : 0,
         updatedAt: new Date().toISOString()
