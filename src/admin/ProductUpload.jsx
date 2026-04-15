@@ -264,56 +264,81 @@ const ProductUpload = () => {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (isSubmitting) return
+  const testDirectAPICall = async () => {
+    console.log('=== TESTING DIRECT API CALL ===')
+    
+    const token = localStorage.getItem('kk_admin_token')
+    if (!token) {
+      console.error('No admin token found')
+      setError('No admin token found')
+      return
+    }
+    
+    const testPayload = {
+      name: 'Test Product ' + Date.now(),
+      description: 'Test description for debugging',
+      originalPrice: 1000,
+      sellingPrice: 800,
+      purchasePrice: 500,
+      category: '50f1b2b3c4d5e6f7a8b9c0d1', // Replace with actual category ID
+      images: ['https://res.cloudinary.com/dkbxrhe1v/image/upload/v1776242526/kkings-jewellery/cdk6mddqokoclu4brgbw.png'],
+      stock: 10
+    }
+    
+    console.log('Test payload:', testPayload)
+    
+    try {
+      const res = await fetch(`${API_BASE_URL}/products`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(testPayload)
+      })
+      
+      console.log('Test response status:', res.status)
+      const data = await res.json()
+      console.log('Test response data:', data)
+      
+      if (res.ok) {
+        setSuccess('TEST: Product created successfully!')
+      } else {
+        setError(`TEST: ${data.message || 'Failed to create product'}`)
+      }
+    } catch (error) {
+      console.error('Test API error:', error)
+      setError(`TEST: ${error.message}`)
+    }
+  }
 
+  const handleSubmit = async (e) => {
+    console.log('=== handleSubmit called ===')
+    e.preventDefault()
+    if (isSubmitting) {
+      console.log('Already submitting, returning...')
+      return
+    }
+
+    // DEBUG: Add test bypass
+    if (e.shiftKey && e.altKey) {
+      console.log('DEBUG MODE: Bypassing validation')
+      await testDirectAPICall()
+      return
+    }
+
+    console.log('Starting product submission...')
     setError('')
     setSuccess('')
     setErrors({})
 
     // Frontend validation
     if (!validate()) {
+      console.log('Frontend validation failed')
       return
     }
-
-    // ✅ STEP 3: FIX NUMBER CONVERSION & VALIDATION
-    const purchasePrice = Number(formData.purchasePrice)
-    const originalPrice = Number(formData.originalPrice)
-    const sellingPrice = Number(formData.selling_price)
-    const stock = Number(formData.stock)
-
-    if (purchasePrice < 0) {
-      setError('Purchase price must be a positive number')
-      return
-    }
-
-    if (originalPrice < 0) {
-      setError('Original price must be a positive number')
-      return
-    }
-
-    if (sellingPrice < 0) {
-      setError('Selling price must be a positive number')
-      return
-    }
-
-    // ✅ STEP 7: LOGICAL VALIDATION
-    if (sellingPrice < purchasePrice) {
-      setError('Selling price must be higher than purchase price')
-      return
-    }
-
-    // ✅ NEW VALIDATION: Selling price cannot be greater than MRP (original price)
-    if (sellingPrice > originalPrice) {
-      setError('Selling price cannot be greater than MRP (original price)')
-      return
-    }
-
-    if (!formData.description) {
-      setError('Product description is required')
-      return
-    }
+    console.log('Frontend validation passed')
+    // Frontend validation already handled by validate() function
 
     setIsSubmitting(true)
 
@@ -349,6 +374,12 @@ const ProductUpload = () => {
 
       console.log("Final payload being sent:", payload)
 
+      console.log('Making API call to:', `${API_BASE_URL}/products`)
+      console.log('Request headers:', {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token ? '***' : 'MISSING'}`
+      })
+
       const res = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
         headers: {
@@ -358,15 +389,22 @@ const ProductUpload = () => {
         body: JSON.stringify(payload)
       })
 
+      console.log('Response status:', res.status)
+      console.log('Response headers:', Object.fromEntries(res.headers.entries()))
+
       const data = await res.json()
+      console.log('Response data:', data)
 
       if (!res.ok) {
+        console.log('Request failed with status:', res.status)
         // Handle backend validation errors
         if (data.errors && typeof data.errors === 'object') {
+          console.log('Backend validation errors:', data.errors)
           setErrors(data.errors)
           setError('Please fix the validation errors below')
         } else {
           const errMsg = data.message || data.error || 'Failed to add product'
+          console.log('Backend error message:', errMsg)
           setError(errMsg)
         }
         return
@@ -818,6 +856,16 @@ const ProductUpload = () => {
           </div>
 
           <div className="flex gap-4 pt-6 border-t border-gray-200">
+            <AdminButton
+              type="button"
+              variant="secondary"
+              onClick={testDirectAPICall}
+              size="lg"
+              className="text-xs"
+            >
+              DEBUG: Test API
+            </AdminButton>
+            
             <AdminButton
               type="submit"
               loading={isSubmitting}
