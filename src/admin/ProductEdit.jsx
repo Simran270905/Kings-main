@@ -411,11 +411,12 @@ const ProductEdit = () => {
     try {
       const token = localStorage.getItem('kk_admin_token')
       
+      // STEP 5: FRONTEND SAFETY (ADMIN ONLY) - Convert to numbers before sending
       const payload = {
         ...formData,
         purchasePrice: Number(formData.purchasePrice) || 0,
         originalPrice: Number(formData.originalPrice) || 0,
-        sellingPrice: formData.selling_price ? Number(formData.selling_price) : null,
+        sellingPrice: Number(formData.sellingPrice), // Ensure number conversion
         stock: formData.hasSizes ? 0 : (Number(formData.stock) || 1),
         weight: formData.weight ? Number(formData.weight) : undefined,
         discountPercentage: formData.discountPercentage ? Number(formData.discountPercentage) : 0,
