@@ -358,20 +358,15 @@ const ProductEdit = () => {
   const validate = () => {
     const newErrors = {}
     
-    console.log('🔍 VALIDATION DEBUG - Form data:', formData)
-    
     if (!formData.name?.trim()) {
-      console.log('❌ Name validation failed:', formData.name)
       newErrors.name = 'Product name is required'
     }
     
     if (!formData.description?.trim()) {
-      console.log('❌ Description validation failed:', formData.description)
       newErrors.description = 'Product description is required'
     }
     
     if (!formData.category) {
-      console.log('❌ Category validation failed:', formData.category)
       newErrors.category = 'Category is required'
     }
     
@@ -379,40 +374,33 @@ const ProductEdit = () => {
     const originalPrice = Number(formData.originalPrice)
     const sellingPrice = Number(formData.sellingPrice)
     
-    console.log('💰 Price validation debug:', { purchasePrice, originalPrice, sellingPrice })
-    
-    if (!formData.purchasePrice || isNaN(purchasePrice) || purchasePrice < 0) {
-      console.log('❌ Purchase price validation failed')
+    // Allow empty purchase price for existing products
+    if (formData.purchasePrice !== undefined && formData.purchasePrice !== '' && (isNaN(purchasePrice) || purchasePrice < 0)) {
       newErrors.purchasePrice = 'Valid purchase price is required'
     }
     
     if (!formData.originalPrice || isNaN(originalPrice) || originalPrice < 0) {
-      console.log('❌ Original price validation failed')
       newErrors.originalPrice = 'Valid MRP price is required'
     }
     
-    if (formData.sellingPrice && (isNaN(sellingPrice) || sellingPrice < 0)) {
-      console.log('❌ Selling price validation failed')
+    // Allow empty selling price for existing products
+    if (formData.sellingPrice !== undefined && formData.sellingPrice !== '' && (isNaN(sellingPrice) || sellingPrice < 0)) {
       newErrors.sellingPrice = 'Valid selling price is required'
     }
     
     // Pricing logic validation
     if (sellingPrice > originalPrice) {
-      console.log('❌ Selling price > MRP validation failed')
       newErrors.sellingPrice = 'Selling price cannot be greater than MRP'
     }
     
     if (sellingPrice < purchasePrice) {
-      console.log('❌ Selling price < purchase price validation failed')
       newErrors.sellingPrice = 'Selling price must be higher than purchase price'
     }
     
     if (!formData.images || formData.images.length === 0) {
-      console.log('❌ Images validation failed:', formData.images)
       newErrors.images = 'At least one image is required'
     }
     
-    console.log('🚫 Final validation errors:', newErrors)
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -421,18 +409,15 @@ const ProductEdit = () => {
     e.preventDefault()
     if (isSubmitting) return
 
-    console.log('🔵 Form submission started')
     setError('')
     setSuccess('')
     setErrors({})
 
     // Frontend validation
     if (!validate()) {
-      console.log('❌ Frontend validation failed')
       return
     }
 
-    console.log('✅ Frontend validation passed')
     setIsSubmitting(true)
 
     try {
@@ -457,8 +442,6 @@ const ProductEdit = () => {
         }
       })
 
-      console.log("FINAL PAYLOAD:", payload)
-
       const res = await fetch(`${API_BASE_URL}/products/${id}`, {
         method: 'PUT',
         headers: {
@@ -468,11 +451,7 @@ const ProductEdit = () => {
         body: JSON.stringify(payload)
       })
 
-      console.log('🌐 API Request Status:', res.status)
-      console.log('🌐 API Request OK:', res.ok)
-
       const json = await res.json()
-      console.log('📦 API Response:', json)
 
       if (!res.ok) {
         // Handle backend validation errors
@@ -488,7 +467,6 @@ const ProductEdit = () => {
       
       // Guard against undefined data
       if (json.success && json.data) {
-        console.log('✅ Update successful - setting success message')
         setSuccess('Product updated successfully!')
         
         // Update form state with returned data (sync)
@@ -496,18 +474,15 @@ const ProductEdit = () => {
         setInitialData(json.data)
         
         // Trigger real-time sync event for customer side
-        console.log(' Triggering productUpdated event with data:', json.data)
         events.productUpdated(json.data)
         
         // Also trigger admin refresh
-        console.log(' Triggering adminProductUpdated event')
         window.dispatchEvent(new Event('adminProductUpdated'))
         
         setTimeout(() => {
           navigate('/admin/products')
         }, 1500)
       } else {
-        console.log('❌ Update failed - no success/data in response')
         throw new Error(json.message || 'Update failed - no data returned')
       }
     } catch (err) {
