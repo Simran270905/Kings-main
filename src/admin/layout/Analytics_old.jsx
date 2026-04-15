@@ -298,18 +298,14 @@ export default function Analytics() {
       </AdminCard>
     </div>
   )
-}
-      value: selectedMetric === 'revenue'
-        ? month.revenue || 0
-        : month.orders || 0
-    }))
   }, [monthlyData, selectedMetric])
 
   const categoryData = useMemo(() => {
     const categories = {}
     products.forEach(product => {
       if (product.category) {
-        categories[product.category] = (categories[product.category] || 0) + 1
+        const categoryName = product.category.name || product.category
+        categories[categoryName] = (categories[categoryName] || 0) + 1
       }
     })
     return Object.entries(categories).map(([name, value]) => ({ name, value }))

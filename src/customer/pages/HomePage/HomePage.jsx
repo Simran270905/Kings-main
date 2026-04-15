@@ -54,16 +54,16 @@ function HomePage() {
         // Debug: Log the actual response structure
         console.log('Categories API Response:', catData)
         
-        // Handle different response structures
+        // Extract categories from API response
         let cats = []
-        if (Array.isArray(catData)) {
-          cats = catData
-        } else if (catData?.data && Array.isArray(catData.data)) {
-          cats = catData.data
+        if (catData?.data?.categories && Array.isArray(catData.data.categories)) {
+          cats = catData.data.categories
         } else if (catData?.categories && Array.isArray(catData.categories)) {
           cats = catData.categories
-        } else if (catData?.data?.categories && Array.isArray(catData.data.categories)) {
-          cats = catData.data.categories
+        } else if (catData?.data && Array.isArray(catData.data)) {
+          cats = catData.data
+        } else if (Array.isArray(catData)) {
+          cats = catData
         } else {
           console.warn('Unexpected categories response structure:', catData)
           cats = []
@@ -72,43 +72,61 @@ function HomePage() {
         console.log('Extracted categories:', cats)
         setCategories(cats)
 
-        // For each category, fetch its products
-        const productsMap = {}
-        if (cats.length > 0) {
-          await Promise.all(
-            cats.map(async (cat) => {
-              try {
-                const prodResponse = await fetch(
-                  `${API_BASE_URL}/products?category=${cat.name}&limit=8`
-                )
-                const prodData = await prodResponse.json()
-                
-                // Debug: Log products response
-                console.log(`Products for category ${cat.name}:`, prodData)
-                
-                const prods = prodData.products 
-                           || prodData.data?.products 
-                           || prodData.data 
-                           || prodData 
-                           || []
-                
-                // Ensure products is an array
-                const productsArray = Array.isArray(prods) ? prods : []
-                
-                if (productsArray.length > 0) {
-                  productsMap[cat._id] = productsArray
+        // Fetch products per category for COMPLETE coverage
+        try {
+          const productsMap = {}
+          
+          if (cats.length > 0) {
+            console.log('Fetching products per category for complete coverage...')
+            
+            // Fetch products for each category individually
+            await Promise.all(
+              cats.map(async (cat) => {
+                try {
+                  // Fetch products specifically for this category
+                  const prodResponse = await fetch(`${API_BASE_URL}/products?category=${cat._id}&limit=100`)
+                  const prodData = await prodResponse.json()
+                  
+                  console.log(`Products API response for ${cat.name}:`, prodData)
+                  
+                  const prods = prodData?.data?.products 
+                             || prodData?.products 
+                             || prodData?.data 
+                             || prodData 
+                             || []
+                  
+                  const categoryProducts = Array.isArray(prods) ? prods : []
+                  
+                  console.log(`Category "${cat.name}" (${cat._id}):`)
+                  console.log("- Products found:", categoryProducts.length)
+                  console.log("- Product IDs:", categoryProducts.map(p => p._id).slice(0, 5))
+                  
+                  if (categoryProducts.length > 0) {
+                    productsMap[cat._id] = categoryProducts
+                    console.log(`Added ${categoryProducts.length} products to category ${cat.name}`)
+                  } else {
+                    console.log(`No products found for category ${cat.name}`)
+                  }
+                } catch (err) {
+                  console.error(`Failed to fetch products for category ${cat.name}:`, err)
                 }
-              } catch (err) {
-                console.error(`Failed to fetch products for category ${cat.name}:`, err)
-              }
-            })
-          )
+              })
+            )
+          }
+          
+          console.log('Products by category map:', productsMap)
+          console.log('Final verification - Categories with products:', Object.keys(productsMap).length)
+          Object.keys(productsMap).forEach(catId => {
+            console.log(`Category ${catId}: ${productsMap[catId].length} products`)
+          })
+          setProductsByCategory(productsMap)
+        } catch (err) {
+          console.error('Failed to fetch products:', err)
+        } finally {
+          setLoading(false)
         }
-        
-        console.log('Products by category map:', productsMap)
-        setProductsByCategory(productsMap)
       } catch (err) {
-        console.error('Failed to fetch categories/products:', err)
+        console.error('Failed to fetch categories:', err)
       } finally {
         setLoading(false)
       }
@@ -136,6 +154,16 @@ function HomePage() {
         <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
           {categories.map(cat => {
             const catProducts = productsByCategory[cat._id];
+            
+            // STEP 4: DEBUG LOG - Verify category separation
+            console.log("=== RENDER DEBUG ===")
+            console.log("Category:", cat.name)
+            console.log("Category ID:", cat._id)
+            console.log("Products in this category:", catProducts?.length || 0)
+            if (catProducts && catProducts.length > 0) {
+              console.log("Product IDs:", catProducts.map(p => p._id).slice(0, 3))
+            }
+            
             if (!catProducts || catProducts.length === 0) return null;
 
             return (
@@ -152,7 +180,7 @@ function HomePage() {
                     href={`/shop?category=${cat._id}`}
                     className="text-[#c0392b] font-medium text-sm hover:underline self-start sm:self-auto"
                   >
-                    Explore →
+                    View All ({catProducts.length}) &rarr;
                   </a>
                 </div>
 
@@ -196,8 +224,15 @@ function HomePage() {
 
           {/* Show message if no categories have products */}
           {categories.length > 0 && Object.keys(productsByCategory).length === 0 && (
-            <div className="text-center py-8 sm:py-10 md:py-12 text-gray-500">
-              No products available in any category at the moment.
+            <div className="text-center py-8 sm:py-10 md:py-12">
+              <div className="text-gray-500 mb-4">
+                <h3 className="text-xl font-semibold mb-2">No products in categories</h3>
+                <p>Products need to be assigned to categories via the admin panel.</p>
+              </div>
+              <div className="text-sm text-gray-400 bg-gray-100 p-4 rounded-lg max-w-md mx-auto">
+                <p className="font-medium mb-1">For Admin:</p>
+                <p>Please edit products in the admin panel and assign appropriate categories.</p>
+              </div>
             </div>
           )}
 

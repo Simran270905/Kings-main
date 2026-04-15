@@ -98,7 +98,7 @@ export const getProductBrand = (product) => {
 if (!product) return '';
 
 return product.brand ||
-product.category ||
+product.category?.name ||
 '';
 };
 

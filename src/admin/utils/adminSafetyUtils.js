@@ -140,6 +140,11 @@ export const safeProductStock = (product) => {
  * Safe category name extraction
  */
 export const safeCategoryName = (category) => {
+  // Handle undefined, null, or non-object category values
+  if (!category || typeof category !== 'object') {
+    return 'No Category'
+  }
+  
   return safeString(category.name || category.title, 'Unnamed Category')
 }
 

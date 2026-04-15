@@ -320,7 +320,7 @@ export default function ProductDetails() {
               <p><span className="font-semibold">Material:</span> {currentProduct.material}</p>
               {currentProduct.purity && <p><span className="font-semibold">Purity:</span> {currentProduct.purity}</p>}
               {currentProduct.weight != null && <p><span className="font-semibold">Weight:</span> {currentProduct.weight} g</p>}
-              {currentProduct.category && <p><span className="font-semibold">Category:</span> {currentProduct.category}</p>}
+              {currentProduct.category && <p><span className="font-semibold">Category:</span> {currentProduct.category.name || currentProduct.category}</p>}
               {currentProduct.brand && <p><span className="font-semibold">Brand:</span> {currentProduct.brand}</p>}
               {currentProduct.sku && <p><span className="font-semibold">SKU:</span> {currentProduct.sku}</p>}
               

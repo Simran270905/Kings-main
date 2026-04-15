@@ -3,17 +3,28 @@ import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { CheckCircleIcon, ShoppingBagIcon, UserCircleIcon, TruckIcon, ClockIcon, MapPinIcon } from '@heroicons/react/24/outline'
 import PriceDisplay from '../../components/Shared/PriceDisplay.jsx'
 
+// Format price function
+const formatPrice = (value) => {
+  const num = Number(value);
+  return `Rs.${(isNaN(num) ? 0 : num).toLocaleString("en-IN")}`;
+};
+
 export default function OrderSuccess() {
   const location = useLocation()
   const navigate = useNavigate()
   const orderId = location.state?.orderId
   const paymentMethod = location.state?.paymentMethod || 'cod'
+  const paymentId = location.state?.paymentId
+  const amountPaid = location.state?.amountPaid
   const orderData = location.state?.orderData || {}
   
   const paymentText = paymentMethod === 'cod'
     ? 'Cash on Delivery (Pay when you receive your parcel)'
+    : paymentMethod === 'razorpay'
+    ? 'Online Payment via Razorpay (Transaction completed)'
     : paymentMethod === 'upi'
-    ? 'UPI Payment (Transaction completed)' : 'Card Payment (Transaction completed)'
+    ? 'UPI Payment (Transaction completed)' 
+    : 'Card Payment (Transaction completed)'
 
   const getOrderStatusText = (status) => {
     switch (status) {
@@ -84,6 +95,12 @@ export default function OrderSuccess() {
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Payment Method</p>
             <p className="text-sm font-medium text-gray-800">{paymentText}</p>
+            {paymentMethod === 'razorpay' && paymentId && (
+              <div className="mt-2 text-xs text-gray-600">
+                <p>Transaction ID: {paymentId}</p>
+                {amountPaid && <p>Amount Paid: {formatPrice(amountPaid)}</p>}
+              </div>
+            )}
           </div>
 
           {/* Order Status */}

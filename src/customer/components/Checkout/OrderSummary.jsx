@@ -5,8 +5,23 @@ import { useProduct } from '../../../context/ProductContext'
 import { validateCartStock, processOrderAndDecrementStock } from '../../utils/checkoutValidation'
 import { useOrder } from '../../../context/useOrder'
 import { API_BASE_URL } from '@config/api.js'
-import { recordSale } from '../../../admin/utils/analyticsStorage'
+// Analytics recording removed from customer flow
 import toast from 'react-hot-toast'
+
+// Razorpay integration
+const loadScript = (src) => {
+  return new Promise((resolve) => {
+    const script = document.createElement('script')
+    script.src = src
+    script.onload = () => {
+      resolve(true)
+    }
+    script.onabort = () => {
+      resolve(false)
+    }
+    document.body.appendChild(script)
+  })
+}
 
 // Inline formatPrice functions to bypass import issues
 const formatPrice = (value) => {
@@ -41,11 +56,118 @@ const OrderSummary = ({ address = {} }) => {
   const shippingCost = 0 // Free shipping
   const totalAmount = subtotal + tax + shippingCost
 
+  // Razorpay payment processing
+  const handleRazorpayPayment = async (orderData, orderId) => {
+    try {
+      // Load Razorpay script
+      const res = await loadScript('https://checkout.razorpay.com/v1/checkout.js')
+      if (!res) {
+        toast.error('Failed to load payment gateway. Please try again.')
+        return
+      }
+
+      const options = {
+        key: 'rzp_live_ScZU3xBVpGjz6I', // Your Razorpay Key ID
+        amount: totalAmount * 100, // Amount in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise or INR 500.
+        currency: 'INR',
+        name: 'KKings Jewellery',
+        description: `Order #${orderId}`,
+        image: 'https://res.cloudinary.com/dkbxrhe1v/image/upload/v1776179795/kkings-jewellery/txbb3wbem7wfjnpsnt5g.jpg',
+        order_id: orderId, // This is generated from backend
+        handler: async function (response) {
+          // Payment successful
+          console.log('Payment successful:', response)
+          
+          // Update order with payment details
+          try {
+            const paymentData = {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              paymentStatus: 'paid',
+              paymentMethod: 'razorpay',
+              amountPaid: response.amount / 100
+            }
+
+            // Update order with payment details
+            const updateResponse = await fetch(`${API_BASE_URL}/orders/${orderId}/payment`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(paymentData)
+            })
+
+            const updateResult = await updateResponse.json()
+            
+            if (updateResult.success) {
+              // Trigger Shiprocket order creation
+              try {
+                const shiprocketResponse = await fetch(`${API_BASE_URL}/orders/${orderId}/shiprocket`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  }
+                })
+
+                const shiprocketResult = await shiprocketResponse.json()
+                console.log('Shiprocket order created:', shiprocketResult)
+              } catch (shiprocketError) {
+                console.warn('Shiprocket integration warning:', shiprocketError)
+              }
+
+              // Clear cart and redirect to success page
+              clearCart()
+              navigate('/order-success', { 
+                state: { 
+                  orderId, 
+                  paymentMethod: 'razorpay',
+                  paymentId: response.razorpay_payment_id,
+                  amountPaid: response.amount / 100,
+                  orderData: { ...orderData, paymentStatus: 'paid' }
+                } 
+              })
+            } else {
+              toast.error('Failed to update order payment details')
+            }
+          } catch (updateError) {
+            console.error('Failed to update order:', updateError)
+            toast.error('Payment successful but failed to update order. Please contact support.')
+          }
+        },
+        prefill: {
+          name: `${address.firstName} ${address.lastName || ''}`,
+          email: address.email || '',
+          contact: address.mobile
+        },
+        notes: {
+          address: `${address.streetAddress}, ${address.city}, ${address.state} - ${address.zipCode}`,
+          order_id: orderId
+        },
+        theme: {
+          color: '#ae0b0b'
+        },
+        modal: {
+          ondismiss: function() {
+            console.log('Payment modal dismissed')
+            toast.error('Payment cancelled. Please try again.')
+          }
+        }
+      }
+
+      const paymentObject = new window.Razorpay(options)
+      paymentObject.open()
+    } catch (error) {
+      console.error('Payment error:', error)
+      toast.error('Payment failed. Please try again.')
+    }
+  }
+
   // FIXED: Add order placement functionality with stock validation
   const handlePlaceOrder = async () => {
     // Validate cart and address
     if (cartItems.length === 0) {
-      toast.error('Your cart is empty. Please add items before placing an order.');
+      toast.error('Your cart is empty. Please add items before placing an order.')
       navigate('/cart')
       return
     }
@@ -60,7 +182,7 @@ const OrderSummary = ({ address = {} }) => {
     const stockValidation = validateCartStock(cartItems, productContext)
     if (!stockValidation.valid) {
       const errorMessage = stockValidation.errors.join('\n')
-      console.error('❌ Stock validation failed:', errorMessage)
+      console.error('Stock validation failed:', errorMessage)
       toast.error('Cannot place order. ' + errorMessage.split('\n')[0] + '. Please update your cart.')
       return
     }
@@ -106,13 +228,13 @@ const OrderSummary = ({ address = {} }) => {
         shippingCost,
         discount: 0,
         totalAmount,
-        paymentMethod: 'cod',
+        paymentMethod: 'razorpay', // Changed to Razorpay
         notes: ''
       }
 
-      console.log('📦 Sending order data:', orderData)
+      console.log('Sending order data:', orderData)
 
-      // ✅ Add shipping address to user profile (if logged in)
+      // Add shipping address to user profile (if logged in)
       try {
         const token = localStorage.getItem('token')
         if (token) {
@@ -126,34 +248,24 @@ const OrderSummary = ({ address = {} }) => {
           })
         }
       } catch (addressError) {
-        console.warn('⚠️ Could not save address to profile:', addressError)
+        console.warn('Could not save address to profile:', addressError)
       }
 
-      // ✅ ENHANCED: Create order via API
+      // ENHANCED: Create order via API
       const orderContextResult = await createOrder(orderData)
       if (!orderContextResult.success) {
-        console.error('❌ Failed to create order:', orderContextResult.error)
+        console.error('Failed to create order:', orderContextResult.error)
         toast.error('Failed to place order: ' + orderContextResult.error)
         return
       }
 
       const orderId = orderContextResult.order?._id || orderContextResult.order?.id
 
-      // ✅ NEW: Record sale in analytics storage
-      recordSale({
-        ...orderData,
-        orderId,
-        status: 'pending'
-      })
-
       // Show success message
-      toast.success(`Order placed successfully! Order ID: ${orderId || 'Generated'}`)
+      toast.success(`Order created! Proceeding to payment...`)
 
-      // FIXED: Clear cart after successful order
-      clearCart()
-
-      // FIXED: Redirect to order success page with order ID and payment method
-      navigate('/order-success', { state: { orderId, paymentMethod: orderData.paymentMethod } })
+      // Process Razorpay payment
+      await handleRazorpayPayment(orderData, orderId)
     } catch (error) {
       console.error('❌ Error placing order:', error)
       toast.error('Error placing order. Please try again.')

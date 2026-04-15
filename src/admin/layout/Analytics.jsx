@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useProduct } from '../../context/ProductContext'
+import { useAdminProduct } from '../context/AdminProductContext'
 import useRealAnalytics from '../hooks/useRealAnalytics'
 import AdminCard from './AdminCard'
 import AdminButton from './AdminButton'
@@ -24,7 +24,7 @@ const TrendingUpIcon = ArrowUpIcon
 const TrendingDownIcon = ArrowDownIcon
 
 export default function Analytics() {
-  const { products } = useProduct()
+  const { products } = useAdminProduct()
   const analytics = useRealAnalytics()
 
   const [timeRange, setTimeRange] = useState('30days')

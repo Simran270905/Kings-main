@@ -538,7 +538,7 @@ export default function Dashboard() {
 
                     <td className="px-6 py-4">
                       <span className="inline-flex px-3 py-1 bg-gray-100 text-gray-700 text-sm font-medium rounded-full">
-                        {product.category}
+                        {product.category?.name || product.category}
                       </span>
                     </td>
 

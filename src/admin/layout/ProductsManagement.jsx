@@ -63,7 +63,7 @@ export default function ProductsManagement() {
     }
 
     if (selectedCategory) {
-      result = result.filter(p => p.category === selectedCategory)
+      result = result.filter(p => safeCategoryName(p.category) === selectedCategory)
     }
 
     result.sort((a, b) => {
@@ -280,7 +280,7 @@ export default function ProductsManagement() {
                     {/* Category */}
                     <td className="px-6 py-4">
                       <span className="inline-flex px-3 py-1 bg-gray-100 text-gray-700 text-sm font-medium rounded-full">
-                        {product.category || '—'}
+                        {safeCategoryName(product.category)}
                       </span>
                     </td>
 
