@@ -456,7 +456,6 @@ const ProductEdit = () => {
       
       // Guard against undefined data
       if (json.success && json.data) {
-        setProduct(json.data)
         setSuccess('Product updated successfully!')
         
         // Trigger real-time sync event for customer side
