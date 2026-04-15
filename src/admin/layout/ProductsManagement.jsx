@@ -114,7 +114,7 @@ export default function ProductsManagement() {
   const fetchPage = async (page) => {
     try {
       setCurrentPage(page)
-      const response = await adminApi.getProducts({ page, limit: 100 })
+      const response = await adminApi.getProducts({ page, limit: 500 })
       let list = []
       if (response?.data?.products) list = response.data.products
       else if (Array.isArray(response?.data)) list = response.data
@@ -158,6 +158,28 @@ export default function ProductsManagement() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Products</h1>
           <p className="text-gray-500 mt-2">Manage your inventory ({filteredProducts.length} products)</p>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="flex items-center justify-center gap-2 my-4">
+          <button
+            onClick={() => fetchPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage <= 1}
+            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span className="text-sm text-gray-600">
+            Page {currentPage} of {Math.ceil(filteredProducts.length / 500)}
+          </span>
+          <button
+            onClick={() => fetchPage(Math.min(Math.ceil(filteredProducts.length / 20), currentPage + 1))}
+            disabled={currentPage >= Math.ceil(filteredProducts.length / 500)}
+            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
         </div>
 
         <div className="flex items-center gap-3">
