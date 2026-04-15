@@ -626,11 +626,11 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
             })
             clearCart()
             
-            // Pass order data to OrderSuccess page
+            // Pass order data to PaymentConfirmation page
             const orderData = verifyData.order || verifyData.data?.order || {}
             console.log('📦 Order data for navigation:', orderData)
             
-            navigate('/order-success', {
+            navigate('/payment-confirmation', {
               state: {
                 orderId: orderData._id,
                 paymentId: orderData.paymentId,

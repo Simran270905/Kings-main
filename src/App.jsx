@@ -20,6 +20,7 @@ import OurStory from './customer/pages/OurStory/OurStory'
 import Cart from './customer/components/Cart/Cart'
 import Checkout from './customer/components/Checkout/Checkout'
 import Payment from './customer/components/Payment/Payment'
+import PaymentConfirmation from './customer/pages/PaymentConfirmation/PaymentConfirmation'
 import OrderSuccess from './customer/pages/OrderSuccess/OrderSuccess'
 import Orders from './customer/pages/Orders/Orders'
 import OrderTrack from './customer/pages/OrderTrack/OrderTrack'
@@ -62,6 +63,7 @@ const AdminReports = lazy(() => import('./admin/pages/AdminReports.jsx'))
 const ProductUpload = lazy(() => import('./admin/ProductUpload.jsx'))
 const ProductEdit = lazy(() => import('./admin/ProductEdit.jsx'))
 const AdminOrders = lazy(() => import('./admin/pages/AdminOrders.jsx'))
+const OrderConfirmation = lazy(() => import('./admin/pages/OrderConfirmation.jsx'))
 const AdminCustomers = lazy(() => import('./admin/pages/AdminCustomers.jsx'))
 const AdminSettings = lazy(() => import('./admin/pages/AdminSettings.jsx'))
 const CouponManagement = lazy(() => import('./admin/pages/CouponManagement.jsx'))
@@ -110,6 +112,7 @@ return (
                       <Route path="/cart" element={<CustomerLayout><Cart /></CustomerLayout>} />
                       <Route path="/checkout" element={<CustomerLayout><Checkout /></CustomerLayout>} />
                       <Route path="/payment" element={<CustomerLayout><Payment /></CustomerLayout>} />
+                      <Route path="/payment-confirmation" element={<CustomerLayout><PaymentConfirmation /></CustomerLayout>} />
                       <Route path="/orders" element={<CustomerLayout><Orders /></CustomerLayout>} />
                       <Route path="/order-success" element={<CustomerLayout><OrderSuccess /></CustomerLayout>} />
                       <Route path="/orders/track" element={<CustomerLayout><TrackOrderPage /></CustomerLayout>} />
@@ -136,6 +139,7 @@ return (
                         <Route path="/admin/products" element={<ProductsWrapper />} />
                         <Route path="/admin/products/edit/:id" element={<ProductEditWrapper />} />
                         <Route path="/admin/orders" element={<OrdersWrapper />} />
+                        <Route path="/admin/orders/confirm/:orderId" element={<OrderConfirmationWrapper />} />
                         <Route path="/admin/payment-tracking" element={<PaymentTrackingWrapper />} />
                         <Route path="/admin/analytics" element={<AnalyticsWrapper />} />
                         <Route path="/admin/reports" element={<ReportsWrapper />} />
@@ -199,6 +203,14 @@ const OrdersWrapper = () => (
   <Suspense fallback={<LoadingFallback />}>
     <AdminOnlyLayout>
       <AdminOrders />
+    </AdminOnlyLayout>
+  </Suspense>
+)
+
+const OrderConfirmationWrapper = () => (
+  <Suspense fallback={<LoadingFallback />}>
+    <AdminOnlyLayout>
+      <OrderConfirmation />
     </AdminOnlyLayout>
   </Suspense>
 )
