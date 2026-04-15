@@ -7,6 +7,7 @@ import HomeSectionCard from '../../components/HomeSectionCard/HomeSectionCard'
 import { useProduct } from '../../../context/ProductContext'
 import { API_BASE_URL } from '@config/api.js'
 import { HomePageSkeleton, CategorySkeleton } from '../../../components/LoadingSkeletons.jsx'
+import { dataSyncEvents, EVENT_TYPES } from '../../../utils/eventSystem.js'
 
 // Lazy-load non-critical sections
 const LazyHomeSection = lazy(() =>
@@ -40,6 +41,34 @@ function HomePage() {
       })
     }
   }
+
+  // Listen for product changes from admin panel
+  useEffect(() => {
+    const unsubscribeUpdated = dataSyncEvents.subscribe(EVENT_TYPES.PRODUCT_UPDATED, (productData) => {
+      console.log('🏠 HomePage received product update event:', productData)
+      // Refresh products when admin updates a product
+      fetchCategoriesAndProducts()
+    })
+
+    const unsubscribeCreated = dataSyncEvents.subscribe(EVENT_TYPES.PRODUCT_CREATED, (productData) => {
+      console.log('🏠 HomePage received product creation event:', productData)
+      // Refresh products when admin creates a new product
+      fetchCategoriesAndProducts()
+    })
+
+    const unsubscribeDeleted = dataSyncEvents.subscribe(EVENT_TYPES.PRODUCT_DELETED, (productData) => {
+      console.log('🏠 HomePage received product deletion event:', productData)
+      // Refresh products when admin deletes a product
+      fetchCategoriesAndProducts()
+    })
+
+    // Cleanup all listeners on unmount
+    return () => {
+      unsubscribeUpdated()
+      unsubscribeCreated()
+      unsubscribeDeleted()
+    }
+  }, [])
 
   // Fetch categories and their products
   useEffect(() => {
