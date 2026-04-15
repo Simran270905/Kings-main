@@ -79,7 +79,7 @@ return p.stock || 0
 const getStockStatus = (p) => {
 const total = getTotalStock(p)
 if (total <= 0) return 'out'
-if (total <= 5) return 'low'
+if (total <= 10) return 'low'
 return 'ok'
 }
 

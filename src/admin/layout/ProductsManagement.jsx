@@ -290,15 +290,16 @@ export default function ProductsManagement() {
                   <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">SELLING PRICE</th>
                   <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">MRP</th>
                   <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Stock</th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
 
-            <tbody className="divide-y divide-gray-200 bg-white">
-              {filteredProducts.map(product => {
-                const stockStatus = getStockStatus(product)
-                const totalStock = getTotalStock(product)
-                const image = getProductImage(product)
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {filteredProducts.map(product => {
+                  const stockStatus = getStockStatus(product)
+                  const totalStock = getTotalStock(product)
+                  const image = getProductImage(product)
 
                 return (
                   <tr key={product._id} className="hover:bg-gray-50 transition-colors">
@@ -350,15 +351,20 @@ export default function ProductsManagement() {
 
                     {/* Stock */}
                     <td className="px-6 py-4 text-center">
-                      <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                        stockStatus === 'out'
-                          ? 'bg-red-50 text-red-700 border border-red-200'
-                          : stockStatus === 'low'
-                          ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
-                          : 'bg-green-50 text-green-700 border border-green-200'
-                      }`}>
-                        {totalStock} {stockStatus === 'out' ? '(Out)' : stockStatus === 'low' ? '(Low)' : ''}
-                      </span>
+                      <div>
+                        <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
+                          stockStatus === 'out'
+                            ? 'bg-red-50 text-red-700 border border-red-200'
+                            : stockStatus === 'low'
+                            ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                            : 'bg-green-50 text-green-700 border border-green-200'
+                        }`}>
+                          {totalStock}
+                        </span>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {stockStatus === 'out' ? '(Out of Stock)' : stockStatus === 'low' ? '(Low Stock)' : 'In Stock'}
+                        </p>
+                      </div>
                     </td>
 
                     {/* Actions */}
