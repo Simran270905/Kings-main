@@ -25,7 +25,7 @@ import {
 } from '../utils/adminSafetyUtils'
 
 export default function ProductsManagement() {
-  const { products, loading, refreshProducts, getStockStatus, getTotalStock, triggerGlobalRefresh } = useAdminProduct()
+  const { products, loading, refreshProducts, getStockStatus, getTotalStock } = useAdminProduct()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [sortBy, setSortBy] = useState('createdAt')
@@ -97,12 +97,12 @@ export default function ProductsManagement() {
       setDeletingId(id) // Set loading state
       await adminApi.deleteProduct(id)
       toast.success('Product deleted successfully')
-      triggerGlobalRefresh() // Trigger global refresh across all components
+      refreshProducts() // Refresh products list
     } catch (err) {
       console.error(err)
       if (err.message?.includes('Product not found')) {
         toast.error('Product was already deleted')
-        triggerGlobalRefresh() // Refresh to update UI
+        refreshProducts() // Refresh to update UI
       } else {
         toast.error('Failed to delete product')
       }
