@@ -451,20 +451,28 @@ const ProductEdit = () => {
         throw new Error(errorData.message || 'Failed to update product')
       }
 
-      setSuccess('Product updated successfully!')
+      const json = await res.json()
+      console.log('API Response:', json)
       
-      // Trigger real-time sync event for customer side
-      console.log('🔄 Triggering productUpdated event with data:', data.data?.product || data.data)
-      events.productUpdated(data.data?.product || data.data)
-      
-      // Also trigger admin refresh
-      console.log('🔄 Triggering adminProductUpdated event')
-      window.dispatchEvent(new Event('adminProductUpdated'))
-      
-      setTimeout(() => {
-        navigate('/admin/products')
-      }, 1500)
-
+      // Guard against undefined data
+      if (json.success && json.data) {
+        setProduct(json.data)
+        setSuccess('Product updated successfully!')
+        
+        // Trigger real-time sync event for customer side
+        console.log('🔄 Triggering productUpdated event with data:', json.data)
+        events.productUpdated(json.data)
+        
+        // Also trigger admin refresh
+        console.log('🔄 Triggering adminProductUpdated event')
+        window.dispatchEvent(new Event('adminProductUpdated'))
+        
+        setTimeout(() => {
+          navigate('/admin/products')
+        }, 1500)
+      } else {
+        throw new Error(json.message || 'Update failed - no data returned')
+      }
     } catch (err) {
       setError(err.message || 'Failed to update product')
     } finally {
