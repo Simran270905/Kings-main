@@ -612,6 +612,8 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
 
           const verifyData = await verifyRes.json()
           
+          console.log('🔍 Payment verification response:', verifyData)
+          
           if (verifyData.success) {
             // ADDED: Enhanced success messages
             const successMessage = paymentPlan === 'partial' 
@@ -623,7 +625,20 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
               position: 'top-center'
             })
             clearCart()
-            navigate('/order-success')
+            
+            // Pass order data to OrderSuccess page
+            const orderData = verifyData.order || verifyData.data?.order || {}
+            console.log('📦 Order data for navigation:', orderData)
+            
+            navigate('/order-success', {
+              state: {
+                orderId: orderData._id,
+                paymentId: orderData.paymentId,
+                paymentMethod: 'razorpay',
+                amountPaid: orderData.totalAmount,
+                orderData: orderData
+              }
+            })
           } else {
             toast.error('Payment verification failed. Please contact support.', {
               duration: 5000,
