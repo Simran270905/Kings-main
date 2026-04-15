@@ -4,6 +4,7 @@ import { memo, lazy, Suspense, useEffect, useState, useMemo, useRef } from 'reac
 import MainCarosal from '../../components/HomeCarosal/MainCarosal'
 import HomeSectionCarosal from '../../components/HomeSectionCarosal/HomeSectionCarosal'
 import HomeSectionCard from '../../components/HomeSectionCard/HomeSectionCard'
+import TrackOrderInput from '../../components/TrackOrder/TrackOrderInput'
 import { useProduct } from '../../../context/ProductContext'
 import { API_BASE_URL } from '@config/api.js'
 import { HomePageSkeleton, CategorySkeleton } from '../../../components/LoadingSkeletons.jsx'
@@ -181,6 +182,13 @@ function HomePage() {
     <div className="mt-0">
       {/* ================= HERO (Critical) ================= */}
       <MainCarosal />
+
+      {/* ================= ORDER TRACKING ================= */}
+      <div className="bg-white py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <TrackOrderInput />
+        </div>
+      </div>
 
       {/* ================= DYNAMIC CATEGORY SECTIONS ================= */}
       <div className="bg-gray-50 py-8 sm:py-10 md:py-12 px-2 sm:px-4 md:px-6 lg:px-8">

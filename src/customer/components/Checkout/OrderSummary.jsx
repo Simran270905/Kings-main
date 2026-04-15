@@ -75,64 +75,57 @@ const OrderSummary = ({ address = {} }) => {
         image: 'https://res.cloudinary.com/dkbxrhe1v/image/upload/v1776179795/kkings-jewellery/txbb3wbem7wfjnpsnt5g.jpg',
         order_id: orderId, // This is generated from backend
         handler: async function (response) {
-          // Payment successful
-          console.log('Payment successful:', response)
-          
-          // Update order with payment details
           try {
-            const paymentData = {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              paymentStatus: 'paid',
-              paymentMethod: 'razorpay',
-              amountPaid: response.amount / 100
-            }
+            console.log("Payment success:", response)
 
-            // Update order with payment details
-            const updateResponse = await fetch(`${API_BASE_URL}/orders/${orderId}/payment`, {
-              method: 'PUT',
+            const verifyRes = await fetch(`${API_BASE_URL}/payments/verify-payment`, {
+              method: "POST",
               headers: {
-                'Content-Type': 'application/json'
+                "Content-Type": "application/json"
               },
-              body: JSON.stringify(paymentData)
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                cartItems,
+                customer: {
+                  firstName: address.firstName,
+                  lastName: address.lastName,
+                  email: address.email,
+                  mobile: address.mobile,
+                  streetAddress: address.streetAddress,
+                  city: address.city,
+                  state: address.state,
+                  zipCode: address.zipCode
+                },
+                totalAmount,
+                orderData
+              })
             })
 
-            const updateResult = await updateResponse.json()
-            
-            if (updateResult.success) {
-              // Trigger Shiprocket order creation
-              try {
-                const shiprocketResponse = await fetch(`${API_BASE_URL}/orders/${orderId}/shiprocket`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json'
-                  }
-                })
+            const verifyResult = await verifyRes.json()
 
-                const shiprocketResult = await shiprocketResponse.json()
-                console.log('Shiprocket order created:', shiprocketResult)
-              } catch (shiprocketError) {
-                console.warn('Shiprocket integration warning:', shiprocketError)
-              }
-
+            if (verifyResult.success) {
+              console.log("✅ Payment verified and order created:", verifyResult.order)
+              
               // Clear cart and redirect to success page
               clearCart()
               navigate('/order-success', { 
                 state: { 
-                  orderId, 
+                  orderId: verifyResult.order._id,
+                  orderNumber: verifyResult.order.orderNumber,
                   paymentMethod: 'razorpay',
                   paymentId: response.razorpay_payment_id,
-                  amountPaid: response.amount / 100,
-                  orderData: { ...orderData, paymentStatus: 'paid' }
+                  amountPaid: totalAmount,
+                  orderData: verifyResult.order
                 } 
               })
             } else {
-              toast.error('Failed to update order payment details')
+              toast.error("Payment verification failed")
             }
-          } catch (updateError) {
-            console.error('Failed to update order:', updateError)
-            toast.error('Payment successful but failed to update order. Please contact support.')
+          } catch (err) {
+            console.error("Verification error:", err)
+            toast.error('Payment verification failed. Please contact support.')
           }
         },
         prefill: {

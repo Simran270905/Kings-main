@@ -28,6 +28,8 @@ import {
   safeOrderAmount,
   safeOrderStatus,
   safeCustomerEmail,
+  safeCategoryName,
+  safeProductName,
   logAdminData,
   safeAdminFetch
 } from '../utils/adminSafetyUtils'
@@ -208,7 +210,20 @@ export default function Dashboard() {
           products = data.data?.products || data.products || data.data || data || []
         }
 
-        setRecentProducts(Array.isArray(products) ? products.slice(0, 5) : [])
+        // Process products data same way as Products page
+        const processedProducts = Array.isArray(products) ? products.slice(0, 5).map(product => ({
+          ...product,
+          name: safeProductName(product),
+          categoryName: safeCategoryName(product.category)
+        })) : []
+        
+        // Debug: Log the transformation
+        console.log('Dashboard - Recent Products transformation:', {
+          original: products?.slice(0, 2),
+          processed: processedProducts.slice(0, 2)
+        })
+        
+        setRecentProducts(processedProducts)
       } catch (error) {
         console.error('Dashboard - Error fetching recent products:', error)
         setRecentProducts([])
@@ -255,7 +270,13 @@ export default function Dashboard() {
               }
             }
 
-            setRecentProducts(Array.isArray(products) ? products.slice(0, 5) : [])
+            // Process products data same way as Products page
+            const processedProducts = Array.isArray(products) ? products.slice(0, 5).map(product => ({
+              ...product,
+              name: safeProductName(product),
+              categoryName: safeCategoryName(product.category)
+            })) : []
+            setRecentProducts(processedProducts)
           } catch (error) {
             console.error('Dashboard - Error refreshing recent products:', error)
           }
@@ -538,13 +559,13 @@ export default function Dashboard() {
 
                     <td className="px-6 py-4">
                       <span className="inline-flex px-3 py-1 bg-gray-100 text-gray-700 text-sm font-medium rounded-full">
-                        {product.category?.name || product.category}
+                        {product.categoryName || safeCategoryName(product.category)}
                       </span>
                     </td>
 
                     <td className="px-6 py-4 text-right">
                       <span className="font-semibold text-gray-900">
-                        ₹{(product.price || 0).toLocaleString('en-IN')}
+                        ₹{(product.sellingPrice || product.price || 0).toLocaleString('en-IN')}
                       </span>
                     </td>
 
