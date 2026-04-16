@@ -19,7 +19,7 @@ export default function ShopPage() {
 
   // Update selected category when URL parameter changes
   useEffect(() => {
-    if (category) {
+    if (category && typeof category === 'string') {
       setSelectedCategory(category.toLowerCase())
     } else {
       setSelectedCategory('all')
@@ -84,7 +84,7 @@ export default function ShopPage() {
               <>
                 <span>/</span>
                 <span className="text-gray-900 font-medium">
-                  {selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}
+                  {typeof selectedCategory === 'string' ? selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1) : 'All Products'}
                 </span>
               </>
             )}
@@ -93,7 +93,7 @@ export default function ShopPage() {
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {selectedCategory === 'all' ? 'All Products' : selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}
+                {selectedCategory === 'all' ? 'All Products' : (typeof selectedCategory === 'string' ? selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1) : 'All Products')}
               </h1>
               <p className="text-gray-600">
                 {selectedCategory === 'all' ? 'Discover our complete collection' : `Discover our ${selectedCategory} collection`}
@@ -129,7 +129,7 @@ export default function ShopPage() {
                     : 'bg-white border border-gray-300 text-gray-700 hover:border-[#ae0b0b] hover:text-[#ae0b0b]'
                 }`}
               >
-                {category === 'all' ? 'All Products' : category.charAt(0).toUpperCase() + category.slice(1)}
+                {category === 'all' ? 'All Products' : (typeof category === 'string' ? category.charAt(0).toUpperCase() + category.slice(1) : 'All Products')}
               </button>
             ))}
           </div>
