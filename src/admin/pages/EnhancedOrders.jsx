@@ -1,5 +1,4 @@
-import React, { useState } from 'react'
-import { useOrder } from '../context/OrderContext'
+import React, { useState, useEffect } from 'react'
 import AdminCard from '../layout/AdminCard'
 import AdminButton from '../layout/AdminButton'
 
@@ -97,14 +96,47 @@ const getShippingStatusIcon = (status) => {
 }
 
 export default function EnhancedOrders() {
-  const {
-    orders,
-    loading,
-    fetchOrders,
-    getOrderDetails,
-    updateOrderStatus,
-    getStats
-  } = useOrder()
+  // Custom fetch orders function
+  const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [stats, setStats] = useState({ totalOrders: 0, totalRevenue: 0 })
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true)
+      const token = localStorage.getItem('kk_admin_token') || localStorage.getItem('token')
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+
+      const response = await fetch(`${apiUrl}/admin/orders/enhanced`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        const ordersArray = data.data?.orders || []
+        setOrders(ordersArray)
+        setStats({
+          totalOrders: data.data?.pagination?.totalOrders || 0,
+          totalRevenue: data.data?.stats?.totalRevenue || 0
+        })
+      } else {
+        console.error('Failed to fetch orders:', data.message)
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Fetch orders on component mount
+  useEffect(() => {
+    fetchOrders()
+  }, [])
 
   // Local state for filters
   const [filters, setFilters] = useState({
@@ -120,9 +152,6 @@ export default function EnhancedOrders() {
   // State for order details modal
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [detailsLoading, setDetailsLoading] = useState(false)
-
-  // Calculate stats from orders
-  const stats = getStats()
 
   // Calculate payment breakdown
   const paymentStatusBreakdown = orders.reduce((acc, order) => {
@@ -154,8 +183,13 @@ export default function EnhancedOrders() {
   const handleViewDetails = async (orderId) => {
     try {
       setDetailsLoading(true)
-      const order = await getOrderDetails(orderId)
-      setSelectedOrder(order)
+      // Find the order from the current orders list
+      const order = orders.find(o => o._id === orderId)
+      if (order) {
+        setSelectedOrder(order)
+      } else {
+        console.error('Order not found:', orderId)
+      }
     } catch (error) {
       console.error('Failed to fetch order details:', error)
     } finally {
@@ -167,8 +201,9 @@ export default function EnhancedOrders() {
   // Handle shipment creation
   const handleCreateShipment = async (orderId) => {
     try {
-      const token = localStorage.getItem('token')
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'}/admin/orders/enhanced/${orderId}/create-shipment`, {
+      const token = localStorage.getItem('kk_admin_token') || localStorage.getItem('token')
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+      const response = await fetch(`${apiUrl}/admin/orders/enhanced/${orderId}/create-shipment`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -182,8 +217,9 @@ export default function EnhancedOrders() {
         throw new Error(result.message || 'Failed to create shipment')
       }
 
-      // Show success message
-      alert('Shipment created successfully! AWB: ' + result.awbCode)
+      // Show success message with better formatting
+      const shipmentData = result.data?.shipment || result
+      alert(`Shipment created successfully!\nShipment ID: ${shipmentData.shipmentId}\nTracking URL: ${shipmentData.trackingUrl}\nCourier: ${shipmentData.courierName}`)
       
       // Refresh orders to show updated shipping status
       fetchOrders()
@@ -304,7 +340,7 @@ export default function EnhancedOrders() {
               Paid Orders
             </Typography>
             <Typography variant="h4" color="success.main">
-              {stats.paymentStatusBreakdown?.paid || 0}
+              {paymentStatusBreakdown?.paid || 0}
             </Typography>
           </Paper>
           
@@ -313,7 +349,7 @@ export default function EnhancedOrders() {
               Pending Orders
             </Typography>
             <Typography variant="h4" color="warning.main">
-              {stats.paymentStatusBreakdown?.pending || 0}
+              {paymentStatusBreakdown?.pending || 0}
             </Typography>
           </Paper>
         </Box>
@@ -512,7 +548,18 @@ export default function EnhancedOrders() {
                         <MagnifyingGlassIcon fontSize="small" />
                       </IconButton>
                       
-                                            
+                      {/* Shipment Creation Button */}
+                      {order.paymentStatus === 'paid' && (!order.shippingStatus || order.shippingStatus === 'not_created') && (
+                        <IconButton
+                          size="small"
+                          color="success"
+                          onClick={() => handleCreateShipment(order._id)}
+                          title="Create Shipment"
+                        >
+                          <CheckCircleIcon fontSize="small" />
+                        </IconButton>
+                      )}
+                      
                       <IconButton
                         size="small"
                         color="error"

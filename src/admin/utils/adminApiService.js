@@ -366,6 +366,12 @@ class AdminApiService {
     return this.request(`/orders${query ? '?' + query : ''}`)
   }
 
+  // Get all enhanced orders (Admin)
+  async getOrdersEnhanced(params = {}) {
+    const query = new URLSearchParams(params).toString()
+    return this.request(`/orders/enhanced${query ? '?' + query : ''}`)
+  }
+
   // Get single order
   async getOrder(id) {
     return this.request(`/orders/${id}`)

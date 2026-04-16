@@ -33,9 +33,11 @@ if (loading && !silent) return
 try {
 if (!silent) setLoading(true)
 
-  const data = await adminApi.getOrders()
+  const data = await adminApi.getOrdersEnhanced()
   const newOrders = extractData(data)
-  setOrders(Array.isArray(newOrders) ? newOrders : [])
+  // Handle the new response structure: data.orders instead of just data
+  const ordersArray = newOrders?.orders || newOrders || []
+  setOrders(Array.isArray(ordersArray) ? ordersArray : [])
   setLastFetch(new Date())
 } catch (err) {
   // BUG 4: Stop retrying on session expired error
