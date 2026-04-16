@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, lazy, Suspense, useEffect, useState, useMemo, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import MainCarosal from '../../components/HomeCarosal/MainCarosal'
 import HomeSectionCarosal from '../../components/HomeSectionCarosal/HomeSectionCarosal'
 import HomeSectionCard from '../../components/HomeSectionCard/HomeSectionCard'
@@ -10,10 +10,6 @@ import { API_BASE_URL } from '@config/api.js'
 import { HomePageSkeleton, CategorySkeleton } from '../../../components/LoadingSkeletons.jsx'
 import { dataSyncEvents, EVENT_TYPES } from '../../../utils/eventSystem.js'
 
-// Lazy-load non-critical sections
-const LazyHomeSection = lazy(() =>
-  import('../../components/HomeSectionCarosal/HomeSectionCarosal')
-)
 
 function HomePage() {
   const { products, loading: productsLoading, refreshProducts } = useProduct()
@@ -46,20 +42,14 @@ function HomePage() {
   // Listen for product changes from admin panel
   useEffect(() => {
     const unsubscribeUpdated = dataSyncEvents.subscribe(EVENT_TYPES.PRODUCT_UPDATED, (productData) => {
-      console.log('🏠 HomePage received product update event:', productData)
-      // STEP 3: FIX CONTEXT - Use refreshProducts from context
       refreshProducts()
     })
 
     const unsubscribeCreated = dataSyncEvents.subscribe(EVENT_TYPES.PRODUCT_CREATED, (productData) => {
-      console.log('🏠 HomePage received product creation event:', productData)
-      // STEP 3: FIX CONTEXT - Use refreshProducts from context
       refreshProducts()
     })
 
     const unsubscribeDeleted = dataSyncEvents.subscribe(EVENT_TYPES.PRODUCT_DELETED, (productData) => {
-      console.log('🏠 HomePage received product deletion event:', productData)
-      // STEP 3: FIX CONTEXT - Use refreshProducts from context
       refreshProducts()
     })
 
@@ -71,7 +61,7 @@ function HomePage() {
     }
   }, [])
 
-  // STEP 1: FORCE REFETCH - Ensure products are fetched on mount
+  // Fetch categories and products on mount
   useEffect(() => {
     const fetchCategoriesAndProducts = async () => {
       try {
@@ -80,9 +70,6 @@ function HomePage() {
         // Fetch all categories
         const catResponse = await fetch(`${API_BASE_URL}/categories`)
         const catData = await catResponse.json()
-        
-        // Debug: Log the actual response structure
-        console.log('Categories API Response:', catData)
         
         // Extract categories from API response
         let cats = []
@@ -95,20 +82,16 @@ function HomePage() {
         } else if (Array.isArray(catData)) {
           cats = catData
         } else {
-          console.warn('Unexpected categories response structure:', catData)
           cats = []
         }
         
-        console.log('Extracted categories:', cats)
         setCategories(cats)
 
-        // Fetch products per category for COMPLETE coverage
+        // Fetch products per category
         try {
           const productsMap = {}
           
           if (cats.length > 0) {
-            console.log('Fetching products per category for complete coverage...')
-            
             // Fetch products for each category individually
             await Promise.all(
               cats.map(async (cat) => {
@@ -116,8 +99,6 @@ function HomePage() {
                   // Fetch products specifically for this category
                   const prodResponse = await fetch(`${API_BASE_URL}/products?category=${cat._id}&limit=100`)
                   const prodData = await prodResponse.json()
-                   
-                  console.log(`Products API response for ${cat.name}:`, prodData)
                    
                   const prods = prodData?.data?.products 
                              || prodData?.products 
@@ -127,15 +108,8 @@ function HomePage() {
                    
                   const categoryProducts = Array.isArray(prods) ? prods : []
                   
-                  console.log(`Category "${cat.name}" (${cat._id}):`)
-                  console.log("- Products found:", categoryProducts.length)
-                  console.log("- Product IDs:", categoryProducts.map(p => p._id).slice(0, 5))
-                  
                   if (categoryProducts.length > 0) {
                     productsMap[cat._id] = categoryProducts
-                    console.log(`Added ${categoryProducts.length} products to category ${cat.name}`)
-                  } else {
-                    console.log(`No products found for category ${cat.name}`)
                   }
                 } catch (err) {
                   console.error(`Failed to fetch products for category ${cat.name}:`, err)
@@ -144,13 +118,6 @@ function HomePage() {
             )
           }
           
-          // STEP 5: DEBUG LOG
-          console.log("STEP 5: DEBUG - Homepage products:", productsMap)
-          console.log('Products by category map:', productsMap)
-          console.log('Final verification - Categories with products:', Object.keys(productsMap).length)
-          Object.keys(productsMap).forEach(catId => {
-            console.log(`Category ${catId}: ${productsMap[catId].length} products`)
-          })
           setProductsByCategory(productsMap)
         } catch (err) {
           console.error('Failed to fetch products:', err)
@@ -164,10 +131,9 @@ function HomePage() {
       }
     }
 
-    // STEP 1: FORCE REFETCH - Call refreshProducts on mount
     fetchCategoriesAndProducts()
-    refreshProducts() // Also call context refresh for fresh data
-  }, []) // Empty dependency array ensures it runs on mount
+    refreshProducts()
+  }, [])
 
   // Show loading state
   if (loading) {
@@ -195,15 +161,6 @@ function HomePage() {
         <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
           {categories.map(cat => {
             const catProducts = productsByCategory[cat._id];
-            
-            // STEP 4: DEBUG LOG - Verify category separation
-            console.log("=== RENDER DEBUG ===")
-            console.log("Category:", cat.name)
-            console.log("Category ID:", cat._id)
-            console.log("Products in this category:", catProducts?.length || 0)
-            if (catProducts && catProducts.length > 0) {
-              console.log("Product IDs:", catProducts.map(p => p._id).slice(0, 3))
-            }
             
             if (!catProducts || catProducts.length === 0) return null;
 
@@ -290,4 +247,4 @@ function HomePage() {
   )
 }
 
-export default memo(HomePage)
+export default HomePage
