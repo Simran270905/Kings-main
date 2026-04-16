@@ -95,10 +95,8 @@ export const EnhancedOrderProvider = ({ children }) => {
         return // Don't retry
       }
       
-      // Stop retrying on any error to prevent infinite loops
-      if (error.message?.includes('Schema hasn\'t been registered') ||
-          error.message?.includes('Customer') ||
-          error.message?.includes('ECONNREFUSED') ||
+      // Stop retrying on network errors to prevent infinite loops
+      if (error.message?.includes('ECONNREFUSED') ||
           error.message?.includes('Network Error')) {
         console.log('Critical API error - stopping retries:', error.message)
         if (!silent) {
@@ -235,20 +233,19 @@ export const EnhancedOrderProvider = ({ children }) => {
   }, [filters, initialized])
 
   // Auto-refresh orders every 30 seconds for real-time updates
-  // TEMPORARILY DISABLED TO STOP INFINITE LOOP
   useEffect(() => {
     if (!initialized) return // Wait for initialization first
     
     const token = localStorage.getItem('kk_admin_token')
     if (!token || token === 'undefined') return
 
-    // Set up polling interval - DISABLED
-    // const interval = setInterval(() => {
-    //   fetchOrders(true) // Silent fetch every 30 seconds
-    // }, 30000) // 30 seconds
+    // Set up polling interval
+    const interval = setInterval(() => {
+      fetchOrders(true) // Silent fetch every 30 seconds
+    }, 30000) // 30 seconds
 
     // Cleanup interval on unmount
-    // return () => clearInterval(interval)
+    return () => clearInterval(interval)
   }, [initialized])
 
   return (

@@ -47,14 +47,7 @@ export const safeObject = (value, fallback = {}) => {
 export const safeCustomerName = (order) => {
   if (!order) return "N/A";
   
-  // Try guestInfo first (guest checkout system)
-  if (order.guestInfo?.firstName || order.guestInfo?.lastName) {
-    const firstName = safeString(order.guestInfo.firstName, "");
-    const lastName = safeString(order.guestInfo.lastName, "");
-    return (firstName && lastName) ? `${firstName} ${lastName}`.trim() : firstName || lastName || "Guest User";
-  }
-  
-  // Try customer.name (embedded customer object)
+  // Try customer object first (registered users)
   if (order.customer?.name) {
     return safeString(order.customer.name);
   }
@@ -63,6 +56,13 @@ export const safeCustomerName = (order) => {
   if (order.customer?.firstName || order.customer?.lastName) {
     const firstName = safeString(order.customer.firstName, "");
     const lastName = safeString(order.customer.lastName, "");
+    return (firstName && lastName) ? `${firstName} ${lastName}`.trim() : firstName || lastName || "Guest User";
+  }
+  
+  // Try guestInfo (guest checkout system)
+  if (order.guestInfo?.firstName || order.guestInfo?.lastName) {
+    const firstName = safeString(order.guestInfo.firstName, "");
+    const lastName = safeString(order.guestInfo.lastName, "");
     return (firstName && lastName) ? `${firstName} ${lastName}`.trim() : firstName || lastName || "Guest User";
   }
   
@@ -75,13 +75,17 @@ export const safeCustomerName = (order) => {
 export const safeCustomerEmail = (order) => {
   if (!order) return "N/A";
   
-  // Try guestInfo first (guest checkout system)
+  // Try customer object first (registered users)
+  if (order.customer?.email) {
+    return safeString(order.customer.email);
+  }
+  
+  // Try guestInfo (guest checkout system)
   if (order.guestInfo?.email) {
     return safeString(order.guestInfo.email);
   }
   
-  // Try customer object
-  return safeString(order.customer?.email);
+  return "N/A";
 };
 
 /**
@@ -90,13 +94,17 @@ export const safeCustomerEmail = (order) => {
 export const safeCustomerPhone = (order) => {
   if (!order) return "N/A";
   
-  // Try guestInfo first (guest checkout system)
+  // Try customer object first (registered users)
+  if (order.customer?.phone || order.customer?.mobile) {
+    return safeString(order.customer?.phone || order.customer?.mobile);
+  }
+  
+  // Try guestInfo (guest checkout system)
   if (order.guestInfo?.mobile) {
     return safeString(order.guestInfo.mobile);
   }
   
-  // Try customer object
-  return safeString(order.customer?.phone || order.customer?.mobile);
+  return "N/A";
 };
 
 /**
