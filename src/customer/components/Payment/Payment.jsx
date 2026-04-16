@@ -144,7 +144,7 @@ function PaymentPlanSelector({
             <div className="text-right">
               <p className="font-bold text-lg">{formatPrice(paymentCalculation.finalAmount)}</p>
               <p className="text-xs text-gray-500">One-time payment</p>
-              {paymentCalculation.hasDiscount && !partialPaymentOnlyMethods.includes(paymentMethod) && (
+              {paymentCalculation.hasDiscount && !partialPaymentDefaultMethods.includes(paymentMethod) && (
                 <p className="text-xs text-green-600">10% discount applied</p>
               )}
               {paymentCalculation.hasCODCharge && (
