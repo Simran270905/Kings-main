@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { MagnifyingGlassIcon, TruckIcon, HomeIcon, ArrowRightIcon, PhoneIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
+import safeFetch from '../../../utils/safeFetch.js'
 
 export default function TrackOrderPage() {
   const navigate = useNavigate()
@@ -37,18 +38,30 @@ export default function TrackOrderPage() {
       setLoading(true)
       
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/orders/track-by-phone?phone=${encodeURIComponent(phoneNumber.trim())}`)
-        const data = await response.json()
+        const apiUrl = import.meta.env.VITE_API_URL
+        // Remove all non-digit characters and spaces from phone number
+        const cleanPhone = phoneNumber.replace(/\D/g, '').replace(/\s/g, '')
+        const url = `${apiUrl}/orders/track-by-phone?phone=${encodeURIComponent(cleanPhone)}`
         
-        if (data.success) {
-          setOrders(data.data.orders)
+        console.log('🔍 Environment VITE_API_URL:', apiUrl)
+        console.log('🔍 TrackOrder API URL:', url)
+        console.log('🔍 Original phone number:', phoneNumber.trim())
+        console.log('🔍 Clean phone number:', cleanPhone)
+        console.log('🔍 Encoded phone:', encodeURIComponent(cleanPhone))
+        
+        const response = await safeFetch.fetch(url)
+        
+        console.log('🔍 API Response:', response)
+        
+        if (response.success) {
+          setOrders(response.data.orders)
           setShowResults(true)
           
-          if (data.data.orders.length === 0) {
+          if (response.data.orders.length === 0) {
             toast.error('No orders found for this phone number')
           }
         } else {
-          toast.error(data.message || 'Failed to track orders')
+          toast.error(response.message || 'Failed to track orders')
         }
       } catch (error) {
         console.error('Error tracking orders:', error)

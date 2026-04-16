@@ -22,18 +22,13 @@ import safeFetch from '../../utils/safeFetch.js'
 export const loadProducts = async () => {
   try {
     const apiUrl = `${API_BASE_URL}/products`
-    const response = await fetch(apiUrl)
-    
-    if (!response.ok) {
-      return []
-    }
-    
-    const data = await response.json()
+    const data = await safeFetch.fetch(apiUrl)
     
     // Fix: API response is {success: true, data: {products: [...], pagination: {...}}}
     const products = data.data?.products || []
     return Array.isArray(products) ? products : []
   } catch (error) {
+    console.error('❌ Error fetching products from API:', error.message)
     return []
   }
 }
@@ -85,17 +80,10 @@ export const getProductById = (productId, products) => {
 export const loadCategories = async () => {
   try {
     const apiUrl = `${API_BASE_URL}/categories`
-    const response = await fetch(apiUrl)
-    
-    if (!response.ok) {
-      console.error(`❌ API Error: HTTP ${response.status}`)
-      return []
-    }
-    
-    const data = await response.json()
-    let categories = []
+    const data = await safeFetch.fetch(apiUrl)
     
     // Handle both old and new response structures
+    let categories = []
     if (Array.isArray(data?.data)) {
       categories = data.data
     } else if (data?.data?.categories && Array.isArray(data.data.categories)) {

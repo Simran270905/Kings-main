@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Order Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div class="max-w-4xl mx-auto px-4 py-12">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">Track Your Order</h1>
+            <p class="text-lg text-gray-600">Test page to verify tabs are working</p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-200 mb-6">
+            <div class="flex border-b border-gray-200">
+                <button class="flex-1 py-4 px-6 text-center font-medium transition-colors text-red-600 border-b-2 border-red-600 bg-red-50">
+                    <svg class="h-5 w-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    Track by Order ID
+                </button>
+                <button class="flex-1 py-4 px-6 text-center font-medium transition-colors text-gray-500 hover:text-gray-700">
+                    <svg class="h-5 w-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257-1.13a11.042 11.042 0 005.516 5.516l1.13 2.257a1 1 0 001.21.502l4.493-1.498a1 1 0 00.684-.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 12V5z"></path>
+                    </svg>
+                    Track by Phone Number
+                </button>
+            </div>
+
+            <div class="p-8">
+                <div class="text-center text-gray-600">
+                    <p>If you can see two tabs above, the styling is working correctly.</p>
+                    <p>Click on "Track by Phone Number" to test tab switching.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple tab switching test
+        document.querySelectorAll('button').forEach((button, index) => {
+            button.addEventListener('click', () => {
+                alert(`Tab ${index + 1} clicked!`);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -16,6 +16,10 @@ import Footer from './customer/components/Footer/Footer'
 
 import HomePage from './customer/pages/HomePage/HomePage'
 
+// Debug components
+const RazorpayTest = lazy(() => import('./components/debug/RazorpayTest'))
+const TestAnimations = lazy(() => import('./components/TestAnimations'))
+
 // Lazy load non-critical customer components
 const OurStory = lazy(() => import('./customer/pages/OurStory/OurStory'))
 const Cart = lazy(() => import('./customer/components/Cart/Cart'))
