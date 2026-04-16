@@ -1,25 +1,39 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MagnifyingGlassIcon, TruckIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, TruckIcon, PhoneIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 
 export default function TrackOrderInput() {
   const navigate = useNavigate()
   const [orderId, setOrderId] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const [trackingMethod, setTrackingMethod] = useState('orderId') // 'orderId' or 'phone'
   const [loading, setLoading] = useState(false)
 
   const handleTrackOrder = async (e) => {
     e.preventDefault()
     
-    if (!orderId.trim()) {
-      toast.error('Please enter your Order ID')
-      return
+    if (trackingMethod === 'orderId') {
+      if (!orderId.trim()) {
+        toast.error('Please enter your Order ID')
+        return
+      }
+    } else {
+      if (!phoneNumber.trim()) {
+        toast.error('Please enter your phone number')
+        return
+      }
     }
 
     setLoading(true)
     
-    // Navigate to tracking page
-    navigate(`/track-order`)
+    // Navigate to tracking page with method and data
+    if (trackingMethod === 'orderId') {
+      navigate(`/track-order`)
+    } else {
+      // Navigate to track-order page with phone number pre-filled
+      navigate(`/track-order?phone=${encodeURIComponent(phoneNumber.trim())}`)
+    }
     
     setLoading(false)
   }
@@ -27,6 +41,13 @@ export default function TrackOrderInput() {
   const handleOrderIdChange = (e) => {
     const value = e.target.value.toUpperCase()
     setOrderId(value)
+  }
+
+  const handlePhoneChange = (e) => {
+    const value = e.target.value.replace(/\D/g, '') // Only allow digits
+    if (value.length <= 10) {
+      setPhoneNumber(value)
+    }
   }
 
   return (
@@ -37,42 +58,106 @@ export default function TrackOrderInput() {
         </div>
         <div>
           <h3 className="font-bold text-blue-900">Track Your Order</h3>
-          <p className="text-sm text-blue-700">Enter your Order ID for real-time updates</p>
+          <p className="text-sm text-blue-700">Track by Order ID or Phone Number</p>
         </div>
       </div>
       
-      <form onSubmit={handleTrackOrder} className="flex gap-2">
-        <div className="relative flex-1">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <MagnifyingGlassIcon className="h-4 w-4 text-gray-400" />
-          </div>
-          <input
-            type="text"
-            value={orderId}
-            onChange={handleOrderIdChange}
-            placeholder="Order ID (e.g., ORD123456789)"
-            className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            required
-          />
-        </div>
+      {/* Tracking Method Tabs */}
+      <div className="flex border-b border-gray-200 mb-4">
         <button
-          type="submit"
-          disabled={loading || !orderId.trim()}
-          className="px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+          onClick={() => setTrackingMethod('orderId')}
+          className={`flex-1 py-2 px-3 text-center font-medium text-sm transition-colors ${
+            trackingMethod === 'orderId'
+              ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
         >
-          {loading ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              Track
-            </>
-          ) : (
-            'Track'
-          )}
+          <MagnifyingGlassIcon className="h-4 w-4 inline mr-2" />
+          Track by Order ID
         </button>
+        <button
+          onClick={() => setTrackingMethod('phone')}
+          className={`flex-1 py-2 px-3 text-center font-medium text-sm transition-colors ${
+            trackingMethod === 'phone'
+              ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <PhoneIcon className="h-4 w-4 inline mr-2" />
+          Track by Phone
+        </button>
+      </div>
+      
+      <form onSubmit={handleTrackOrder} className="space-y-4">
+        {trackingMethod === 'orderId' ? (
+          <div>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <MagnifyingGlassIcon className="h-4 w-4 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                value={orderId}
+                onChange={handleOrderIdChange}
+                placeholder="Order ID (e.g., ORD123456789)"
+                className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading || !orderId.trim()}
+              className="w-full bg-blue-600 text-white font-medium py-2.5 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Track
+                </>
+              ) : (
+                'Track Order'
+              )}
+            </button>
+          </div>
+        ) : (
+          <div>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <PhoneIcon className="h-4 w-4 text-gray-400" />
+              </div>
+              <input
+                type="tel"
+                value={phoneNumber}
+                onChange={handlePhoneChange}
+                placeholder="Enter your 10-digit phone number"
+                className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                maxLength={10}
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading || !phoneNumber.trim()}
+              className="w-full bg-blue-600 text-white font-medium py-2.5 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Search
+                </>
+              ) : (
+                'Search Orders'
+              )}
+            </button>
+          </div>
+        )}
       </form>
       
       <p className="text-xs text-blue-600 mt-2">
-        Find your Order ID in confirmation email
+        {trackingMethod === 'orderId' 
+          ? 'Find your Order ID in confirmation email'
+          : 'Enter the phone number used when placing your order'
+        }
       </p>
     </div>
   )
