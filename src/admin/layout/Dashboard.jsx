@@ -5,6 +5,7 @@ import { useAnalytics } from '../hooks/useRealAnalytics'
 import { useMemo, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { API_BASE_URL } from '@config/api.js'
+import { getProductImage } from '../../utils/productHelpers.js'
 
 import {
   ShoppingBagIcon,
@@ -539,9 +540,9 @@ export default function Dashboard() {
                   <tr key={product._id || product.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        {product.images?.[0] ? (
+                        {getProductImage(product) && getProductImage(product) !== '/placeholder.jpg' ? (
                           <img
-                            src={product.images[0]}
+                            src={getProductImage(product)}
                             alt={product.title || product.name}
                             className="h-12 w-12 rounded-lg object-cover border border-gray-200"
                           />

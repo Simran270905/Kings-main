@@ -132,12 +132,24 @@ export default function ProductsManagement() {
     }
   }
 
-  // 🔥 Get image (Cloudinary support)
+  // 🔥 Get image (Cloudinary support) - Fixed to handle space-separated strings
   const getProductImage = (product) => {
+    // Handle space-separated string images (common issue in the database)
+    if (product.images && typeof product.images === 'string' && product.images.trim()) {
+      const imageArray = product.images.trim().split(/\s+/).filter(img => img);
+      if (imageArray.length > 0) {
+        return imageArray[0];
+      }
+    }
+    
+    // Handle array images (normal case)
+    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+      return product.images[0];
+    }
+    
     return (
-      product.images?.[0] || // ✅ new Cloudinary array
-      product.image ||       // ✅ old single image
-      product.imageUrl ||    // ✅ fallback
+      product.image ||       // old single image
+      product.imageUrl ||    // fallback
       ''
     )
   }

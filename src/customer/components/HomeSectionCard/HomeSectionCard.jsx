@@ -14,13 +14,9 @@ import {
   getDiscountPercentage,
   getProductName,
   getProductBrand,
-  debugProductFields
 } from '../../../utils/productHelpers.js'
 
 const HomeSectionCard = ({ product }) => {
-  // DEBUG: Log full product object
-  debugProductFields(product, 'HOME SECTION CARD');
-
   // FIXED: Use shared helpers for consistent field mapping
   const productImage = optimizeCloudinaryUrl(getProductImage(product));
   const productName = getProductName(product);
@@ -28,15 +24,7 @@ const HomeSectionCard = ({ product }) => {
   const sellingPrice = getSellingPrice(product);
   const originalPrice = getOriginalPrice(product);
   const discount = getDiscountPercentage(product);
-  
-  // DEBUG: Log image details
-  console.log('=== HOME SECTION CARD DEBUG ===');
-  console.log('Product:', productName);
-  console.log('Raw images:', product.images);
-  console.log('ProductImage:', productImage);
-  console.log('Image type:', typeof productImage);
-  console.log('================================');
-  
+
   const { addToCart } = useCart()
 
   // Animation states
@@ -129,20 +117,7 @@ const HomeSectionCard = ({ product }) => {
               transition-transform duration-500
               group-hover:scale-105
             "
-            onLoad={(e) => {
-              console.log('=== IMAGE LOADED ===');
-              console.log('Successfully loaded image:', productImage);
-              console.log('Natural width:', e.target.naturalWidth);
-              console.log('Natural height:', e.target.naturalHeight);
-              console.log('==================');
-            }}
             onError={(e) => {
-              console.log('=== IMAGE ERROR ===');
-              console.log('Failed to load image:', productImage);
-              console.log('Image src:', e.target.src);
-              console.log('Natural width:', e.target.naturalWidth);
-              console.log('Natural height:', e.target.naturalHeight);
-              console.log('==================');
               e.target.style.display = 'none';
               e.target.parentElement.classList.add('bg-gradient-to-br', 'from-gray-100', 'to-gray-200');
             }}
