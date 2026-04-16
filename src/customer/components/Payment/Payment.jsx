@@ -97,10 +97,11 @@ function PaymentPlanSelector({
 
   // Payment methods that require full payment only
   const fullPaymentOnlyMethods = ['upi', 'netbanking', 'card']
-  // Payment methods that require partial payment only
-  const partialPaymentOnlyMethods = ['cod']
+  // Payment methods that default to partial payment but allow both options
+  const partialPaymentDefaultMethods = ['cod']
   const shouldHidePartialPayment = paymentMethod && fullPaymentOnlyMethods.includes(paymentMethod)
-  const shouldHideFullPayment = paymentMethod && partialPaymentOnlyMethods.includes(paymentMethod)
+  // Never hide full payment - allow both options for COD
+  const shouldHideFullPayment = false
 
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
@@ -280,24 +281,24 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
   // Payment methods that require full payment only
   const fullPaymentOnlyMethods = ['upi', 'netbanking', 'card']
   
-  // Payment methods that require partial payment only
-  const partialPaymentOnlyMethods = ['cod']
+  // Payment methods that default to partial payment but allow both options
+  const partialPaymentDefaultMethods = ['cod']
 
   // Auto-set payment plan when payment method changes
   const handlePaymentMethodChange = (method) => {
     setSelectedMethod(method)
     if (fullPaymentOnlyMethods.includes(method)) {
       setPaymentPlan('full')
-    } else if (partialPaymentOnlyMethods.includes(method)) {
-      setPaymentPlan('partial')
+    } else if (partialPaymentDefaultMethods.includes(method)) {
+      setPaymentPlan('partial') // Default to partial for COD
     }
   }
 
   // Check if partial payment should be hidden
   const shouldHidePartialPayment = selectedMethod && fullPaymentOnlyMethods.includes(selectedMethod)
   
-  // Check if full payment should be hidden
-  const shouldHideFullPayment = selectedMethod && partialPaymentOnlyMethods.includes(selectedMethod)
+  // Check if full payment should be hidden (never hide for COD - allow both options)
+  const shouldHideFullPayment = false // Allow full payment for all methods
   const [loading, setLoading] = useState(false)
   const [couponCode, setCouponCode] = useState('')
   const [appliedCoupon, setAppliedCoupon] = useState(null)
@@ -477,7 +478,12 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
     try {
       setLoading(true)
 
-      if (selectedMethod === 'cod') {
+      // For COD with partial payment, use Razorpay for advance payment
+      if (selectedMethod === 'cod' && paymentPlan === 'partial') {
+        console.log('🚀 COD Partial Payment - Using Razorpay for advance payment')
+        await processRazorpayPayment(orderData)
+      } else if (selectedMethod === 'cod' && paymentPlan === 'full') {
+        // COD with full payment - create order directly (no advance payment needed)
         const res = await createOrder(orderData)
         if (res?.success) {
           // ADDED: Enhanced success message
@@ -489,7 +495,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           
           // Navigate to OrderSuccess with order data
           const orderIdForNavigation = res.orderId || res.order?._id || res.order?.orderNumber
-          console.log('🚀 COD Navigating with:', { orderId: orderIdForNavigation })
+          console.log('🚀 COD Full Payment Navigating with:', { orderId: orderIdForNavigation })
           
           try {
             navigate('/order-success', {
@@ -524,6 +530,7 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
           throw new Error(res?.message || 'Failed to place order')
         }
       } else {
+        // For other payment methods (UPI, Net Banking, Card)
         await processRazorpayPayment(orderData)
       }
 

@@ -6,17 +6,13 @@ const FlyToCartAnimation = ({ productId, productImage, isActive, onComplete }) =
   const animationRef = useRef(null);
 
   useEffect(() => {
-    console.log('FlyToCartAnimation: isActive=', isActive, 'productId=', productId, 'productImage=', productImage);
     if (!isActive || !productImage) return;
 
     // Get product image element
     const productImg = document.querySelector(`[data-product-img="${productId}"]`);
     const cartIcon = document.querySelector('[data-cart-icon]');
 
-    console.log('FlyToCartAnimation: productImg=', productImg, 'cartIcon=', cartIcon);
-
     if (!productImg || !cartIcon) {
-      console.log('FlyToCartAnimation: Missing elements, calling onComplete');
       onComplete?.();
       return;
     }
