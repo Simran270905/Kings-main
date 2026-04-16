@@ -548,6 +548,82 @@ const AdminOrders = () => {
             </div>
           </div>
 
+          {/* Manual Shiprocket Request */}
+          <div className="mb-6">
+            <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Manual Shiprocket Request</h4>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <p className="text-sm font-medium text-yellow-800">⚠️ Use this section only if automatic Shiprocket creation fails</p>
+                  <p className="text-xs text-yellow-600">Copy the details below to create manual shipment request</p>
+                </div>
+                {selectedOrder.shiprocketStatus === 'failed' && (
+                  <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">Auto-Creation Failed</span>
+                )}
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-semibold text-gray-600 uppercase">Customer Details:</label>
+                  <div className="mt-1 p-3 bg-white rounded border border-gray-200 font-mono text-sm">
+                    <p><strong>Name:</strong> {selectedOrder.guestInfo?.firstName || selectedOrder.shippingAddress?.firstName || 'N/A'} {selectedOrder.guestInfo?.lastName || selectedOrder.shippingAddress?.lastName || 'N/A'}</p>
+                    <p><strong>Email:</strong> {selectedOrder.guestInfo?.email || selectedOrder.shippingAddress?.email || 'N/A'}</p>
+                    <p><strong>Phone:</strong> {selectedOrder.guestInfo?.mobile || selectedOrder.shippingAddress?.mobile || 'N/A'}</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-xs font-semibold text-gray-600 uppercase">Complete Address:</label>
+                  <div className="mt-1 p-3 bg-white rounded border border-gray-200 font-mono text-sm">
+                    <p>{selectedOrder.guestInfo?.streetAddress || selectedOrder.shippingAddress?.streetAddress || 'N/A'}</p>
+                    <p>{selectedOrder.guestInfo?.city || selectedOrder.shippingAddress?.city || 'N/A'}, {selectedOrder.guestInfo?.state || selectedOrder.shippingAddress?.state || 'N/A'} - {selectedOrder.guestInfo?.zipCode || selectedOrder.shippingAddress?.zipCode || 'N/A'}</p>
+                    <p>India</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-gray-600 uppercase">Order Details:</label>
+                  <div className="mt-1 p-3 bg-white rounded border border-gray-200 font-mono text-sm">
+                    <p><strong>Order ID:</strong> {selectedOrder._id || 'N/A'}</p>
+                    <p><strong>Payment Method:</strong> {selectedOrder.paymentMethod || 'N/A'}</p>
+                    <p><strong>Total Amount:</strong> ₹{formatPrice(safeOrderAmount(selectedOrder))}</p>
+                    <p><strong>Weight:</strong> ~{Math.max((selectedOrder.items?.length || 1) * 0.05, 0.5).toFixed(2)}kg</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 mt-3">
+                  <button
+                    onClick={() => {
+                      const addressText = `
+Customer: ${selectedOrder.guestInfo?.firstName || selectedOrder.shippingAddress?.firstName || 'N/A'} ${selectedOrder.guestInfo?.lastName || selectedOrder.shippingAddress?.lastName || 'N/A'}
+Email: ${selectedOrder.guestInfo?.email || selectedOrder.shippingAddress?.email || 'N/A'}
+Phone: ${selectedOrder.guestInfo?.mobile || selectedOrder.shippingAddress?.mobile || 'N/A'}
+Address: ${selectedOrder.guestInfo?.streetAddress || selectedOrder.shippingAddress?.streetAddress || 'N/A'}, ${selectedOrder.guestInfo?.city || selectedOrder.shippingAddress?.city || 'N/A'}, ${selectedOrder.guestInfo?.state || selectedOrder.shippingAddress?.state || 'N/A'} - ${selectedOrder.guestInfo?.zipCode || selectedOrder.shippingAddress?.zipCode || 'N/A'}
+Order ID: ${selectedOrder._id || 'N/A'}
+Amount: ₹${formatPrice(safeOrderAmount(selectedOrder))}
+Payment: ${selectedOrder.paymentMethod || 'N/A'}
+                      `.trim();
+                      navigator.clipboard.writeText(addressText);
+                      alert('Shipping details copied to clipboard! You can now create manual Shiprocket request.');
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    📋 Copy All Details
+                  </button>
+                  
+                  <a
+                    href="https://apiv2.shiprocket.in/v1/external/orders/create/adhoc"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    🚀 Open Shiprocket Dashboard
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
           
           {/* Admin Notes */}
           <div className="mb-6">
