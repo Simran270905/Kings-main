@@ -47,7 +47,16 @@ export default function ShopPage() {
 
   // Extract unique categories from products
   const categories = useMemo(() => {
-    const uniqueCats = ['all', ...new Set(allProductsList.map(p => typeof p.category === 'string' ? p.category : null).filter(Boolean))]
+    const uniqueCats = ['all', ...new Set(allProductsList.map(p => {
+      if (typeof p.category === 'string') {
+        return p.category
+      } else if (p.category && typeof p.category === 'object' && p.category.name) {
+        return p.category.name
+      }
+      return null
+    }).filter(Boolean))]
+    console.log('Categories extracted:', uniqueCats)
+    console.log('Sample products:', allProductsList.slice(0, 3).map(p => ({ id: p.id || p._id, category: p.category, name: p.name })))
     return uniqueCats
   }, [allProductsList])
 
@@ -57,9 +66,18 @@ export default function ShopPage() {
     
     // Filter by category
     if (selectedCategory !== 'all') {
-      arr = arr.filter(item => 
-        typeof item.category === 'string' && item.category.toLowerCase() === selectedCategory.toLowerCase()
-      )
+      console.log('Filtering by category:', selectedCategory)
+      const beforeFilter = arr.length
+      arr = arr.filter(item => {
+        if (typeof item.category === 'string') {
+          return item.category.toLowerCase() === selectedCategory.toLowerCase()
+        } else if (item.category && typeof item.category === 'object' && item.category.name) {
+          return item.category.name.toLowerCase() === selectedCategory.toLowerCase()
+        }
+        return false
+      })
+      console.log('After filter:', arr.length, 'products (from', beforeFilter, ')')
+      console.log('Filtered products:', arr.slice(0, 3).map(p => ({ id: p.id || p._id, category: p.category, name: p.name })))
     }
     
     // Apply sorting
@@ -122,7 +140,10 @@ export default function ShopPage() {
             {categories.map((category) => (
               <button
                 key={category}
-                onClick={() => setSelectedCategory(category)}
+                onClick={() => {
+      console.log('Category clicked:', category)
+      setSelectedCategory(category)
+    }}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                   selectedCategory === category
                     ? 'bg-[#ae0b0b] text-white shadow-md'
