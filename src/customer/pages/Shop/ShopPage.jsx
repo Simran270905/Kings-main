@@ -47,7 +47,7 @@ export default function ShopPage() {
 
   // Extract unique categories from products
   const categories = useMemo(() => {
-    const uniqueCats = ['all', ...new Set(allProductsList.map(p => p.category).filter(Boolean))]
+    const uniqueCats = ['all', ...new Set(allProductsList.map(p => typeof p.category === 'string' ? p.category : null).filter(Boolean))]
     return uniqueCats
   }, [allProductsList])
 
@@ -58,7 +58,7 @@ export default function ShopPage() {
     // Filter by category
     if (selectedCategory !== 'all') {
       arr = arr.filter(item => 
-        item.category?.toLowerCase() === selectedCategory.toLowerCase()
+        typeof item.category === 'string' && item.category.toLowerCase() === selectedCategory.toLowerCase()
       )
     }
     
