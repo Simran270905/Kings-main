@@ -197,7 +197,7 @@ const AdminOrders = () => {
               <thead className="bg-gray-50 border-b-2 border-gray-200">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Order ID</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Shipping Address</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Items</th>
                   <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Total Amount</th>
                   <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Payment</th>
@@ -214,6 +214,14 @@ const AdminOrders = () => {
                   <tr key={order._id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <span className="font-mono text-sm text-gray-600">#{String(order._id || 'N/A').slice(-8)}</span>
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{safeCustomerName(order)}</p>
+                        <p className="text-xs text-gray-500">{safeCustomerEmail(order)}</p>
+                        <p className="text-xs text-gray-500">{safeCustomerPhone(order)}</p>
+                      </div>
                     </td>
 
                     <td className="px-6 py-4">
@@ -324,6 +332,75 @@ const AdminOrders = () => {
             </div>
 
             <div>
+              <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Order Identifiers</h4>
+              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                <p className="text-sm"><span className="font-medium">Order ID:</span> <span className="font-mono text-xs">#{selectedOrder._id}</span></p>
+                <p className="text-sm"><span className="font-medium">Date:</span> {new Date(selectedOrder.createdAt).toLocaleString()}</p>
+                <p className="text-sm"><span className="font-medium">User ID:</span> {selectedOrder.userId ? <span className="font-mono text-xs">{selectedOrder.userId}</span> : 'Guest Order'}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Payment Information</h4>
+              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                <p className="text-sm"><span className="font-medium">Payment Method:</span> <span className="capitalize">{selectedOrder.paymentMethod || 'N/A'}</span></p>
+                <p className="text-sm"><span className="font-medium">Payment Status:</span> 
+                  <span className={`ml-1 px-2 py-1 rounded text-xs font-medium ${
+                    selectedOrder.paymentStatus === 'paid' || selectedOrder.paymentStatus === 'completed' ? 'bg-green-100 text-green-800' :
+                    selectedOrder.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                    selectedOrder.paymentStatus === 'failed' ? 'bg-red-100 text-red-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {(selectedOrder.paymentStatus || 'N/A').toUpperCase()}
+                  </span>
+                </p>
+                {selectedOrder.razorpayOrderId && (
+                  <p className="text-sm"><span className="font-medium">Razorpay Order ID:</span> <span className="font-mono text-xs">{selectedOrder.razorpayOrderId}</span></p>
+                )}
+                {selectedOrder.razorpayPaymentId && (
+                  <p className="text-sm"><span className="font-medium">Razorpay Payment ID:</span> <span className="font-mono text-xs">{selectedOrder.razorpayPaymentId}</span></p>
+                )}
+                {selectedOrder.paymentId && (
+                  <p className="text-sm"><span className="font-medium">Payment ID:</span> <span className="font-mono text-xs">{selectedOrder.paymentId}</span></p>
+                )}
+                {selectedOrder.paidAt && (
+                  <p className="text-sm"><span className="font-medium">Paid At:</span> {new Date(selectedOrder.paidAt).toLocaleString()}</p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Shipping Information</h4>
+              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                <p className="text-sm"><span className="font-medium">Shiprocket ID:</span> {selectedOrder.shiprocketId || selectedOrder.shiprocketOrderId || 'N/A'}</p>
+                <p className="text-sm"><span className="font-medium">AWB Code:</span> {selectedOrder.awbCode || 'N/A'}</p>
+                <p className="text-sm"><span className="font-medium">Courier:</span> {selectedOrder.courierName || 'N/A'}</p>
+                <p className="text-sm"><span className="font-medium">Tracking Number:</span> {selectedOrder.trackingNumber || 'N/A'}</p>
+                {selectedOrder.trackingUrl && (
+                  <p className="text-sm">
+                    <span className="font-medium">Tracking URL:</span> 
+                    <a href={selectedOrder.trackingUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline ml-1">
+                      Track Shipment
+                    </a>
+                  </p>
+                )}
+                <p className="text-sm"><span className="font-medium">Shipping Status:</span> 
+                  <span className={`ml-1 px-2 py-1 rounded text-xs font-medium ${
+                    selectedOrder.shippingStatus === 'delivered' ? 'bg-green-100 text-green-800' :
+                    selectedOrder.shippingStatus === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                    selectedOrder.shippingStatus === 'created' ? 'bg-yellow-100 text-yellow-800' :
+                    selectedOrder.shippingStatus === 'pending' ? 'bg-orange-100 text-orange-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {selectedOrder.shippingStatus?.replace('_', ' ').toUpperCase() || 'NOT CREATED'}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <div>
               <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Order Status</h4>
               <div className="bg-gray-50 rounded-lg p-4">
                 <div className="mb-3">
@@ -380,60 +457,51 @@ const AdminOrders = () => {
                 <span className="text-sm font-medium">{formatPrice(selectedOrder.subtotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Shipping:</span>
+                <span className="text-sm text-gray-600">Tax:</span>
+                <span className="text-sm font-medium">{formatPrice(selectedOrder.tax || 0)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Shipping Cost:</span>
                 <span className="text-sm font-medium">{formatPrice(selectedOrder.shippingCost || 0)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">COD Charge:</span>
+                <span className="text-sm font-medium">{formatPrice(selectedOrder.codCharge || 0)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Discount:</span>
                 <span className="text-sm font-medium text-red-600">-{formatPrice(selectedOrder.discount || 0)}</span>
               </div>
-              <div className="flex justify-between pt-2 border-t border-gray-300">
-                <span className="text-sm font-semibold text-gray-900">Total:</span>
-                <span className="text-sm font-bold text-gray-900">{formatPrice(selectedOrder.totalAmount)}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Payment Information */}
-          <div className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Payment Information</h4>
-            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Payment Method:</span>
-                <span className="text-sm font-medium capitalize">{selectedOrder.paymentMethod || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Payment Status:</span>
-                <span className={`px-2 py-1 rounded text-xs font-medium ${
-                  selectedOrder.paymentStatus === 'completed' || selectedOrder.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
-                  selectedOrder.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                  selectedOrder.paymentStatus === 'failed' ? 'bg-red-100 text-red-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {(selectedOrder.paymentStatus || 'N/A').toUpperCase()}
-                </span>
-              </div>
-              {selectedOrder.paymentId && (
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Payment ID:</span>
-                  <span className="text-sm font-medium font-mono">{selectedOrder.paymentId}</span>
-                </div>
-              )}
-              {selectedOrder.paidAt && (
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Paid At:</span>
-                  <span className="text-sm font-medium">{new Date(selectedOrder.paidAt).toLocaleString()}</span>
-                </div>
-              )}
               {selectedOrder.couponCode && (
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Coupon Applied:</span>
-                  <span className="text-sm font-medium">{selectedOrder.couponCode} (-{formatPrice(selectedOrder.discount || 0)})</span>
+                  <span className="text-sm text-gray-600">Coupon Code:</span>
+                  <span className="text-sm font-medium">{selectedOrder.couponCode}</span>
                 </div>
+              )}
+              <div className="flex justify-between pt-2 border-t border-gray-300">
+                <span className="text-sm font-semibold text-gray-900">Total Amount:</span>
+                <span className="text-sm font-bold text-gray-900">{formatPrice(selectedOrder.totalAmount)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Amount Paid:</span>
+                <span className="text-sm font-medium">{formatPrice(selectedOrder.amountPaid || 0)}</span>
+              </div>
+              {selectedOrder.paymentPlan === 'partial' && (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Advance Amount:</span>
+                    <span className="text-sm font-medium">{formatPrice(selectedOrder.advanceAmount || 0)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Remaining Amount:</span>
+                    <span className="text-sm font-medium">{formatPrice(selectedOrder.remainingAmount || 0)}</span>
+                  </div>
+                </>
               )}
             </div>
           </div>
 
+          
           
           {/* Shipping Address */}
           <div className="mb-6">
@@ -448,39 +516,7 @@ const AdminOrders = () => {
             </div>
           </div>
 
-          {/* Shipping Information */}
-          <div className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Shipping Information</h4>
-            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-              <p className="text-sm"><span className="font-medium">Shiprocket Order ID:</span> {selectedOrder.shiprocketOrderId || 'N/A'}</p>
-              <p className="text-sm"><span className="font-medium">AWB Code:</span> {selectedOrder.awbCode || 'N/A'}</p>
-              <p className="text-sm"><span className="font-medium">Courier Name:</span> {selectedOrder.courierName || 'N/A'}</p>
-              <p className="text-sm"><span className="font-medium">Tracking Number:</span> {selectedOrder.trackingNumber || 'N/A'}</p>
-              {selectedOrder.trackingUrl && (
-                <p className="text-sm">
-                  <span className="font-medium">Tracking URL:</span> 
-                  <a href={selectedOrder.trackingUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline ml-1">
-                    Track Shipment
-                  </a>
-                </p>
-              )}
-              <p className="text-sm"><span className="font-medium">Shipping Status:</span> 
-                <span className={`ml-1 px-2 py-1 rounded text-xs font-medium ${
-                  selectedOrder.shippingStatus === 'delivered' ? 'bg-green-100 text-green-800' :
-                  selectedOrder.shippingStatus === 'shipped' ? 'bg-blue-100 text-blue-800' :
-                  selectedOrder.shippingStatus === 'created' ? 'bg-yellow-100 text-yellow-800' :
-                  selectedOrder.shippingStatus === 'pending' ? 'bg-orange-100 text-orange-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {selectedOrder.shippingStatus?.replace('_', ' ').toUpperCase() || 'N/A'}
-                </span>
-              </p>
-              {selectedOrder.estimatedDelivery && (
-                <p className="text-sm"><span className="font-medium">Estimated Delivery:</span> {new Date(selectedOrder.estimatedDelivery).toLocaleDateString()}</p>
-              )}
-            </div>
-          </div>
-
+          
           {/* Admin Notes */}
           <div className="mb-6">
             <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Admin Notes</h4>
