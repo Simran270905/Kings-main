@@ -325,9 +325,25 @@ const AdminOrders = () => {
             <div>
               <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Customer Information</h4>
               <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                <p className="text-sm"><span className="font-medium">Name:</span> {selectedOrder.customer?.name || `${selectedOrder.shippingAddress?.firstName} ${selectedOrder.shippingAddress?.lastName}` || 'Guest User'}</p>
-                <p className="text-sm"><span className="font-medium">Email:</span> {selectedOrder.customer?.email || selectedOrder.shippingAddress?.email || '-'}</p>
-                <p className="text-sm"><span className="font-medium">Phone:</span> {selectedOrder.customer?.phone || selectedOrder.shippingAddress?.mobile || '-'}</p>
+                <p className="text-sm"><span className="font-medium">Name:</span> {
+                  selectedOrder.customer?.name || 
+                  `${selectedOrder.guestInfo?.firstName || ''} ${selectedOrder.guestInfo?.lastName || ''}`.trim() ||
+                  `${selectedOrder.shippingAddress?.firstName || ''} ${selectedOrder.shippingAddress?.lastName || ''}`.trim() ||
+                  'Guest User'
+                }</p>
+                <p className="text-sm"><span className="font-medium">Email:</span> {
+                  selectedOrder.customer?.email || 
+                  selectedOrder.guestInfo?.email || 
+                  selectedOrder.shippingAddress?.email || 
+                  '-'
+                }</p>
+                <p className="text-sm"><span className="font-medium">Phone:</span> {
+                  selectedOrder.customer?.phone || 
+                  selectedOrder.customer?.mobile ||
+                  selectedOrder.guestInfo?.mobile || 
+                  selectedOrder.shippingAddress?.mobile || 
+                  '-'
+                }</p>
               </div>
             </div>
 
@@ -507,12 +523,28 @@ const AdminOrders = () => {
           <div className="mb-6">
             <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Shipping Address</h4>
             <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-              <p className="text-sm"><span className="font-medium">Street Address:</span> {selectedOrder.guestInfo?.streetAddress || selectedOrder.shippingAddress?.streetAddress || 'N/A'}</p>
+              <p className="text-sm"><span className="font-medium">Street Address:</span> {
+                selectedOrder.guestInfo?.streetAddress || 
+                selectedOrder.shippingAddress?.streetAddress || 
+                'N/A'
+              }</p>
               <div className="grid grid-cols-2 gap-4">
-                <p className="text-sm"><span className="font-medium">City:</span> {selectedOrder.guestInfo?.city || selectedOrder.shippingAddress?.city || 'N/A'}</p>
-                <p className="text-sm"><span className="font-medium">State:</span> {selectedOrder.guestInfo?.state || selectedOrder.shippingAddress?.state || 'N/A'}</p>
+                <p className="text-sm"><span className="font-medium">City:</span> {
+                  selectedOrder.guestInfo?.city || 
+                  selectedOrder.shippingAddress?.city || 
+                  'N/A'
+                }</p>
+                <p className="text-sm"><span className="font-medium">State:</span> {
+                  selectedOrder.guestInfo?.state || 
+                  selectedOrder.shippingAddress?.state || 
+                  'N/A'
+                }</p>
               </div>
-              <p className="text-sm"><span className="font-medium">ZIP Code:</span> {selectedOrder.guestInfo?.zipCode || selectedOrder.shippingAddress?.zipCode || 'N/A'}</p>
+              <p className="text-sm"><span className="font-medium">ZIP Code:</span> {
+                selectedOrder.guestInfo?.zipCode || 
+                selectedOrder.shippingAddress?.zipCode || 
+                'N/A'
+              }</p>
             </div>
           </div>
 

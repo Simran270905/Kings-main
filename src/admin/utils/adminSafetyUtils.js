@@ -47,20 +47,26 @@ export const safeObject = (value, fallback = {}) => {
 export const safeCustomerName = (order) => {
   if (!order) return "N/A";
   
-  // Try customer.name first (new structure)
+  // Try guestInfo first (guest checkout system)
+  if (order.guestInfo?.firstName || order.guestInfo?.lastName) {
+    const firstName = safeString(order.guestInfo.firstName, "");
+    const lastName = safeString(order.guestInfo.lastName, "");
+    return (firstName && lastName) ? `${firstName} ${lastName}`.trim() : firstName || lastName || "Guest User";
+  }
+  
+  // Try customer.name (embedded customer object)
   if (order.customer?.name) {
     return safeString(order.customer.name);
   }
   
-  // Fallback to firstName + lastName (old structure)
-  const firstName = safeString(order.customer?.firstName, "");
-  const lastName = safeString(order.customer?.lastName, "");
-  
-  if (firstName && lastName) {
-    return `${firstName} ${lastName}`.trim();
+  // Try customer.firstName + customer.lastName (embedded customer object)
+  if (order.customer?.firstName || order.customer?.lastName) {
+    const firstName = safeString(order.customer.firstName, "");
+    const lastName = safeString(order.customer.lastName, "");
+    return (firstName && lastName) ? `${firstName} ${lastName}`.trim() : firstName || lastName || "Guest User";
   }
   
-  return firstName || lastName || "Guest User";
+  return "Guest User";
 };
 
 /**
@@ -68,7 +74,14 @@ export const safeCustomerName = (order) => {
  */
 export const safeCustomerEmail = (order) => {
   if (!order) return "N/A";
-  return safeString(order.customer?.email || order.customer?.email);
+  
+  // Try guestInfo first (guest checkout system)
+  if (order.guestInfo?.email) {
+    return safeString(order.guestInfo.email);
+  }
+  
+  // Try customer object
+  return safeString(order.customer?.email);
 };
 
 /**
@@ -76,6 +89,13 @@ export const safeCustomerEmail = (order) => {
  */
 export const safeCustomerPhone = (order) => {
   if (!order) return "N/A";
+  
+  // Try guestInfo first (guest checkout system)
+  if (order.guestInfo?.mobile) {
+    return safeString(order.guestInfo.mobile);
+  }
+  
+  // Try customer object
   return safeString(order.customer?.phone || order.customer?.mobile);
 };
 
