@@ -35,20 +35,33 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          // Separate vendor chunks
-          vendor: ['react', 'react-dom'],
-          // Separate admin chunks
+          // Core React chunk - stable for caching
+          react: ['react', 'react-dom'],
+          // Router chunk - frequently used
+          router: ['react-router-dom'],
+          // UI Library chunks
+          ui: ['@headlessui/react', '@heroicons/react'],
+          // MUI chunk - heavy library
+          mui: ['@mui/material', '@mui/icons-material'],
+          // Chart library chunk
+          charts: ['recharts'],
+          // Admin chunks
           admin: [
             './src/admin/AdminOnlyLayout.jsx',
             './src/admin/layout/Dashboard.jsx',
             './src/admin/context/useAdminAuth.jsx',
             './src/admin/context/AdminContextProvider.jsx',
           ],
-          // Separate customer chunks
+          // Customer chunks
           customer: [
             './src/context/AuthContext.jsx',
             './src/context/ProductContext.jsx'
           ]
+        },
+        // Optimize chunk naming for better caching
+        chunkFileNames: (chunkInfo) => {
+          const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop() : 'chunk';
+          return `assets/[name]-[hash].js`;
         }
       }
     },
@@ -58,7 +71,8 @@ export default defineConfig({
     sourcemap: false,
     // Optimize for production
     minify: 'esbuild',
-    // Remove terserOptions since we're using esbuild
+    // Enable compression for better load times
+    target: 'esnext'
   },
 
   // Speeds up dev server & rebuilds

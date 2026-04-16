@@ -13,33 +13,34 @@ import ScrollToTop from './components/ScrollToTop'
 
 import Navbar from './customer/components/navigation/Navbar'
 import Footer from './customer/components/Footer/Footer'
-import DebugInfo from './components/DebugInfo'
-import RazorpayTest from './components/debug/RazorpayTest'
-import TestAnimations from './components/TestAnimations'
 
 import HomePage from './customer/pages/HomePage/HomePage'
-import OurStory from './customer/pages/OurStory/OurStory'
-import Cart from './customer/components/Cart/Cart'
-import Checkout from './customer/components/Checkout/Checkout'
-import Payment from './customer/components/Payment/Payment'
-import PaymentConfirmation from './customer/pages/PaymentConfirmation/PaymentConfirmation'
-import OrderSuccess from './customer/pages/OrderSuccess/OrderSuccess'
-import Orders from './customer/pages/Orders/Orders'
-import OrderTrack from './customer/pages/OrderTrack/OrderTrack'
-import TrackOrderPage from './customer/pages/TrackOrder/TrackOrderPage'
 
-// Legal Pages
-import PrivacyPolicy from './customer/pages/Legal/PrivacyPolicy'
-import TermsAndConditions from './customer/pages/Legal/TermsAndConditions'
-import RefundPolicy from './customer/pages/Legal/RefundPolicy'
-import ShippingPolicy from './customer/pages/Legal/ShippingPolicy'
+// Lazy load non-critical customer components
+const OurStory = lazy(() => import('./customer/pages/OurStory/OurStory'))
+const Cart = lazy(() => import('./customer/components/Cart/Cart'))
+const Checkout = lazy(() => import('./customer/components/Checkout/Checkout'))
+const Payment = lazy(() => import('./customer/components/Payment/Payment'))
+const PaymentConfirmation = lazy(() => import('./customer/pages/PaymentConfirmation/PaymentConfirmation'))
+const OrderSuccess = lazy(() => import('./customer/pages/OrderSuccess/OrderSuccess'))
+const Orders = lazy(() => import('./customer/pages/Orders/Orders'))
+const OrderTrack = lazy(() => import('./customer/pages/OrderTrack/OrderTrack'))
+const TrackOrderPage = lazy(() => import('./customer/pages/TrackOrder/TrackOrderPage'))
 
-// Contact Page
-import Contact from './customer/pages/Contact/Contact'
+// Legal Pages - lazy loaded
+const PrivacyPolicy = lazy(() => import('./customer/pages/Legal/PrivacyPolicy'))
+const TermsAndConditions = lazy(() => import('./customer/pages/Legal/TermsAndConditions'))
+const RefundPolicy = lazy(() => import('./customer/pages/Legal/RefundPolicy'))
+const ShippingPolicy = lazy(() => import('./customer/pages/Legal/ShippingPolicy'))
 
-import AdminLogin from './admin/AdminLogin'
+// Contact Page - lazy loaded
+const Contact = lazy(() => import('./customer/pages/Contact/Contact'))
+
 import AdminRoute from './admin/AdminRoute'
-import AdminOnlyLayout from './admin/AdminOnlyLayout.jsx'
+
+// Lazy load admin components
+const AdminLogin = lazy(() => import('./admin/AdminLogin'))
+const AdminOnlyLayout = lazy(() => import('./admin/AdminOnlyLayout.jsx'))
 
 // Loading fallback component
 const LoadingFallback = () => (
