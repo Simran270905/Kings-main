@@ -136,6 +136,7 @@ return (
                       <Route path="/payment-confirmation" element={<CustomerLayout><PaymentConfirmation /></CustomerLayout>} />
                       <Route path="/orders" element={<CustomerLayout><Orders /></CustomerLayout>} />
                       <Route path="/order-success" element={<CustomerLayout><OrderSuccess /></CustomerLayout>} />
+                      <Route path="/track-order" element={<CustomerLayout><TrackOrderPage /></CustomerLayout>} />
                       <Route path="/orders/track" element={<CustomerLayout><TrackOrderPage /></CustomerLayout>} />
                       <Route path="/orders/track/:orderId" element={<CustomerLayout><OrderTrack /></CustomerLayout>} />
 

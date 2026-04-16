@@ -12,7 +12,7 @@ const DEFAULT_FOOTER = {
     { label: 'Shop', url: '/shop' },
     { label: 'Our Story', url: '/our-story' },
     { label: 'Contact Us', url: '/contact' },
-    { label: 'Track Order', url: '/orders/track' },
+    { label: 'Track Order', url: '/track-order' },
   ],
   legalLinks: [
     { label: 'Privacy Policy', url: '/privacy-policy' },

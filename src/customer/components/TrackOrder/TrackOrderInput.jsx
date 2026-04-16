@@ -19,7 +19,7 @@ export default function TrackOrderInput() {
     setLoading(true)
     
     // Navigate to tracking page
-    navigate(`/orders/track/${orderId.trim()}`)
+    navigate(`/track-order`)
     
     setLoading(false)
   }
