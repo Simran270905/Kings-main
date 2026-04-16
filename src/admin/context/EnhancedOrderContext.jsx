@@ -11,7 +11,8 @@ export const EnhancedOrderContext = createContext({
   bulkUpdateOrders: () => {},
   getOrderStats: () => null,
   searchOrders: () => [],
-  filterOrders: () => []
+  filterOrders: () => [],
+  retryShiprocketOrder: () => {}
 })
 
 export const useEnhancedOrder = () => {
@@ -199,6 +200,28 @@ export const EnhancedOrderProvider = ({ children }) => {
     })
   }
 
+  // Retry Shiprocket order creation
+  const retryShiprocketOrder = async (orderId) => {
+    try {
+      const data = await adminApi.retryShiprocketOrder(orderId)
+      
+      if (data.success) {
+        // Update specific order in list
+        setOrders(prev =>
+          prev.map(o => o._id === orderId ? { ...o, ...data.data } : o)
+        )
+        
+        console.log(`Shiprocket order retry initiated: ${orderId}`)
+        return { success: true, data: data.data }
+      } else {
+        throw new Error(data.message || 'Failed to retry Shiprocket order')
+      }
+    } catch (error) {
+      console.error('Shiprocket retry error:', error.message)
+      return { success: false, error: error.message }
+    }
+  }
+
   // Export payment reports
   const exportPaymentReports = async (exportOptions = {}) => {
     try {
@@ -262,6 +285,7 @@ export const EnhancedOrderProvider = ({ children }) => {
         markCODOrderAsPaid,
         updateFilters,
         resetFilters,
+        retryShiprocketOrder,
         exportPaymentReports
       }}
     >

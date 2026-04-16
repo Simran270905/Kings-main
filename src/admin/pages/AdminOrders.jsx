@@ -29,10 +29,11 @@ import {
 } from '../utils/adminSafetyUtils'
 
 const AdminOrders = () => {
-  const { orders, fetchOrders, getOrderDetails, updateOrderStatus, updateFilters, resetFilters, stats, loading, lastFetch } = useEnhancedOrder()
+  const { orders, fetchOrders, getOrderDetails, updateOrderStatus, updateFilters, resetFilters, stats, loading, lastFetch, retryShiprocketOrder } = useEnhancedOrder()
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [selectedOrderId, setSelectedOrderId] = useState(null)
   const [error, setError] = useState('')
+  const [retryLoading, setRetryLoading] = useState(false)
   
   // Safe data handling
   const safeOrders = safeArray(orders)
@@ -53,6 +54,31 @@ const AdminOrders = () => {
     } catch (error) {
       setError('Failed to update order status')
       setTimeout(() => setError(''), 3000)
+    }
+  }
+
+  // Handle Shiprocket retry
+  const handleRetryShiprocket = async (orderId) => {
+    if (!orderId) return
+    
+    try {
+      setRetryLoading(true)
+      const result = await retryShiprocketOrder(orderId)
+      
+      if (result.success) {
+        setError('')
+        // Refresh orders to get updated status
+        await fetchOrders(true)
+        console.log('✅ Shiprocket retry initiated successfully')
+      } else {
+        setError(result.error || 'Failed to retry Shiprocket order')
+        setTimeout(() => setError(''), 5000)
+      }
+    } catch (error) {
+      setError('Failed to retry Shiprocket order')
+      setTimeout(() => setError(''), 5000)
+    } finally {
+      setRetryLoading(false)
     }
   }
 
@@ -548,6 +574,70 @@ const AdminOrders = () => {
             </div>
           </div>
 
+          {/* Shiprocket Status & Actions */}
+          <div className="mb-6">
+            <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Shiprocket Status</h4>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-sm font-medium text-gray-800">
+                    Status: <span className={`ml-1 px-2 py-1 rounded text-xs font-medium ${
+                      selectedOrder.shippingStatus === 'created' ? 'bg-green-100 text-green-800' :
+                      selectedOrder.shippingStatus === 'failed' ? 'bg-red-100 text-red-800' :
+                      selectedOrder.shippingStatus === 'pending_payment' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {selectedOrder.shippingStatus?.replace('_', ' ').toUpperCase() || 'NOT CREATED'}
+                    </span>
+                  </p>
+                  {selectedOrder.shiprocketRetries > 0 && (
+                    <p className="text-xs text-gray-600 mt-1">
+                      Retry attempts: {selectedOrder.shiprocketRetries}/3
+                    </p>
+                  )}
+                  {selectedOrder.lastShiprocketRetry && (
+                    <p className="text-xs text-gray-600">
+                      Last retry: {new Date(selectedOrder.lastShiprocketRetry).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+                
+                {/* Retry Button */}
+                {selectedOrder.paymentStatus === 'paid' && 
+                 (selectedOrder.shippingStatus === 'failed' || selectedOrder.shippingStatus === 'not_created') && 
+                 selectedOrder.shiprocketRetries < 3 && (
+                  <button
+                    onClick={() => handleRetryShiprocket(selectedOrder._id)}
+                    disabled={retryLoading}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    <svg className={`w-4 h-4 ${retryLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    {retryLoading ? 'Retrying...' : 'Retry Shiprocket'}
+                  </button>
+                )}
+                
+                {selectedOrder.shiprocketRetries >= 3 && (
+                  <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">Max Retries Reached</span>
+                )}
+              </div>
+              
+              {/* Error Display */}
+              {selectedOrder.shiprocketError && (
+                <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded">
+                  <p className="text-sm font-medium text-red-800 mb-1">🚨 Shiprocket Error Details:</p>
+                  <pre className="text-xs text-red-700 whitespace-pre-wrap break-words">
+                    {typeof selectedOrder.shiprocketError === 'string' 
+                      ? selectedOrder.shiprocketError 
+                      : JSON.stringify(selectedOrder.shiprocketError, null, 2)
+                    }
+                  </pre>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Manual Shiprocket Request */}
           <div className="mb-6">
             <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Manual Shiprocket Request</h4>
@@ -557,7 +647,7 @@ const AdminOrders = () => {
                   <p className="text-sm font-medium text-yellow-800">⚠️ Use this section only if automatic Shiprocket creation fails</p>
                   <p className="text-xs text-yellow-600">Copy the details below to create manual shipment request</p>
                 </div>
-                {selectedOrder.shiprocketStatus === 'failed' && (
+                {selectedOrder.shippingStatus === 'failed' && (
                   <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">Auto-Creation Failed</span>
                 )}
               </div>

@@ -520,6 +520,22 @@ class AdminApiService {
       body: JSON.stringify(content)
     })
   }
+
+  // ======================
+  // 🚀 SHIPROCKET
+  // ======================
+
+  // Retry Shiprocket order creation
+  async retryShiprocketOrder(orderId) {
+    return this.request(`/orders/${orderId}/shiprocket/retry`, {
+      method: 'POST'
+    })
+  }
+
+  // Get shipment tracking
+  async getShipmentTracking(orderId) {
+    return this.request(`/orders/${orderId}/tracking`)
+  }
 }
 
 // Create singleton instance
