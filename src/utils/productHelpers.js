@@ -200,8 +200,18 @@ if (weight) details.push(`${weight}g`);
 return details.join(' · ');
 };
 
-// ✅ DEBUG HELPER (SAFE VERSION)
+// DEBUG HELPER (SAFE VERSION)
 export const debugProductFields = (product, componentName = 'Unknown') => {
-// Disabled to prevent console spam
-return;
+  console.log(`=== DEBUG PRODUCT FIELDS [${componentName}] ===`);
+  console.log('Product ID:', product._id || product.id);
+  console.log('Product Name:', product.name);
+  console.log('Available Fields:', Object.keys(product));
+  console.log('Images Field:', product.images);
+  console.log('Images Type:', typeof product.images);
+  console.log('Is Array:', Array.isArray(product.images));
+  if (product.images) {
+    console.log('Images Length:', product.images.length);
+    console.log('First Image:', product.images[0]);
+  }
+  console.log('================================================');
 };
