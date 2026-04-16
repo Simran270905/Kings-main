@@ -30,7 +30,7 @@ const AdminRoute = () => {
     );
   }
 
-  return isAdmin ? <Outlet /> : <Navigate to="/admin-login" replace />;
+  return isAdmin ? <Outlet /> : <Navigate to="/admin-login" state={{ from: window.location.pathname }} replace />;
 };
 
 export default AdminRoute;

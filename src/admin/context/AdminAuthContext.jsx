@@ -21,7 +21,10 @@ export const AdminAuthProvider = ({ children }) => {
       const emergencyTimer = setTimeout(() => {
         setLoading(false);
         setIsAdmin(false);
-        window.location.href = '/admin-login';
+        // Only redirect if we're not already on a public page
+        if (window.location.pathname !== '/' && !window.location.pathname.startsWith('/customer')) {
+          navigate('/admin-login');
+        }
       }, 8000);
 
       try {
@@ -38,11 +41,14 @@ export const AdminAuthProvider = ({ children }) => {
           sessionStorage.getItem('token');
 
         if (!token) {
-          console.log('No token - redirecting to login');
+          console.log('No token - not logged in as admin');
           setIsAdmin(false);
           setLoading(false);
           clearTimeout(emergencyTimer);
-          navigate('/admin/login');
+          // Only redirect if we're trying to access admin pages
+          if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin-login') {
+            navigate('/admin-login');
+          }
           return;
         }
 
@@ -80,16 +86,25 @@ export const AdminAuthProvider = ({ children }) => {
 
           setIsAdmin(adminStatus);
           if (!adminStatus) {
-            navigate('/admin/login');
+            // Only redirect if we're trying to access admin pages
+            if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin-login') {
+              navigate('/admin-login');
+            }
           }
         } else {
           setIsAdmin(false);
-          navigate('/admin/login');
+          // Only redirect if we're trying to access admin pages
+          if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin-login') {
+            navigate('/admin-login');
+          }
         }
       } catch (error) {
         console.error('Admin check failed:', error);
         setIsAdmin(false);
-        navigate('/admin/login');
+        // Only redirect if we're trying to access admin pages
+        if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin-login') {
+          navigate('/admin-login');
+        }
       } finally {
         clearTimeout(emergencyTimer);
         setLoading(false); // ALWAYS runs no matter what
