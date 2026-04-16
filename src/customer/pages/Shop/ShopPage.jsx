@@ -64,7 +64,7 @@ export default function ShopPage() {
     
     // Apply sorting
     if (sort === 'price_asc') arr.sort((a, b) => (Number(a.sellingPrice) || 0) - (Number(b.sellingPrice) || 0))
-    if (sort === 'price_desc') arr.sort((a, b) => (Number(b.sellingPrice) || 0) - (Number(a.sellingPrice) || 0))
+    if (sort === 'price_desc') arr.sort((a, b) => (Number(b.sellingPrice) || 0) - (Number(a.sellingPrice) || 0)))
     
     return arr
   }, [allProductsList, selectedCategory, sort])
