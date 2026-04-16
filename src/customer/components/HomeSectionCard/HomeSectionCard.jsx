@@ -24,13 +24,6 @@ const HomeSectionCard = ({ product }) => {
   const sellingPrice = getSellingPrice(product);
   const originalPrice = getOriginalPrice(product);
   const discount = getDiscountPercentage(product);
-  
-  // DEBUG: Log image details
-  console.log('=== HomeSectionCard DEBUG ===');
-  console.log('Product:', productName);
-  console.log('Raw images:', product.images);
-  console.log('ProductImage:', productImage);
-  console.log('================================');
 
   const { addToCart } = useCart()
 
@@ -125,12 +118,6 @@ const HomeSectionCard = ({ product }) => {
               group-hover:scale-105
             "
             onError={(e) => {
-              console.log('=== IMAGE ERROR ===');
-              console.log('Failed to load image:', productImage);
-              console.log('Image src:', e.target.src);
-              console.log('Natural width:', e.target.naturalWidth);
-              console.log('Natural height:', e.target.naturalHeight);
-              console.log('==================');
               e.target.style.display = 'none';
               e.target.parentElement.classList.add('bg-gradient-to-br', 'from-gray-100', 'to-gray-200');
             }}

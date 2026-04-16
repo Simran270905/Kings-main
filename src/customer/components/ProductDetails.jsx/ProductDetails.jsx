@@ -210,7 +210,7 @@ export default function ProductDetails() {
           name: getProductName(product),
           sellingPrice: getSellingPrice(product),
           originalPrice: getOriginalPrice(product),
-          images: getProductImages(product),
+          images: product.images, // Keep original images array format
           inStock: isProductInStock(product)
         }))
 
