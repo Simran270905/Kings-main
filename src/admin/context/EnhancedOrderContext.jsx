@@ -52,7 +52,7 @@ export const EnhancedOrderProvider = ({ children }) => {
       if (!silent) setLoading(true)
       
       // Use adminApi for authenticated requests
-      const data = await adminApi.getOrders()
+      const data = await adminApi.getOrdersEnhanced()
       
       if (data.success) {
         const newOrders = Array.isArray(data.data?.orders) ? data.data.orders : 
@@ -66,17 +66,18 @@ export const EnhancedOrderProvider = ({ children }) => {
         if (hasChanged) {
           setOrders(newOrders)
           setStats({
-            totalOrders: newOrders.length,
-            totalRevenue: newOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0),
-            paymentStatusBreakdown: {
+            totalOrders: data.data?.pagination?.totalOrders || newOrders.length,
+            totalRevenue: data.data?.stats?.totalRevenue || newOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0),
+            paymentStatusBreakdown: data.data?.stats?.paymentStatusBreakdown || {
               paid: newOrders.filter(o => o.paymentStatus === 'paid').length,
               pending: newOrders.filter(o => o.paymentStatus === 'pending').length,
               failed: newOrders.filter(o => o.paymentStatus === 'failed').length,
               refunded: newOrders.filter(o => o.paymentStatus === 'refunded').length
-            }
+            },
+            paymentMethodBreakdown: data.data?.stats?.paymentMethodBreakdown || {}
           })
           setLastFetch(new Date())
-          console.log(`📋 Enhanced Orders updated: ${newOrders.length} orders (using real API)`)
+          console.log(`Enhanced Orders updated: ${newOrders.length} orders (using real API)`)
         }
       }
     } catch (error) {

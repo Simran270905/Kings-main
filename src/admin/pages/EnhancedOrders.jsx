@@ -229,6 +229,77 @@ export default function EnhancedOrders() {
     }
   }
 
+  // Handle shipment status sync and tracking
+  const handleSyncAndTrack = async (order) => {
+    try {
+      const token = localStorage.getItem('kk_admin_token') || localStorage.getItem('token')
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+      
+      console.log('Syncing shipment status for order:', order._id)
+      console.log('Order shipment ID:', order.shipmentId)
+      console.log('Order tracking URL:', order.trackingUrl)
+      
+      // Try to sync the status from Shiprocket (but don't fail if it doesn't work)
+      let syncSuccess = false
+      try {
+        const syncResponse = await fetch(`${apiUrl}/admin/orders/enhanced/${order._id}/track-shipment`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+
+        const syncResult = await syncResponse.json()
+        
+        if (syncResponse.ok && syncResult.success) {
+          console.log('Shipment status synced:', syncResult.data)
+          syncSuccess = true
+          
+          // Refresh orders to get updated status
+          await fetchOrders()
+          
+          // Find the updated order
+          const updatedOrder = orders.find(o => o._id === order._id)
+          
+          // Open Shiprocket tracking page with details
+          if (updatedOrder?.shipmentId) {
+            const shiprocketUrl = `https://shiprocket.co/tracking/${updatedOrder.shipmentId}`
+            console.log('Opening Shiprocket tracking:', shiprocketUrl)
+            window.open(shiprocketUrl, '_blank')
+            return
+          }
+        }
+      } catch (syncError) {
+        console.log('Sync failed, continuing with direct tracking...')
+      }
+      
+      // Direct tracking - always works if we have shipment ID
+      if (order.shipmentId) {
+        const shiprocketUrl = `https://shiprocket.co/tracking/${order.shipmentId}`
+        console.log('Opening direct Shiprocket tracking:', shiprocketUrl)
+        window.open(shiprocketUrl, '_blank')
+      } else if (order.trackingUrl) {
+        console.log('Opening tracking URL:', order.trackingUrl)
+        window.open(order.trackingUrl, '_blank')
+      } else {
+        alert('No tracking information available. Please create a shipment first.')
+      }
+      
+    } catch (error) {
+      console.error('Failed to sync/track shipment:', error)
+      // Final fallback
+      if (order.shipmentId) {
+        const shiprocketUrl = `https://shiprocket.co/tracking/${order.shipmentId}`
+        window.open(shiprocketUrl, '_blank')
+      } else if (order.trackingUrl) {
+        window.open(order.trackingUrl, '_blank')
+      } else {
+        alert('Failed to open tracking. Please create a shipment first.')
+      }
+    }
+  }
+
   // Handle export
   const handleExport = () => {
     try {
@@ -519,17 +590,20 @@ export default function EnhancedOrders() {
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    {order.trackingUrl ? (
+                    {order.shipmentId || order.trackingUrl ? (
                       <Button
                         size="small"
-                        variant="outlined"
-                        onClick={() => window.open(order.trackingUrl, '_blank')}
+                        variant="contained"
+                        color="primary"
+                        startIcon={<CheckCircleIcon fontSize="small" />}
+                        onClick={() => handleSyncAndTrack(order)}
+                        title="Sync status and track on Shiprocket"
                       >
-                        Track
+                        Sync & Track
                       </Button>
                     ) : (
                       <Typography variant="caption" color="text.gray">
-                        N/A
+                        No Shipment
                       </Typography>
                     )}
                   </TableCell>
@@ -557,6 +631,18 @@ export default function EnhancedOrders() {
                           title="Create Shipment"
                         >
                           <CheckCircleIcon fontSize="small" />
+                        </IconButton>
+                      )}
+                      
+                      {/* Sync Status Button */}
+                      {order.shipmentId && (
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          onClick={() => handleSyncAndTrack(order)}
+                          title="Sync status and track on Shiprocket"
+                        >
+                          <ArrowTrendingUpIcon fontSize="small" />
                         </IconButton>
                       )}
                       
