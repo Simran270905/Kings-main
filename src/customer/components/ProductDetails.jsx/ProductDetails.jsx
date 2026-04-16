@@ -189,9 +189,11 @@ export default function ProductDetails() {
       setSimilarError(false)
       
       try {
+        // Extract category ID properly
+        const categoryId = currentProduct.category?._id || currentProduct.category
         // Use new optimized API endpoint
         const res = await fetch(
-          `${API_URL}/similar/${encodeURIComponent(currentProduct.category)}/${currentProduct.id}?limit=6`
+          `${API_URL}/similar/${encodeURIComponent(categoryId)}/${currentProduct.id}?limit=6`
         )
         
         if (!res.ok) {

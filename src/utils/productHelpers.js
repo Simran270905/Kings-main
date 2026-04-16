@@ -8,32 +8,56 @@
 export const getProductImage = (product) => {
 if (!product) return '/placeholder.jpg';
 
-return product.images?.[0] ||
-product.image ||
+// Handle space-separated string images
+if (product.images && typeof product.images === 'string' && product.images.trim()) {
+  const imageArray = product.images.trim().split(/\s+/).filter(img => img);
+  if (imageArray.length > 0) {
+    return imageArray[0];
+  }
+}
+
+// Handle array images
+if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+  return product.images[0];
+}
+
+return product.image ||
 product.imageUrl ||
 product.thumbnail ||
 '/placeholder.jpg';
 };
 
 export const getProductImages = (product) => {
-if (!product) return [];
+  if (!product) return [];
 
-if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-return product.images.map((img, index) => ({
-src: img,
-alt: `${getProductName(product)} - Image ${index + 1}`,
-}));
-}
+  // Handle space-separated string images (common issue in the database)
+  if (product.images && typeof product.images === 'string' && product.images.trim()) {
+    const imageArray = product.images.trim().split(/\s+/).filter(img => img);
+    if (imageArray.length > 0) {
+      return imageArray.map((img, index) => ({
+        src: img,
+        alt: `${getProductName(product)} - Image ${index + 1}`,
+      }));
+    }
+  }
 
-const singleImage = getProductImage(product);
-if (singleImage && singleImage !== '/placeholder.jpg') {
-return [{
-src: singleImage,
-alt: getProductName(product),
-}];
-}
+  // Handle array images (normal case)
+  if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+    return product.images.map((img, index) => ({
+      src: img,
+      alt: `${getProductName(product)} - Image ${index + 1}`,
+    }));
+  }
 
-return [];
+  const singleImage = getProductImage(product);
+  if (singleImage && singleImage !== '/placeholder.jpg') {
+    return [{
+      src: singleImage,
+      alt: getProductName(product),
+    }];
+  }
+
+  return [];
 };
 
 // ✅ PRICE HELPERS
