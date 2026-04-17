@@ -20,7 +20,7 @@ const orderStatuses = [
     label: 'Order Confirmed',
     description: 'Your order has been received and confirmed',
     icon: CheckCircleIcon,
-    color: 'blue'
+    color: 'red'
   },
   {
     id: 'processing',
@@ -79,6 +79,13 @@ const getStatusColor = (color) => {
       text: 'text-green-600',
       icon: 'text-green-500',
       solid: 'bg-green-500'
+    },
+    red: {
+      bg: 'bg-red-50',
+      border: 'border-red-200',
+      text: 'text-red-600',
+      icon: 'text-red-500',
+      solid: 'bg-red-500'
     },
     gray: {
       bg: 'bg-gray-50',
