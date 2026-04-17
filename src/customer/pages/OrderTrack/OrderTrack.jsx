@@ -4,7 +4,7 @@ import { CheckCircleIcon, ClockIcon, TruckIcon, MapPinIcon, CubeIcon, HomeIcon, 
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid'
 import toast from 'react-hot-toast'
 import { API_BASE_URL } from '@config/api.js'
-import PriceDisplay from '@components/Shared/PriceDisplay.jsx'
+import PriceDisplay from '../components/Shared/PriceDisplay.jsx'
 
 // Inline formatPrice function to bypass import issues
 const formatPrice = (value) => {
