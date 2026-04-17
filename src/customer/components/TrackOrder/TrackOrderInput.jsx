@@ -51,14 +51,14 @@ export default function TrackOrderInput() {
   }
 
   return (
-    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+    <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-xl p-6">
       <div className="flex items-center gap-3 mb-4">
-        <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full">
-          <TruckIcon className="h-6 w-6 text-blue-600" />
+        <div className="flex items-center justify-center w-10 h-10 bg-red-100 rounded-full">
+          <TruckIcon className="h-6 w-6 text-red-600" />
         </div>
         <div>
-          <h3 className="font-bold text-blue-900">Track Your Order</h3>
-          <p className="text-sm text-blue-700">Track by Order ID or Phone Number</p>
+          <h3 className="font-bold text-red-900">Track Your Order</h3>
+          <p className="text-sm text-red-700">Track by Order ID or Phone Number</p>
         </div>
       </div>
       
@@ -68,7 +68,7 @@ export default function TrackOrderInput() {
           onClick={() => setTrackingMethod('orderId')}
           className={`flex-1 py-2 px-3 text-center font-medium text-sm transition-colors ${
             trackingMethod === 'orderId'
-              ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+              ? 'text-red-600 border-b-2 border-red-600 bg-red-50'
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
@@ -79,7 +79,7 @@ export default function TrackOrderInput() {
           onClick={() => setTrackingMethod('phone')}
           className={`flex-1 py-2 px-3 text-center font-medium text-sm transition-colors ${
             trackingMethod === 'phone'
-              ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+              ? 'text-red-600 border-b-2 border-red-600 bg-red-50'
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
@@ -100,14 +100,14 @@ export default function TrackOrderInput() {
                 value={orderId}
                 onChange={handleOrderIdChange}
                 placeholder="Order ID (e.g., ORD123456789)"
-                className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
                 required
               />
             </div>
             <button
               type="submit"
               disabled={loading || !orderId.trim()}
-              className="w-full bg-blue-600 text-white font-medium py-2.5 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+              className="w-full bg-red-600 text-white font-medium py-2.5 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
             >
               {loading ? (
                 <>
@@ -130,7 +130,7 @@ export default function TrackOrderInput() {
                 value={phoneNumber}
                 onChange={handlePhoneChange}
                 placeholder="Enter your 10-digit phone number"
-                className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
                 maxLength={10}
                 required
               />
@@ -138,7 +138,7 @@ export default function TrackOrderInput() {
             <button
               type="submit"
               disabled={loading || !phoneNumber.trim()}
-              className="w-full bg-blue-600 text-white font-medium py-2.5 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+              className="w-full bg-red-600 text-white font-medium py-2.5 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
             >
               {loading ? (
                 <>
@@ -153,7 +153,7 @@ export default function TrackOrderInput() {
         )}
       </form>
       
-      <p className="text-xs text-blue-600 mt-2">
+      <p className="text-xs text-red-600 mt-2">
         {trackingMethod === 'orderId' 
           ? 'Find your Order ID in confirmation email'
           : 'Enter the phone number used when placing your order'
