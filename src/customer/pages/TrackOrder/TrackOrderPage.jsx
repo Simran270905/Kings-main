@@ -135,7 +135,7 @@ export default function TrackOrderPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 py-4">
@@ -156,8 +156,8 @@ export default function TrackOrderPage() {
       <div className="max-w-4xl mx-auto px-4 py-12">
         {/* Main Content */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-6">
-            <TruckIcon className="h-10 w-10 text-blue-600" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-full mb-6">
+            <TruckIcon className="h-10 w-10 text-red-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
             Track Your Order
@@ -412,18 +412,18 @@ export default function TrackOrderPage() {
         )}
 
         {/* Help Section */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
-          <h3 className="font-bold text-blue-900 mb-3">Need Help?</h3>
-          <div className="space-y-2 text-sm text-blue-800">
-            <p>• Check your email for the Order ID sent after purchase</p>
+        <div className="mt-8 bg-red-50 border border-red-200 rounded-xl p-6">
+          <h3 className="font-bold text-red-900 mb-3">Need Help?</h3>
+          <div className="space-y-2 text-sm text-red-800">
+            <p>• Check your email for Order ID sent after purchase</p>
             <p>• Order ID is usually in format: ORDXXXXXXXXX</p>
             <p>• Make sure you're entering the complete Order ID</p>
             <p>• Contact support if you're still having trouble finding your Order ID</p>
           </div>
-          <div className="mt-4 pt-4 border-t border-blue-200">
-            <p className="text-sm text-blue-700">
+          <div className="mt-4 pt-4 border-t border-red-200">
+            <p className="text-sm text-red-700">
               For immediate assistance, email us at{' '}
-              <a href="mailto:support@kkingsjewellery.com" className="font-medium text-blue-900 hover:underline">
+              <a href="mailto:support@kkingsjewellery.com" className="font-medium text-red-900 hover:underline">
                 support@kkingsjewellery.com
               </a>
             </p>
