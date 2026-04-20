@@ -25,7 +25,7 @@ import {
 } from '../utils/adminSafetyUtils'
 
 export default function ProductsManagement() {
-  const { products, loading, refreshProducts, getStockStatus, getTotalStock, getTotalSold, getStockOutCount } = useAdminProduct()
+  const { products, loading, refreshProducts, getStockStatus, getTotalStock, getTotalSoldSync, getStockOutCount, soldLoading } = useAdminProduct()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [sortBy, setSortBy] = useState('createdAt')
@@ -234,8 +234,16 @@ export default function ProductsManagement() {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Sold</p>
               <p className="text-2xl font-bold text-gray-900">
-                {getTotalSold().toLocaleString()}
+                {soldLoading ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent mr-2"></div>
+                    Loading...
+                  </div>
+                ) : (
+                  getTotalSoldSync().toLocaleString()
+                )}
               </p>
+              <p className="text-xs text-gray-500 mt-1">From Orders</p>
             </div>
           </div>
         </div>

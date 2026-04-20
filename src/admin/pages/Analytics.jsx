@@ -50,30 +50,31 @@ const fetchAnalytics = async (endpoint, options = {}) => {
 const Analytics = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [timeRange, setTimeRange] = useState('30days')
-  const [groupBy, setGroupBy] = useState('day')
+  const [timeRange, setTimeRange] = useState('30')
+  const [lastUpdated, setLastUpdated] = useState(null)
+  const [autoRefresh, setAutoRefresh] = useState(true)
   
-  // Analytics data
+  // Analytics data - REVAMPED with Orders as Single Source of Truth
   const [summary, setSummary] = useState({
     totalRevenue: 0,
     totalOrders: 0,
-    paidOrders: 0,
-    pendingOrders: 0,
-    cancelledOrders: 0,
     avgOrderValue: 0,
-    totalItemsSold: 0,
-    newCustomers: 0
+    totalSold: 0,
+    uniqueCustomers: 0,
+    daysRange: 30
   })
   
-  const [revenueChart, setRevenueChart] = useState([])
+  const [dailySales, setDailySales] = useState([])
+  const [revenueTrend, setRevenueTrend] = useState([])
   const [topProducts, setTopProducts] = useState([])
-  const [orderStatusBreakdown, setOrderStatusBreakdown] = useState([])
-  const [shippingPerformance, setShippingPerformance] = useState({
-    avgDeliveryDays: 0,
-    onTimeDeliveryRate: 0,
-    returnRate: 0,
-    courierBreakdown: []
+  const [statusStats, setStatusStats] = useState([])
+  const [stockStats, setStockStats] = useState({
+    inStock: 0,
+    outOfStock: 0,
+    lowStock: 0,
+    totalProducts: 0
   })
+  const [paymentMethods, setPaymentMethods] = useState([])
 
   // Format price
   const formatPrice = (value) => {
@@ -86,102 +87,50 @@ const Analytics = () => {
     return `${Number(value).toFixed(1)}%`
   }
 
-  // Get date range based on timeRange
-  const getDateRange = () => {
-    const now = new Date()
-    const ranges = {
-      '7days': { from: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), to: now },
-      '30days': { from: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), to: now },
-      '90days': { from: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000), to: now },
-      'custom': { from: null, to: null }
-    }
-    return ranges[timeRange] || ranges['30days']
-  }
-
-  // Fetch analytics summary
-  const fetchSummary = async () => {
+  // Fetch comprehensive analytics from REVAMPED API
+  const fetchComprehensiveAnalytics = async () => {
     try {
-      const { from, to } = getDateRange()
       const params = new URLSearchParams()
-      if (from) params.append('from', from.toISOString())
-      if (to) params.append('to', to.toISOString())
+      params.append('range', timeRange)
+      params.append('period', 'daily')
 
-      const response = await fetchAnalytics(`/admin/analytics/summary?${params}`)
-      setSummary(response.data.summary)
+      console.log(' Fetching comprehensive analytics from Orders API...')
+      const response = await fetchAnalytics(`/admin/analytics?${params}`)
+      
+      if (response.success) {
+        const data = response.data
+        console.log(' Analytics data received:', data)
+        
+        // Update all analytics data
+        setSummary(data.summary)
+        setDailySales(data.dailySales || [])
+        setRevenueTrend(data.revenueTrend || [])
+        setTopProducts(data.topProducts || [])
+        setStatusStats(data.statusStats || [])
+        setStockStats(data.stockStats || {
+          inStock: 0,
+          outOfStock: 0,
+          lowStock: 0,
+          totalProducts: 0
+        })
+        setPaymentMethods(data.paymentMethods || [])
+        setLastUpdated(data.lastUpdated)
+        
+        console.log(' Analytics updated successfully')
+      } else {
+        throw new Error(response.message || 'Failed to fetch analytics')
+      }
     } catch (err) {
-      console.error('Error fetching summary:', err)
+      console.error('Error fetching comprehensive analytics:', err)
+      setError(err.message || 'Failed to fetch analytics data')
     }
   }
 
-  // Fetch revenue chart
-  const fetchRevenueChart = async () => {
-    try {
-      const { from, to } = getDateRange()
-      const params = new URLSearchParams()
-      params.append('groupBy', groupBy)
-      if (from) params.append('from', from.toISOString())
-      if (to) params.append('to', to.toISOString())
-
-      const response = await fetchAnalytics(`/admin/analytics/revenue-chart?${params}`)
-      setRevenueChart(response.data.chartData)
-    } catch (err) {
-      console.error('Error fetching revenue chart:', err)
-    }
-  }
-
-  // Fetch top products
-  const fetchTopProducts = async () => {
-    try {
-      const { from, to } = getDateRange()
-      const params = new URLSearchParams()
-      params.append('limit', 10)
-      if (from) params.append('from', from.toISOString())
-      if (to) params.append('to', to.toISOString())
-
-      const response = await fetchAnalytics(`/admin/analytics/top-products?${params}`)
-      setTopProducts(response.data.topProducts)
-    } catch (err) {
-      console.error('Error fetching top products:', err)
-    }
-  }
-
-  // Fetch order status breakdown
-  const fetchOrderStatusBreakdown = async () => {
-    try {
-      const { from, to } = getDateRange()
-      const params = new URLSearchParams()
-      if (from) params.append('from', from.toISOString())
-      if (to) params.append('to', to.toISOString())
-
-      const response = await fetchAnalytics(`/admin/analytics/order-status-breakdown?${params}`)
-      setOrderStatusBreakdown(response.data.breakdown)
-    } catch (err) {
-      console.error('Error fetching order status breakdown:', err)
-    }
-  }
-
-  // Fetch shipping performance
-  const fetchShippingPerformance = async () => {
-    try {
-      const { from, to } = getDateRange()
-      const params = new URLSearchParams()
-      if (from) params.append('from', from.toISOString())
-      if (to) params.append('to', to.toISOString())
-
-      const response = await fetchAnalytics(`/admin/analytics/shipping-performance?${params}`)
-      setShippingPerformance(response.data.shippingPerformance)
-    } catch (err) {
-      console.error('Error fetching shipping performance:', err)
-    }
-  }
-
-  // Export analytics data
+  // Export analytics data (from Orders)
   const exportAnalytics = async () => {
     try {
-      const { from, to } = getDateRange()
       const params = new URLSearchParams()
-      if (from) params.append('from', from.toISOString())
-      if (to) params.append('to', to.toISOString())
+      params.append('range', timeRange)
 
       const response = await fetchAnalytics(`/admin/analytics/export?${params}`, {
         responseType: 'blob'
@@ -191,7 +140,7 @@ const Analytics = () => {
       const url = window.URL.createObjectURL(new Blob([response.data]))
       const link = document.createElement('a')
       link.href = url
-      link.setAttribute('download', `analytics-${new Date().toISOString().split('T')[0]}.csv`)
+      link.setAttribute('download', `analytics-${new Date().toISOString().split('T')[0]}-orders.csv`)
       document.body.appendChild(link)
       link.click()
       link.remove()
@@ -202,18 +151,12 @@ const Analytics = () => {
     }
   }
 
-  // Fetch all analytics data
+  // Fetch all analytics data (REVAMPED)
   const fetchAllAnalytics = async () => {
     setLoading(true)
+    setError(null)
     try {
-      await Promise.all([
-        fetchSummary(),
-        fetchRevenueChart(),
-        fetchTopProducts(),
-        fetchOrderStatusBreakdown(),
-        fetchShippingPerformance()
-      ])
-      setError(null)
+      await fetchComprehensiveAnalytics()
     } catch (err) {
       setError('Failed to fetch analytics data')
       console.error('Error fetching analytics:', err)
@@ -224,23 +167,64 @@ const Analytics = () => {
 
   useEffect(() => {
     fetchAllAnalytics()
-  }, [timeRange, groupBy])
+  }, [timeRange])
+
+  // Auto-refresh for real-time updates
+  useEffect(() => {
+    if (!autoRefresh) return
+
+    const interval = setInterval(() => {
+      console.log(' Auto-refreshing analytics...')
+      fetchComprehensiveAnalytics()
+    }, 30000) // Refresh every 30 seconds
+
+    return () => clearInterval(interval)
+  }, [autoRefresh, timeRange])
 
   return (
     <div className="p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Analytics & Reports</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Analytics & Reports</h1>
+          <div className="flex items-center gap-4 mt-2">
+            <span className="text-sm text-gray-500">
+              {lastUpdated && `Last updated: ${new Date(lastUpdated).toLocaleString()}`}
+            </span>
+            <span className="text-sm text-green-600 font-medium">
+              Orders as Single Source of Truth
+            </span>
+          </div>
+        </div>
         <div className="flex gap-3">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="autoRefresh"
+              checked={autoRefresh}
+              onChange={(e) => setAutoRefresh(e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="autoRefresh" className="text-sm text-gray-600">
+              Auto-refresh (30s)
+            </label>
+          </div>
           <select
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="7days">Last 7 days</option>
-            <option value="30days">Last 30 days</option>
-            <option value="90days">Last 90 days</option>
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
           </select>
+          <button
+            onClick={fetchAllAnalytics}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <ChartBarIcon className="h-4 w-4" />
+            Refresh
+          </button>
           <button
             onClick={exportAnalytics}
             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -267,13 +251,14 @@ const Analytics = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          {/* KPI Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* KPI Cards - Orders as Single Source of Truth */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             <div className="bg-white p-6 rounded-lg shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Total Revenue</p>
                   <p className="text-2xl font-bold text-gray-900">{formatPrice(summary.totalRevenue)}</p>
+                  <p className="text-xs text-green-600 mt-1">From Orders</p>
                 </div>
                 <CurrencyDollarIcon className="h-8 w-8 text-green-600" />
               </div>
@@ -284,6 +269,7 @@ const Analytics = () => {
                 <div>
                   <p className="text-sm text-gray-500">Total Orders</p>
                   <p className="text-2xl font-bold text-gray-900">{summary.totalOrders}</p>
+                  <p className="text-xs text-blue-600 mt-1">Paid Orders</p>
                 </div>
                 <ShoppingBagIcon className="h-8 w-8 text-blue-600" />
               </div>
@@ -294,6 +280,7 @@ const Analytics = () => {
                 <div>
                   <p className="text-sm text-gray-500">Avg Order Value</p>
                   <p className="text-2xl font-bold text-gray-900">{formatPrice(summary.avgOrderValue)}</p>
+                  <p className="text-xs text-purple-600 mt-1">Revenue/Orders</p>
                 </div>
                 <ArrowTrendingUpIcon className="h-8 w-8 text-purple-600" />
               </div>
@@ -302,58 +289,76 @@ const Analytics = () => {
             <div className="bg-white p-6 rounded-lg shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">New Customers</p>
-                  <p className="text-2xl font-bold text-gray-900">{summary.newCustomers}</p>
+                  <p className="text-sm text-gray-500">Total Sold</p>
+                  <p className="text-2xl font-bold text-gray-900">{summary.totalSold.toLocaleString()}</p>
+                  <p className="text-xs text-orange-600 mt-1">Items Sold</p>
                 </div>
-                <UsersIcon className="h-8 w-8 text-orange-600" />
+                <TruckIcon className="h-8 w-8 text-orange-600" />
+              </div>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Customers</p>
+                  <p className="text-2xl font-bold text-gray-900">{summary.uniqueCustomers}</p>
+                  <p className="text-xs text-indigo-600 mt-1">Unique</p>
+                </div>
+                <UsersIcon className="h-8 w-8 text-indigo-600" />
               </div>
             </div>
           </div>
 
-          {/* Revenue Chart */}
+          {/* Revenue Chart - From Orders */}
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Revenue Over Time</h2>
-              <select
-                value={groupBy}
-                onChange={(e) => setGroupBy(e.target.value)}
-                className="px-3 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="day">Daily</option>
-                <option value="week">Weekly</option>
-                <option value="month">Monthly</option>
-              </select>
+              <h2 className="text-lg font-semibold text-gray-900">Daily Sales & Revenue (Orders)</h2>
+              <span className="text-sm text-green-600">Last {summary.daysRange} days</span>
             </div>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={revenueChart}>
+              <LineChart data={dailySales.map(item => ({
+                date: item._id,
+                revenue: item.revenue,
+                orders: item.orders,
+                itemsSold: item.itemsSold
+              }))}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
                 <YAxis />
-                <Tooltip formatter={(value) => formatPrice(value)} />
+                <Tooltip 
+                  formatter={(value, name) => [
+                    name === 'revenue' ? formatPrice(value) : value,
+                    name === 'revenue' ? 'Revenue' : name === 'orders' ? 'Orders' : 'Items Sold'
+                  ]} 
+                />
                 <Legend />
-                <Line type="monotone" dataKey="revenue" stroke="#3B82F6" name="Revenue" />
-                <Line type="monotone" dataKey="orders" stroke="#10B981" name="Orders" />
+                <Line type="monotone" dataKey="revenue" stroke="#3B82F6" name="Revenue" strokeWidth={2} />
+                <Line type="monotone" dataKey="orders" stroke="#10B981" name="Orders" strokeWidth={2} />
+                <Line type="monotone" dataKey="itemsSold" stroke="#F59E0B" name="Items Sold" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Order Status Breakdown */}
+            {/* Order Status Breakdown - From Orders */}
             <div className="bg-white p-6 rounded-lg shadow">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Status Breakdown</h2>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={orderStatusBreakdown}
+                    data={statusStats.map(stat => ({
+                      name: stat._id || 'Unknown',
+                      value: stat.count
+                    }))}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ status, percentage }) => `${status}: ${percentage}%`}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
                     outerRadius={80}
                     fill="#8884d8"
-                    dataKey="count"
+                    dataKey="value"
                   >
-                    {orderStatusBreakdown.map((entry, index) => (
+                    {statusStats.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -362,24 +367,32 @@ const Analytics = () => {
               </ResponsiveContainer>
             </div>
 
-            {/* Top Products */}
+            {/* Top Products - From Orders */}
             <div className="bg-white p-6 rounded-lg shadow">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Top Selling Products</h2>
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-80 overflow-y-auto">
                 {topProducts.map((product, index) => (
-                  <div key={product._id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div key={product.productId} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                     <span className="font-semibold text-gray-500">#{index + 1}</span>
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-10 h-10 object-cover rounded"
-                    />
+                    {product.image ? (
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-10 h-10 object-cover rounded"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
+                        <ShoppingBagIcon className="h-5 w-5 text-gray-400" />
+                      </div>
+                    )}
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900">{product.name}</p>
+                      <p className="font-medium text-gray-900 truncate">{product.name}</p>
                       <p className="text-sm text-gray-500">{product.unitsSold} units sold</p>
+                      <p className="text-xs text-green-600">Stock: {product.currentStock || 0}</p>
                     </div>
                     <div className="text-right">
                       <p className="font-medium text-gray-900">{formatPrice(product.revenue)}</p>
+                      <p className="text-xs text-blue-600">{formatPrice(product.revenue / product.unitsSold)}/unit</p>
                     </div>
                   </div>
                 ))}
@@ -387,55 +400,92 @@ const Analytics = () => {
             </div>
           </div>
 
-          {/* Shipping Performance */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Shipping Performance</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <div className="text-center">
-                <p className="text-sm text-gray-500">Avg Delivery Days</p>
-                <p className="text-2xl font-bold text-gray-900">{shippingPerformance.avgDeliveryDays}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-500">On-Time Delivery Rate</p>
-                <p className="text-2xl font-bold text-green-600">{formatPercentage(shippingPerformance.onTimeDeliveryRate)}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-500">Return Rate</p>
-                <p className="text-2xl font-bold text-red-600">{formatPercentage(shippingPerformance.returnRate)}</p>
-              </div>
-            </div>
-            
-            {shippingPerformance.courierBreakdown.length > 0 && (
-              <div>
-                <h3 className="text-md font-semibold text-gray-900 mb-3">Courier Performance</h3>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Courier
-                        </th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Shipments
-                        </th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Avg Days
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {shippingPerformance.courierBreakdown.map((courier, index) => (
-                        <tr key={index}>
-                          <td className="px-4 py-2 text-sm text-gray-900">{courier._id}</td>
-                          <td className="px-4 py-2 text-sm text-gray-900">{courier.shipments}</td>
-                          <td className="px-4 py-2 text-sm text-gray-900">{courier.avgDays.toFixed(1)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+          {/* Stock Analytics & Payment Methods */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Stock Analytics */}
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Stock Analytics</h2>
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <p className="text-sm text-gray-500">In Stock</p>
+                  <p className="text-2xl font-bold text-green-600">{stockStats.inStock}</p>
+                  <p className="text-xs text-gray-600">Available</p>
+                </div>
+                <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                  <p className="text-sm text-gray-500">Low Stock</p>
+                  <p className="text-2xl font-bold text-yellow-600">{stockStats.lowStock}</p>
+                  <p className="text-xs text-gray-600">&lt; 5 items</p>
+                </div>
+                <div className="text-center p-4 bg-red-50 rounded-lg">
+                  <p className="text-sm text-gray-500">Out of Stock</p>
+                  <p className="text-2xl font-bold text-red-600">{stockStats.outOfStock}</p>
+                  <p className="text-xs text-gray-600">0 items</p>
+                </div>
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-gray-500">Total Products</p>
+                  <p className="text-2xl font-bold text-blue-600">{stockStats.totalProducts}</p>
+                  <p className="text-xs text-gray-600">Active</p>
                 </div>
               </div>
-            )}
+              
+              {/* Stock Status Pie Chart */}
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'In Stock', value: stockStats.inStock },
+                      { name: 'Low Stock', value: stockStats.lowStock },
+                      { name: 'Out of Stock', value: stockStats.outOfStock }
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    <Cell fill="#10B981" />
+                    <Cell fill="#F59E0B" />
+                    <Cell fill="#EF4444" />
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Payment Methods */}
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Payment Methods</h2>
+              <div className="space-y-3">
+                {paymentMethods.map((method, index) => (
+                  <div key={method._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${
+                        method._id === 'cod' ? 'bg-yellow-500' :
+                        method._id === 'razorpay' ? 'bg-blue-500' :
+                        method._id === 'upi' ? 'bg-green-500' :
+                        'bg-gray-500'
+                      }`}></div>
+                      <div>
+                        <p className="font-medium text-gray-900 capitalize">
+                          {method._id === 'cod' ? 'Cash on Delivery' :
+                           method._id === 'razorpay' ? 'Razorpay' :
+                           method._id === 'upi' ? 'UPI' :
+                           method._id}
+                        </p>
+                        <p className="text-sm text-gray-500">{method.count} orders</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium text-gray-900">{formatPrice(method.revenue)}</p>
+                      <p className="text-xs text-gray-500">
+                        {method.count > 0 ? formatPrice(method.revenue / method.count) : formatPrice(0)} avg
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}

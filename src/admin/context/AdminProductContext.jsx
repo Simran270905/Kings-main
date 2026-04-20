@@ -83,11 +83,57 @@ if (total <= 10) return 'low'
 return 'ok'
 }
 
-const getTotalSold = () => {
-return products.reduce((total, product) => {
-return total + (product.sold || 0)
-}, 0)
+const getTotalSold = async () => {
+try {
+  // Fetch dynamic sold counts from Orders (Single Source of Truth)
+  const response = await fetch('/api/admin/analytics/sold', {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+    }
+  })
+  
+  if (response.ok) {
+    const data = await response.json()
+    return data.data?.totalSold || 0
+  }
+  
+  // Fallback to product sold counts if API fails
+  return products.reduce((total, product) => {
+    return total + (product.sold || 0)
+  }, 0)
+} catch (error) {
+  console.error('Failed to fetch dynamic sold counts:', error)
+  // Fallback to product sold counts
+  return products.reduce((total, product) => {
+    return total + (product.sold || 0)
+  }, 0)
 }
+}
+
+// For synchronous usage, we'll use cached value
+const [cachedTotalSold, setCachedTotalSold] = useState(0)
+const [soldLoading, setSoldLoading] = useState(false)
+
+// Fetch sold counts when products change
+useEffect(() => {
+  const fetchSoldCounts = async () => {
+    if (products.length === 0) return
+    
+    setSoldLoading(true)
+    try {
+      const totalSold = await getTotalSold()
+      setCachedTotalSold(totalSold)
+    } catch (error) {
+      console.error('Error fetching sold counts:', error)
+    } finally {
+      setSoldLoading(false)
+    }
+  }
+  
+  fetchSoldCounts()
+}, [products])
+
+const getTotalSoldSync = () => cachedTotalSold
 
 const getStockOutCount = () => {
 return products.filter(p => 
@@ -121,7 +167,10 @@ getLowStockCount,
 getOutOfStockCount,
 getTotalProductsCount,
 getTotalSold,
-getStockOutCount
+getTotalSoldSync,
+getStockOutCount,
+soldLoading,
+cachedTotalSold
 }}
 >
 {children}

@@ -34,6 +34,7 @@ const AdminOrders = () => {
   const [selectedOrderId, setSelectedOrderId] = useState(null)
   const [error, setError] = useState('')
   const [retryLoading, setRetryLoading] = useState(false)
+  const [previewImage, setPreviewImage] = useState(null)
   
   // Safe data handling
   const safeOrders = safeArray(orders)
@@ -513,9 +514,17 @@ const AdminOrders = () => {
             <div className="bg-gray-50 rounded-lg p-4">
               {selectedOrder.items?.map((item, index) => (
                 <div key={index} className="flex items-center gap-4 py-3 border-b border-gray-200 last:border-b-0">
-                  {item.image && (
-                    <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
-                  )}
+                  <div className="relative">
+                    <img 
+                      src={item.image || 'https://via.placeholder.com/60x60/f3f4f6/6b7280?text=No+Image'} 
+                      alt={item.name} 
+                      className="w-16 h-16 object-cover rounded-lg border border-gray-200 cursor-pointer transition-transform hover:scale-105 hover:shadow-md"
+                      onError={(e) => {
+                        e.target.src = 'https://via.placeholder.com/60x60/f3f4f6/6b7280?text=No+Image'
+                      }}
+                      onClick={() => setPreviewImage(item.image || 'https://via.placeholder.com/60x60/f3f4f6/6b7280?text=No+Image')}
+                    />
+                  </div>
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">{item.name}</p>
                     <p className="text-sm text-gray-500">Qty: {item.quantity} × {formatPrice(item.price)}</p>
@@ -777,6 +786,34 @@ Payment: ${selectedOrder.paymentMethod || 'N/A'}
             </button>
           </div>
         </AdminCard>
+      )}
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+          onClick={() => setPreviewImage(null)}
+        >
+          <div className="relative max-w-4xl max-h-full">
+            <button
+              onClick={() => setPreviewImage(null)}
+              className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
+            >
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <img 
+              src={previewImage} 
+              alt="Product Preview" 
+              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+              onError={(e) => {
+                e.target.src = 'https://via.placeholder.com/400x400/f3f4f6/6b7280?text=Image+Not+Available'
+              }}
+            />
+            <p className="text-white text-center mt-4 text-sm">Click anywhere to close</p>
+          </div>
+        </div>
       )}
     </div>
   )
