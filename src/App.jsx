@@ -159,35 +159,7 @@ return (
 
                   {/* ================= ADMIN ROUTES ================= */}
                   <Route path="/admin/login" element={<AdminLogin />} />
-                  <Route path="/admin/*" element={
-                    <AdminRoute>
-                      <AdminAuthProvider>
-                        <OrderProvider>
-                          <EnhancedOrderProvider>
-                            <AdminProductProvider>
-                              <Routes>
-                                <Route path="/admin" element={<DashboardWrapper />} />
-                                <Route path="/admin/dashboard" element={<DashboardWrapper />} />
-                                <Route path="/admin/products" element={<ProductsWrapper />} />
-                                <Route path="/admin/products/new" element={<UploadWrapper />} />
-                                <Route path="/admin/products/edit/:id" element={<ProductEditWrapper />} />
-                                <Route path="/admin/orders" element={<OrdersWrapper />} />
-                                <Route path="/admin/orders/:id" element={<OrderConfirmationWrapper />} />
-                                <Route path="/admin/analytics" element={<AnalyticsWrapper />} />
-                                <Route path="/admin/reports" element={<ReportsWrapper />} />
-                                <Route path="/admin/contact-messages" element={<ContactMessagesWrapper />} />
-                                <Route path="/admin/customers" element={<CustomersWrapper />} />
-                                <Route path="/admin/settings" element={<SettingsWrapper />} />
-                                <Route path="/admin/coupons" element={<CouponWrapper />} />
-                                <Route path="/admin/brands" element={<BrandsWrapper />} />
-                                <Route path="/admin/categories" element={<CategoriesWrapper />} />
-                              </Routes>
-                            </AdminProductProvider>
-                          </EnhancedOrderProvider>
-                        </OrderProvider>
-                      </AdminAuthProvider>
-                    </AdminRoute>
-                  } />
+                  <Route path="/admin/*" element={<AdminRoute />} />
 
                   {/* Fallback */}
                   <Route path="*" element={<CustomerLayout><HomePage /></CustomerLayout>} />

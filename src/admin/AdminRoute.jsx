@@ -1,36 +1,29 @@
-import { Navigate, Outlet } from 'react-router-dom';
-import { useAdminAuth } from './context/AdminAuthContext';
+import React from 'react'
+import { Navigate } from 'react-router-dom'
+import { useAdminAuth } from '../hooks/useAdminAuth'
+import AdminLayout from './layout/AdminLayout'
 
-/**
- * 🔐 AdminRoute (Protected Route Wrapper)
- * ======================================
- * Protects admin routes from unauthorized access
- *
- * FLOW:
- * 1. Check loading state
- * 2. Check if admin is authenticated
- * 3. If not → redirect to /admin-login
- * 4. If yes → render children
- *
- * NOTE:
- * - Backend token verification happens in AdminOnlyLayout
- * - This component only handles frontend protection
- */
-
-const AdminRoute = () => {
-  const { isAdmin, loading } = useAdminAuth();
+export default function AdminRoute() {
+  const { isAdmin, loading } = useAdminAuth()
 
   if (loading) {
     return (
-      <div style={{ display:'flex', flexDirection:'column',
-        alignItems:'center', justifyContent:'center', 
-        height:'100vh' }}>
-        <p>Verifying access...</p>
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ae0b0b] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
       </div>
-    );
+    )
   }
 
-  return isAdmin ? <Outlet /> : <Navigate to="/admin-login" state={{ from: window.location.pathname }} replace />;
-};
+  if (!isAdmin) {
+    return <Navigate to="/admin/login" state={{ from: window.location.pathname }} replace />
+  }
 
-export default AdminRoute;
+  return (
+    <AdminLayout>
+      <Navigate to="/admin" replace />
+    </AdminLayout>
+  )
+}

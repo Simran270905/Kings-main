@@ -1,28 +1,112 @@
-import React from 'react'
-import { Outlet, Link, useLocation } from 'react-router-dom'
-import { useAdminAuth } from '../hooks/useAdminAuth'
+import { useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
+  HomeIcon,
   ShoppingBagIcon,
-  CurrencyDollarIcon,
-  UsersIcon,
+  PlusCircleIcon,
   ChartBarIcon,
+  UsersIcon,
+  Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
-  ChartPieIcon,
+  Bars3Icon,
+  XMarkIcon,
+  TagIcon,
+  FolderIcon,
   DocumentTextIcon,
-  Cog6ToothIcon
+  ReceiptPercentIcon,
+  ChevronDownIcon,
+  ListBulletIcon,
 } from '@heroicons/react/24/outline'
+import { useAdminAuth } from '../context/useAdminAuth'
 
-export default function AdminLayout() {
-  const { isAdmin, loading } = useAdminAuth()
+const NAV_GROUPS = [
+  {
+    label: null,
+    items: [
+      { name: 'Dashboard', href: '/admin', icon: HomeIcon, exact: true },
+    ]
+  },
+  {
+    label: 'Products',
+    icon: ShoppingBagIcon,
+    groupKey: 'products',
+    items: [
+      { name: 'Manage Products', href: '/admin/products', icon: ListBulletIcon },
+      { name: 'Add Product', href: '/admin/upload', icon: PlusCircleIcon },
+    ]
+  },
+  {
+    label: 'Categories',
+    icon: FolderIcon,
+    groupKey: 'categories',
+    items: [
+      { name: 'Manage Categories', href: '/admin/categories', icon: ListBulletIcon },
+      { name: 'Add Category', href: '/admin/categories', icon: PlusCircleIcon },
+    ]
+  },
+  {
+    label: 'Brands',
+    icon: TagIcon,
+    groupKey: 'brands',
+    items: [
+      { name: 'Manage Brands', href: '/admin/brands', icon: ListBulletIcon },
+      { name: 'Add Brand', href: '/admin/brands', icon: PlusCircleIcon },
+    ]
+  },
+  {
+    label: 'Sales',
+    icon: ReceiptPercentIcon,
+    groupKey: 'sales',
+    items: [
+      { name: 'Orders', href: '/admin/orders', icon: ShoppingBagIcon },
+      { name: 'Coupons', href: '/admin/coupons', icon: TagIcon },
+      { name: 'Customers', href: '/admin/customers', icon: UsersIcon },
+    ]
+  },
+  {
+    label: 'Analytics',
+    icon: ChartBarIcon,
+    groupKey: 'analytics',
+    items: [
+      { name: 'Analytics', href: '/admin/analytics', icon: ChartBarIcon },
+      { name: 'Reports', href: '/admin/reports', icon: DocumentTextIcon },
+    ]
+  },
+  {
+    label: 'Content (CMS)',
+    icon: DocumentTextIcon,
+    groupKey: 'cms',
+    items: [
+      { name: 'Home Page', href: '/admin/cms/home', icon: HomeIcon },
+      { name: 'Footer', href: '/admin/cms/footer', icon: DocumentTextIcon },
+      { name: 'Our Story', href: '/admin/cms/our-story', icon: DocumentTextIcon },
+      { name: 'Pages', href: '/admin/pages', icon: DocumentTextIcon },
+    ]
+  },
+  {
+    label: null,
+    items: [
+      { name: 'Settings', href: '/admin/settings', icon: Cog6ToothIcon },
+    ]
+  },
+]
+
+export default function AdminLayout({ children }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [openGroups, setOpenGroups] = useState(['products', 'categories', 'brands'])
   const location = useLocation()
+  const navigate = useNavigate()
+  const { logoutAdmin } = useAdminAuth()
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ae0b0b] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading admin panel...</p>
-        </div>
+  const handleLogout = () => {
+    logoutAdmin()
+    navigate('/')
+  }
+
+  const isActive = (href, exact = false) => {
+    if (!href) return false
+    if (exact) return location.pathname === href
+    return location.pathname.startsWith(href)
       </div>
     )
   }
@@ -48,10 +132,6 @@ export default function AdminLayout() {
     )
   }
 
-  const isActive = (path) => {
-    return location.pathname === path || location.pathname.startsWith(path + '/')
-  }
-
   return (
     <div className="min-h-screen bg-gray-100 flex">
       {/* Sidebar - Fixed Left */}
@@ -67,7 +147,7 @@ export default function AdminLayout() {
             <Link
               to="/admin"
               className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                isActive('/admin') 
+                window.location.pathname === '/admin' || window.location.pathname === '/admin/' 
                   ? 'bg-[#ae0b0b] text-white' 
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`}
@@ -79,7 +159,7 @@ export default function AdminLayout() {
             <Link
               to="/admin/orders"
               className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                isActive('/admin/orders') 
+                window.location.pathname.startsWith('/admin/orders')
                   ? 'bg-[#ae0b0b] text-white' 
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`}
@@ -91,7 +171,7 @@ export default function AdminLayout() {
             <Link
               to="/admin/products"
               className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                isActive('/admin/products') 
+                window.location.pathname.startsWith('/admin/products')
                   ? 'bg-[#ae0b0b] text-white' 
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`}
@@ -103,7 +183,7 @@ export default function AdminLayout() {
             <Link
               to="/admin/pages"
               className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                isActive('/admin/pages') 
+                window.location.pathname.startsWith('/admin/pages')
                   ? 'bg-[#ae0b0b] text-white' 
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`}
@@ -115,7 +195,7 @@ export default function AdminLayout() {
             <Link
               to="/admin/analytics"
               className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                isActive('/admin/analytics') 
+                window.location.pathname.startsWith('/admin/analytics')
                   ? 'bg-[#ae0b0b] text-white' 
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`}
@@ -127,7 +207,7 @@ export default function AdminLayout() {
             <Link
               to="/admin/customers"
               className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                isActive('/admin/customers') 
+                window.location.pathname.startsWith('/admin/customers')
                   ? 'bg-[#ae0b0b] text-white' 
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`}
@@ -139,7 +219,7 @@ export default function AdminLayout() {
             <Link
               to="/admin/settings"
               className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                isActive('/admin/settings') 
+                window.location.pathname.startsWith('/admin/settings')
                   ? 'bg-[#ae0b0b] text-white' 
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`}
@@ -166,6 +246,7 @@ export default function AdminLayout() {
               }}
               className="flex items-center px-4 py-3 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors w-full"
             >
+              <Squares2X2Icon className="mr-3 h-5 w-5" />
               Logout
             </button>
           </div>
@@ -185,14 +266,13 @@ export default function AdminLayout() {
                 <span>KKINGS Admin Panel</span>
               </div>
             </div>
+              View Store →
+            </a>
           </div>
         </header>
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50">
-          <div className="p-6">
-            <Outlet />
-          </div>
+        <main className="p-4 sm:p-6 lg:p-8">
+          {children}
         </main>
       </div>
     </div>
