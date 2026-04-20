@@ -46,8 +46,10 @@ export const EnhancedOrderProvider = ({ children }) => {
 
   // Fetch orders with enhanced payment details
   const fetchOrders = async (silent = false) => {
-    // Prevent duplicate calls
+    // Prevent duplicate calls - check both loading state and last fetch time
+    const now = Date.now()
     if (loading && !silent) return
+    if (lastFetch && (now - lastFetch.getTime() < 2000)) return // Prevent calls within 2 seconds
     
     try {
       if (!silent) setLoading(true)
@@ -245,17 +247,21 @@ export const EnhancedOrderProvider = ({ children }) => {
     }
   }, [])
 
-  // Refetch when filters change - FIXED: Only after initialization
+  // Refetch when filters change - FIXED: Only after initialization and with debouncing
   useEffect(() => {
     if (!initialized) return // Wait for initialization first
     
     const token = localStorage.getItem('kk_admin_token')
     if (token && token !== 'undefined') {
-      fetchOrders(true) // Silent fetch for filter changes
+      const timeoutId = setTimeout(() => {
+        fetchOrders(true) // Silent fetch for filter changes (debounced)
+      }, 500) // 500ms debounce
+      
+      return () => clearTimeout(timeoutId) // Cleanup timeout
     }
-  }, [filters, initialized])
+  }, [filters.status, filters.paymentStatus, filters.paymentMethod, filters.sortBy, filters.sortOrder, initialized])
 
-  // Auto-refresh orders every 30 seconds for real-time updates
+  // Auto-refresh orders every 60 seconds for real-time updates (reduced from 30s)
   useEffect(() => {
     if (!initialized) return // Wait for initialization first
     
@@ -264,8 +270,8 @@ export const EnhancedOrderProvider = ({ children }) => {
 
     // Set up polling interval
     const interval = setInterval(() => {
-      fetchOrders(true) // Silent fetch every 30 seconds
-    }, 30000) // 30 seconds
+      fetchOrders(true) // Silent fetch every 60 seconds
+    }, 60000) // 60 seconds (reduced frequency)
 
     // Cleanup interval on unmount
     return () => clearInterval(interval)

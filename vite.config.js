@@ -72,7 +72,18 @@ export default defineConfig({
     // Optimize for production
     minify: 'esbuild',
     // Enable compression for better load times
-    target: 'esnext'
+    target: 'esnext',
+    // Disable modulepreload to fix preload warnings
+    modulePreload: {
+      resolveDependencies: (filename, deps) => {
+        // Only preload critical dependencies
+        return deps.filter(dep => 
+          dep.includes('react') || 
+          dep.includes('react-dom') ||
+          dep.includes('main')
+        )
+      }
+    }
   },
 
   // Speeds up dev server & rebuilds
