@@ -296,9 +296,9 @@ export default function Dashboard() {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
-              <AdminButton variant="primary" icon={PlusCircleIcon} className="flex-1 h-12 justify-center shadow-md hover:shadow-lg transition-all duration-200">Add New Product</AdminButton>
-              <AdminButton href="/admin/products" variant="secondary" icon={ShoppingBagIcon} className="flex-1 h-12 justify-center border border-gray-200 hover:border-gray-300 transition-all duration-200">Manage Products</AdminButton>
-              <AdminButton href="/admin/orders" variant="secondary" icon={ShoppingBagIcon} className="flex-1 h-12 justify-center border border-gray-200 hover:border-gray-300 transition-all duration-200">View Orders</AdminButton>
+              <AdminButton variant="primary" icon={PlusCircleIcon} className="h-12 px-6 bg-red-600 text-white rounded-lg hover:bg-red-700 shadow-md transition-all duration-200">Add New Product</AdminButton>
+              <AdminButton href="/admin/products" variant="secondary" icon={ShoppingBagIcon} className="h-12 px-6 border border-gray-200 bg-white rounded-lg hover:bg-gray-50 shadow-md transition-all duration-200">Manage Products</AdminButton>
+              <AdminButton href="/admin/orders" variant="secondary" icon={ShoppingBagIcon} className="h-12 px-6 border border-gray-200 bg-white rounded-lg hover:bg-gray-50 shadow-md transition-all duration-200">View Orders</AdminButton>
             </div>
           </div>
         </div>
