@@ -84,28 +84,50 @@ export default function AdminReports() {
       console.log(' Fetching reports via ANALYTICS SERVICE...')
       const response = await apiCall(`/admin/analytics?${params}`)
       
-      if (response.success) {
+      if (response && response.success) {
         const data = response.data
         console.log(' Reports data received from analytics service:', data)
         
-        // Update all reports data
-        setSummary(data.summary || {
+        // Update all reports data with correct structure from backend
+        setSummary({
           stats: {
             revenue: data.summary?.totalRevenue || 0,
             orders: data.summary?.totalOrders || 0,
             avgOrder: data.summary?.avgOrderValue || 0,
-            totalSold: data.summary?.totalItemsSold || 0
+            totalSold: data.summary?.totalProductsSold || 0
           },
           users: data.summary?.totalCustomers || 0
         })
-        setSalesTrend(data.salesTrend || [])
-        setOrdersChart(data.ordersChart || [])
-        setCategoryStats(data.categoryStats || [])
-        setLastUpdated(data.lastUpdated)
+        
+        // Process dateData for sales trend
+        const salesTrendData = Object.entries(data.dateData || {}).map(([date, values]) => ({
+          _id: date,
+          revenue: values.revenue || 0,
+          orders: values.orders || 0,
+          itemsSold: values.orders || 0 // Using orders as items sold proxy
+        }))
+        setSalesTrend(salesTrendData)
+        
+        // Process status breakdown for orders chart
+        const ordersChartData = Object.entries(data.statusBreakdown || {}).map(([status, count]) => ({
+          _id: status,
+          count: count
+        }))
+        setOrdersChart(ordersChartData)
+        
+        // Process top selling products for category stats
+        const categoryData = data.topSellingProducts?.map(product => ({
+          _id: product.name,
+          totalRevenue: product.totalRevenue,
+          count: product.totalQuantity
+        })) || []
+        setCategoryStats(categoryData)
+        
+        setLastUpdated(data.summary?.lastUpdated || new Date())
         
         console.log(' Reports updated successfully via analytics service')
       } else {
-        throw new Error(response.message || 'Failed to fetch reports')
+        throw new Error(response?.message || 'Failed to fetch reports')
       }
     } catch (err) {
       console.error('Error fetching reports:', err)
@@ -120,10 +142,17 @@ export default function AdminReports() {
       params.append('range', timeRange)
       params.append('metric', metric)
 
-      const response = await apiCall(`/admin/analytics/revenue-chart?${params}`)
+      // Use main analytics endpoint and extract sales trend from dateData
+      const response = await apiCall(`/admin/analytics?${params}`)
       
-      if (response.success) {
-        setSalesTrend(response.data || [])
+      if (response && response.success && response.data?.dateData) {
+        const salesTrendData = Object.entries(response.data.dateData).map(([date, values]) => ({
+          _id: date,
+          revenue: values.revenue || 0,
+          orders: values.orders || 0,
+          itemsSold: values.orders || 0
+        }))
+        setSalesTrend(salesTrendData)
       }
     } catch (err) {
       console.error('Error fetching sales trend:', err)
@@ -136,10 +165,16 @@ export default function AdminReports() {
       const params = new URLSearchParams()
       params.append('range', timeRange)
 
-      const response = await apiCall(`/admin/analytics/top-products?${params}`)
+      // Use main analytics endpoint and extract top products
+      const response = await apiCall(`/admin/analytics?${params}`)
       
-      if (response.success) {
-        setCategoryStats(response.data || [])
+      if (response && response.success && response.data?.topSellingProducts) {
+        const categoryData = response.data.topSellingProducts.map(product => ({
+          _id: product.name,
+          totalRevenue: product.totalRevenue,
+          count: product.totalQuantity
+        }))
+        setCategoryStats(categoryData)
       }
     } catch (err) {
       console.error('Error fetching category distribution:', err)
@@ -152,10 +187,15 @@ export default function AdminReports() {
       const params = new URLSearchParams()
       params.append('range', timeRange)
 
-      const response = await apiCall(`/admin/analytics/order-status-breakdown?${params}`)
+      // Use main analytics endpoint and extract status breakdown
+      const response = await apiCall(`/admin/analytics?${params}`)
       
-      if (response.success) {
-        setOrdersChart(response.data || [])
+      if (response && response.success && response.data?.statusBreakdown) {
+        const ordersChartData = Object.entries(response.data.statusBreakdown).map(([status, count]) => ({
+          _id: status,
+          count: count
+        }))
+        setOrdersChart(ordersChartData)
       }
     } catch (err) {
       console.error('Error fetching orders chart:', err)
@@ -257,6 +297,11 @@ export default function AdminReports() {
       {
         name: 'Revenue',
         revenue: summary.stats.revenue || 0,
+        orders: summary.stats.orders || 0
+      },
+      {
+        name: 'Orders', 
+        revenue: summary.stats.orders || 0,
         orders: summary.stats.orders || 0
       }
     ]
