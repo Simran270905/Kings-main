@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
 
 // Force new build for Vercel deployment
@@ -24,9 +24,8 @@ export default function Dashboard() {
   const { orders, loading: ordersLoading, fetchOrders } = useEnhancedOrder()
   const analytics = useAnalytics()
   
-  // Calculate metrics from context data with safety checks
   const metrics = React.useMemo(() => {
-    if (!orders || !products || ordersLoading || productsLoading) {
+    if (!orders || !products || ordersLoading === undefined || productsLoading === undefined) {
       return {
         totalRevenue: 0,
         totalOrders: 0,
@@ -41,12 +40,10 @@ export default function Dashboard() {
     const ordersArray = Array.isArray(orders) ? orders : []
     const productsArray = Array.isArray(products) ? products : []
     
-    // Calculate total revenue from orders
     const totalRevenue = ordersArray.reduce((sum, order) => {
       return sum + (order.totalAmount || 0)
     }, 0)
     
-    // Calculate payment-based stats
     const paidOrders = ordersArray.filter(order => {
       const paymentStatus = order.paymentStatus || 'pending'
       return paymentStatus === 'paid'
@@ -57,13 +54,11 @@ export default function Dashboard() {
       return paymentStatus !== 'paid'
     }).length
     
-    // Calculate pending orders (status-based)
     const pendingOrders = ordersArray.filter(order => {
       const status = order.status || 'pending'
       return status === 'pending'
     }).length
     
-    // Calculate unique users
     const uniqueUsers = new Set()
     ordersArray.forEach(order => {
       const email = order.customer?.email || order.shippingAddress?.email
@@ -84,12 +79,12 @@ export default function Dashboard() {
   const totalStock = React.useMemo(() => {
     const productsArray = Array.isArray(products) ? products : []
     return productsArray.reduce((sum, product) => {
-      return sum + (getTotalStock ? getTotalStock(product) : 0)
+      return sum + (getTotalStock && typeof getTotalStock === 'function' ? getTotalStock(product) : 0)
     }, 0)
   }, [products, getTotalStock])
   
   const lowStockProducts = React.useMemo(() => {
-    return getLowStockCount ? getLowStockCount() : 0
+    return getLowStockCount && typeof getLowStockCount === 'function' ? getLowStockCount() : 0
   }, [getLowStockCount])
 
   const formatCurrency = (amount) => {
@@ -100,18 +95,16 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600">Welcome back! Here's what's happening with your store.</p>
         </div>
-        
         <div className="flex items-center space-x-4">
           <button
             onClick={() => {
-              if (refreshProducts) refreshProducts()
-              if (fetchOrders) fetchOrders()
+              if (refreshProducts && typeof refreshProducts === 'function') refreshProducts()
+              if (fetchOrders && typeof fetchOrders === 'function') fetchOrders()
             }}
             disabled={isLoading}
             className="px-4 py-2 bg-[#ae0b0b] text-white rounded-lg hover:bg-[#8f0a0a] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
@@ -122,7 +115,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Loading State */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
@@ -131,61 +123,17 @@ export default function Dashboard() {
           </div>
         </div>
       ) : (
-        <>
-          {/* Stats Cards */}
+        <div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <AdminCard
-              title="Total Revenue"
-              value={formatCurrency(metrics.totalRevenue)}
-              icon={CurrencyDollarIcon}
-              trend={null}
-              color="text-green-600"
-            />
-            <AdminCard
-              title="Total Orders"
-              value={metrics.totalOrders}
-              icon={ShoppingBagIcon}
-              trend={null}
-              color="text-blue-600"
-            />
-            <AdminCard
-              title="Pending Orders"
-              value={metrics.pendingOrders}
-              icon={ShoppingBagIcon}
-              trend={null}
-              color="text-yellow-600"
-            />
-            <AdminCard
-              title="Total Users"
-              value={metrics.totalUsers}
-              icon={UsersIcon}
-              trend={null}
-              color="text-purple-600"
-            />
-            <AdminCard
-              title="Total Products"
-              value={metrics.totalProducts}
-              icon={ShoppingBagIcon}
-              trend={null}
-              color="text-indigo-600"
-            />
-            <AdminCard
-              title="Total Stock"
-              value={totalStock}
-              icon={ShoppingBagIcon}
-              trend={null}
-              color="text-teal-600"
-            />
-            <AdminCard
-              title="Low Stock Products"
-              value={lowStockProducts}
-              icon={ShoppingBagIcon}
-              trend={null}
-              color="text-red-600"
-            />
+            <AdminCard title="Total Revenue" value={formatCurrency(metrics.totalRevenue)} icon={CurrencyDollarIcon} trend={null} color="text-green-600" />
+            <AdminCard title="Total Orders" value={metrics.totalOrders} icon={ShoppingBagIcon} trend={null} color="text-blue-600" />
+            <AdminCard title="Pending Orders" value={metrics.pendingOrders} icon={ShoppingBagIcon} trend={null} color="text-yellow-600" />
+            <AdminCard title="Total Users" value={metrics.totalUsers} icon={UsersIcon} trend={null} color="text-purple-600" />
+            <AdminCard title="Total Products" value={metrics.totalProducts} icon={ShoppingBagIcon} trend={null} color="text-indigo-600" />
+            <AdminCard title="Total Stock" value={totalStock} icon={ShoppingBagIcon} trend={null} color="text-teal-600" />
+            <AdminCard title="Low Stock Products" value={lowStockProducts} icon={ShoppingBagIcon} trend={null} color="text-red-600" />
           </div>
 
-          {/* Analytics Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <AdminCard className="col-span-1">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Analytics</h3>
@@ -202,87 +150,10 @@ export default function Dashboard() {
                   <span className="text-gray-600">Pending Payment:</span>
                   <span className="font-medium text-yellow-600">{metrics.pendingPaymentOrders}</span>
                 </div>
-              </div>
-            </AdminCard>
-
-            <AdminCard className="col-span-1">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Last Refresh:</span>
-                  <span className="font-medium">{new Date().toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Data Source:</span>
-                  <span className="font-medium text-green-600">Live API</span>
-                </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">System Status:</span>
                   <span className="font-medium text-green-600">Operational</span>
                 </div>
-      </div>
-    ) : (
-      <>
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <AdminCard
-            title="Total Revenue"
-            value={formatCurrency(metrics.totalRevenue)}
-            icon={CurrencyDollarIcon}
-            trend={null}
-            color="text-green-600"
-          />
-          <AdminCard
-            title="Total Orders"
-            value={metrics.totalOrders}
-            icon={ShoppingBagIcon}
-            trend={null}
-            color="text-blue-600"
-          />
-          <AdminCard
-            title="Pending Orders"
-            value={metrics.pendingOrders}
-            icon={ShoppingBagIcon}
-            trend={null}
-            color="text-yellow-600"
-          />
-          <AdminCard
-            title="Total Users"
-            value={metrics.totalUsers}
-            icon={UsersIcon}
-            trend={null}
-            color="text-purple-600"
-          />
-          <AdminCard
-            title="Total Products"
-            value={metrics.totalProducts}
-            icon={ShoppingBagIcon}
-            trend={null}
-            color="text-indigo-600"
-          />
-          <AdminCard
-            title="Total Stock"
-            value={totalStock}
-            icon={ShoppingBagIcon}
-            trend={null}
-            color="text-teal-600"
-          />
-          <AdminCard
-            title="Low Stock Products"
-            value={lowStockProducts}
-            icon={ShoppingBagIcon}
-            trend={null}
-            color="text-red-600"
-          />
-        </div>
-
-        {/* Analytics Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <AdminCard className="col-span-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Analytics</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Average Order Value:</span>
                 <span className="font-medium">{formatCurrency(metrics.totalOrders > 0 ? metrics.totalRevenue / metrics.totalOrders : 0)}</span>
               </div>
               <div className="flex justify-between items-center">
@@ -301,7 +172,7 @@ export default function Dashboard() {
               variant="primary" 
               icon={PlusCircleIcon}
               className="justify-start text-left h-14"
-            >
+            />
               Add New Product
             </AdminButton>
 
@@ -310,7 +181,7 @@ export default function Dashboard() {
               variant="secondary" 
               icon={ShoppingBagIcon}
               className="justify-start text-left h-14"
-            >
+            />
               Manage Products
             </AdminButton>
 
@@ -319,7 +190,7 @@ export default function Dashboard() {
               variant="secondary" 
               icon={ChartBarIcon}
               className="justify-start text-left h-14"
-            >
+            />
               View Analytics
             </AdminButton>
           </div>
