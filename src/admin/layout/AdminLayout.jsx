@@ -1,6 +1,6 @@
 import React from 'react'
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { useAdminAuth } from '../hooks/useAdminAuth'
+import { useAdminAuth } from '../context/AdminAuthContext'
 import {
   ShoppingBagIcon,
   CurrencyDollarIcon,

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useAdminAuth } from './context/useAdminAuth'
+import { useAdminAuth } from './context/AdminAuthContext'
 import {
   HomeIcon,
   ShoppingBagIcon,
