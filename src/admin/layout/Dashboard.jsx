@@ -84,12 +84,12 @@ export default function Dashboard() {
   const totalStock = React.useMemo(() => {
     const productsArray = Array.isArray(products) ? products : []
     return productsArray.reduce((sum, product) => {
-      return sum + getTotalStock(product)
+      return sum + (getTotalStock ? getTotalStock(product) : 0)
     }, 0)
   }, [products, getTotalStock])
   
   const lowStockProducts = React.useMemo(() => {
-    return getLowStockCount()
+    return getLowStockCount ? getLowStockCount() : 0
   }, [getLowStockCount])
 
   const formatCurrency = (amount) => {

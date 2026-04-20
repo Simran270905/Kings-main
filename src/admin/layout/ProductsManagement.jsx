@@ -47,7 +47,7 @@ export default function ProductsManagement() {
 
   // 🔥 Unique categories
   const categories = useMemo(() => {
-    const categoryList = safeProducts.map(p => safeCategoryName(p.category || p.categoryId)).filter(Boolean)
+    const categoryList = safeProducts.map(p => safeCategoryName ? safeCategoryName(p.category || p.categoryId) : 'No Category').filter(Boolean)
     return [...new Set(categoryList)]
   }, [safeProducts])
 
@@ -57,13 +57,13 @@ export default function ProductsManagement() {
 
     if (searchQuery) {
       result = result.filter(product =>
-        safeProductName(product).toLowerCase().includes(searchQuery.toLowerCase()) ||
-        safeCategoryName(product.category).toLowerCase().includes(searchQuery.toLowerCase())
+        (safeProductName ? safeProductName(product).toLowerCase().includes(searchQuery.toLowerCase()) : false) ||
+        (safeCategoryName ? safeCategoryName(product.category).toLowerCase().includes(searchQuery.toLowerCase()) : false)
       )
     }
 
     if (selectedCategory) {
-      result = result.filter(p => safeCategoryName(p.category) === selectedCategory)
+      result = result.filter(p => safeCategoryName ? safeCategoryName(p.category) === selectedCategory : false)
     }
 
     result.sort((a, b) => {
