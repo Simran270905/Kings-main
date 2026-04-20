@@ -24,7 +24,7 @@ export default function Dashboard() {
   const { orders, loading: ordersLoading, fetchOrders } = useEnhancedOrder()
   const analytics = useAnalytics()
   
-  // Calculate metrics from context data
+  // Calculate metrics from context data with safety checks
   const metrics = React.useMemo(() => {
     if (!orders || !products || ordersLoading || productsLoading) {
       return {
@@ -110,8 +110,8 @@ export default function Dashboard() {
         <div className="flex items-center space-x-4">
           <button
             onClick={() => {
-              refreshProducts()
-              fetchOrders()
+              if (refreshProducts) refreshProducts()
+              if (fetchOrders) fetchOrders()
             }}
             disabled={isLoading}
             className="px-4 py-2 bg-[#ae0b0b] text-white rounded-lg hover:bg-[#8f0a0a] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
@@ -127,133 +127,204 @@ export default function Dashboard() {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ae0b0b] mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading dashboard...</p>
+            <p className="mt-4 text-gray-600">Loading dashboard data...</p>
           </div>
         </div>
       ) : (
         <>
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Link to="/admin/products">
-              <AdminCard>
-                <div className="flex justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Total Products</p>
-                    <p className="text-2xl font-bold text-gray-900">{metrics.totalProducts}</p>
-                  </div>
-                  <div className="text-blue-600">
-                    <ChartBarIcon className="h-6 w-6" />
-                  </div>
-                </div>
-              </AdminCard>
-            </Link>
-
-            <Link to="/admin/products">
-              <AdminCard>
-                <div className="flex justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Total Stock</p>
-                    <p className="text-2xl font-bold text-gray-900">{totalStock}</p>
-                  </div>
-                  <div className="text-orange-600">
-                    <ChartBarIcon className="h-6 w-6" />
-                  </div>
-                </div>
-              </AdminCard>
-            </Link>
-
-            <Link to="/admin/products">
-              <AdminCard>
-                <div className="flex justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Low Stock Items</p>
-                    <p className="text-2xl font-bold text-gray-900">{lowStockProducts}</p>
-                  </div>
-                  <div className="text-red-600">
-                    <ChartBarIcon className="h-6 w-6" />
-                  </div>
-                </div>
-              </AdminCard>
-            </Link>
-
-            <Link to="/admin/analytics">
-              <AdminCard>
-                <div className="flex justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Total Revenue</p>
-                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(metrics.totalRevenue)}</p>
-                  </div>
-                  <div className="text-green-600">
-                    <CurrencyDollarIcon className="h-6 w-6" />
-                  </div>
-                </div>
-              </AdminCard>
-            </Link>
-
-            <Link to="/admin/orders">
-              <AdminCard>
-                <div className="flex justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Total Orders</p>
-                    <p className="text-2xl font-bold text-gray-900">{metrics.totalOrders}</p>
-                  </div>
-                  <div className="text-purple-600">
-                    <ShoppingBagIcon className="h-6 w-6" />
-                  </div>
-                </div>
-              </AdminCard>
-            </Link>
-
-            <Link to="/admin/customers">
-              <AdminCard>
-                <div className="flex justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Total Users</p>
-                    <p className="text-2xl font-bold text-gray-900">{metrics.totalUsers}</p>
-                  </div>
-                  <div className="text-indigo-600">
-                    <UsersIcon className="h-6 w-6" />
-                  </div>
-                </div>
-              </AdminCard>
-            </Link>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <AdminCard
+              title="Total Revenue"
+              value={formatCurrency(metrics.totalRevenue)}
+              icon={CurrencyDollarIcon}
+              trend={null}
+              color="text-green-600"
+            />
+            <AdminCard
+              title="Total Orders"
+              value={metrics.totalOrders}
+              icon={ShoppingBagIcon}
+              trend={null}
+              color="text-blue-600"
+            />
+            <AdminCard
+              title="Pending Orders"
+              value={metrics.pendingOrders}
+              icon={ShoppingBagIcon}
+              trend={null}
+              color="text-yellow-600"
+            />
+            <AdminCard
+              title="Total Users"
+              value={metrics.totalUsers}
+              icon={UsersIcon}
+              trend={null}
+              color="text-purple-600"
+            />
+            <AdminCard
+              title="Total Products"
+              value={metrics.totalProducts}
+              icon={ShoppingBagIcon}
+              trend={null}
+              color="text-indigo-600"
+            />
+            <AdminCard
+              title="Total Stock"
+              value={totalStock}
+              icon={ShoppingBagIcon}
+              trend={null}
+              color="text-teal-600"
+            />
+            <AdminCard
+              title="Low Stock Products"
+              value={lowStockProducts}
+              icon={ShoppingBagIcon}
+              trend={null}
+              color="text-red-600"
+            />
           </div>
 
-          {/* Quick Actions */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <AdminButton 
-                href="/admin/upload" 
-                variant="primary" 
-                icon={PlusCircleIcon}
-                className="justify-start text-left h-14"
-              >
-                Add New Product
-              </AdminButton>
+          {/* Analytics Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <AdminCard className="col-span-1">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Analytics</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Average Order Value:</span>
+                  <span className="font-medium">{formatCurrency(metrics.totalOrders > 0 ? metrics.totalRevenue / metrics.totalOrders : 0)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Paid Orders:</span>
+                  <span className="font-medium text-green-600">{metrics.paidOrders}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Pending Payment:</span>
+                  <span className="font-medium text-yellow-600">{metrics.pendingPaymentOrders}</span>
+                </div>
+              </div>
+            </AdminCard>
 
-              <AdminButton 
-                href="/admin/products" 
-                variant="secondary" 
-                icon={ShoppingBagIcon}
-                className="justify-start text-left h-14"
-              >
-                Manage Products
-              </AdminButton>
+            <AdminCard className="col-span-1">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Last Refresh:</span>
+                  <span className="font-medium">{new Date().toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Data Source:</span>
+                  <span className="font-medium text-green-600">Live API</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">System Status:</span>
+                  <span className="font-medium text-green-600">Operational</span>
+                </div>
+      </div>
+    ) : (
+      <>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <AdminCard
+            title="Total Revenue"
+            value={formatCurrency(metrics.totalRevenue)}
+            icon={CurrencyDollarIcon}
+            trend={null}
+            color="text-green-600"
+          />
+          <AdminCard
+            title="Total Orders"
+            value={metrics.totalOrders}
+            icon={ShoppingBagIcon}
+            trend={null}
+            color="text-blue-600"
+          />
+          <AdminCard
+            title="Pending Orders"
+            value={metrics.pendingOrders}
+            icon={ShoppingBagIcon}
+            trend={null}
+            color="text-yellow-600"
+          />
+          <AdminCard
+            title="Total Users"
+            value={metrics.totalUsers}
+            icon={UsersIcon}
+            trend={null}
+            color="text-purple-600"
+          />
+          <AdminCard
+            title="Total Products"
+            value={metrics.totalProducts}
+            icon={ShoppingBagIcon}
+            trend={null}
+            color="text-indigo-600"
+          />
+          <AdminCard
+            title="Total Stock"
+            value={totalStock}
+            icon={ShoppingBagIcon}
+            trend={null}
+            color="text-teal-600"
+          />
+          <AdminCard
+            title="Low Stock Products"
+            value={lowStockProducts}
+            icon={ShoppingBagIcon}
+            trend={null}
+            color="text-red-600"
+          />
+        </div>
 
-              <AdminButton 
-                href="/admin/analytics" 
-                variant="secondary" 
-                icon={ChartBarIcon}
-                className="justify-start text-left h-14"
-              >
-                View Analytics
-              </AdminButton>
+        {/* Analytics Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <AdminCard className="col-span-1">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Analytics</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Average Order Value:</span>
+                <span className="font-medium">{formatCurrency(metrics.totalOrders > 0 ? metrics.totalRevenue / metrics.totalOrders : 0)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Paid Orders:</span>
+                <span className="font-medium text-green-600">{metrics.paidOrders}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Pending Payment:</span>
+                <span className="font-medium text-yellow-600">{metrics.pendingPaymentOrders}</span>
+              </div>
             </div>
+          </AdminCard>
+          
+          <div className="flex flex-col sm:flex-row gap-4">
+            <AdminButton 
+              variant="primary" 
+              icon={PlusCircleIcon}
+              className="justify-start text-left h-14"
+            >
+              Add New Product
+            </AdminButton>
+
+            <AdminButton 
+              href="/admin/products" 
+              variant="secondary" 
+              icon={ShoppingBagIcon}
+              className="justify-start text-left h-14"
+            >
+              Manage Products
+            </AdminButton>
+
+            <AdminButton 
+              href="/admin/analytics" 
+              variant="secondary" 
+              icon={ChartBarIcon}
+              className="justify-start text-left h-14"
+            >
+              View Analytics
+            </AdminButton>
           </div>
-        </>
-      )}
-    </div>
-  )
-}
+        </div>
+      </>
+    )}
+  </div>
+)

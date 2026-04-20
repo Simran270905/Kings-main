@@ -174,20 +174,6 @@ export default function AdminLayout() {
 
       {/* Main Content Area - Right */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Header */}
-        <header className="bg-white shadow-sm border-b border-gray-200">
-          <div className="px-6 py-4">
-            <div className="flex items-center justify-between">
-              <h1 className="text-xl font-semibold text-gray-900">Admin Dashboard</h1>
-              <div className="flex items-center space-x-4 text-sm text-gray-500">
-                <span>Welcome back!</span>
-                <span>•</span>
-                <span>KKINGS Admin Panel</span>
-              </div>
-            </div>
-          </div>
-        </header>
-
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto bg-gray-50">
           <div className="p-6">
