@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef, useMemo } from 'react'
+import { createContext, useContext, useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import adminApi from '../utils/adminApiService'
 
 export const AdminProductContext = createContext(null)
@@ -68,13 +68,13 @@ fetchProducts()
 
 const refreshProducts = () => fetchProducts()
 
-const getTotalStock = (p) => {
+const getTotalStock = useCallback((p) => {
 if (!p) return 0
 if (Array.isArray(p.sizes)) {
 return p.sizes.reduce((sum, s) => sum + (s.stock || 0), 0)
 }
 return p.stock || 0
-}
+}, [])
 
 const getStockStatus = (p) => {
 const total = getTotalStock(p)
