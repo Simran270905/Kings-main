@@ -83,6 +83,19 @@ if (total <= 10) return 'low'
 return 'ok'
 }
 
+const getTotalSold = () => {
+return products.reduce((total, product) => {
+return total + (product.sold || 0)
+}, 0)
+}
+
+const getStockOutCount = () => {
+return products.filter(p => 
+(p.stockStatus === 'Out of Stock') || 
+((p.availableStock || p.stock || 0) === 0)
+).length
+}
+
 const getLowStockCount = useMemo(() => {
 return products.filter(p => getStockStatus(p) === 'low').length
 }, [products])
@@ -106,7 +119,9 @@ getTotalStock,
 getStockStatus,
 getLowStockCount,
 getOutOfStockCount,
-getTotalProductsCount
+getTotalProductsCount,
+getTotalSold,
+getStockOutCount
 }}
 >
 {children}

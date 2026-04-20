@@ -41,8 +41,40 @@ export const EnhancedOrderProvider = ({ children }) => {
     totalOrders: 0,
     totalRevenue: 0,
     paymentStatusBreakdown: {},
-    paymentMethodBreakdown: {}
+    paymentMethodBreakdown: {},
+    stockAnalytics: {
+      totalSold: 0,
+      stockOut: 0,
+      lowStock: 0,
+      inStock: 0
+    }
   })
+
+  // Fetch analytics data including stock analytics
+  const fetchAnalytics = async (silent = false) => {
+    try {
+      if (!silent) setLoading(true)
+      
+      const data = await adminApi.getAnalytics()
+      
+      if (data.success) {
+        setStats(prev => ({
+          ...prev,
+          stockAnalytics: data.data?.stock || {
+            totalSold: 0,
+            stockOut: 0,
+            lowStock: 0,
+            inStock: 0
+          }
+        }))
+        console.log('Analytics updated with stock data')
+      }
+    } catch (error) {
+      console.error('Analytics fetch error:', error.message)
+    } finally {
+      if (!silent) setLoading(false)
+    }
+  }
 
   // Fetch orders with enhanced payment details
   const fetchOrders = async (silent = false) => {
@@ -244,6 +276,7 @@ export const EnhancedOrderProvider = ({ children }) => {
     if (token && token !== 'undefined') {
       setInitialized(true)
       fetchOrders()
+      fetchAnalytics(true) // Fetch analytics silently
     }
   }, [])
 
@@ -286,6 +319,7 @@ export const EnhancedOrderProvider = ({ children }) => {
         filters,
         stats,
         fetchOrders,
+        fetchAnalytics,
         getOrderDetails,
         updateOrderStatus,
         markCODOrderAsPaid,

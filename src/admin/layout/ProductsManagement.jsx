@@ -25,7 +25,7 @@ import {
 } from '../utils/adminSafetyUtils'
 
 export default function ProductsManagement() {
-  const { products, loading, refreshProducts, getStockStatus, getTotalStock } = useAdminProduct()
+  const { products, loading, refreshProducts, getStockStatus, getTotalStock, getTotalSold, getStockOutCount } = useAdminProduct()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [sortBy, setSortBy] = useState('createdAt')
@@ -234,9 +234,23 @@ export default function ProductsManagement() {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Sold</p>
               <p className="text-2xl font-bold text-gray-900">
-                {safeProducts.reduce((total, product) => {
-                  return total + (product.sold || 0)
-                }, 0).toLocaleString()}
+                {getTotalSold().toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <div className="flex items-center">
+            <div className="p-3 bg-red-50 rounded-lg">
+              <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Stock Out Items</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {getStockOutCount().toLocaleString()}
               </p>
             </div>
           </div>
@@ -253,7 +267,8 @@ export default function ProductsManagement() {
               <p className="text-sm font-medium text-gray-600">Low Stock Items</p>
               <p className="text-2xl font-bold text-gray-900">
                 {safeProducts.filter(product => 
-                  (product.stockStatus === 'Out of Stock') || 
+                  (product.stockStatus !== 'Out of Stock') && 
+                  ((product.availableStock || product.stock || 0) > 0) && 
                   ((product.availableStock || product.stock || 0) <= 10)
                 ).length}
               </p>

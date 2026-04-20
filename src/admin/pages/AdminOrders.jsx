@@ -29,7 +29,7 @@ import {
 } from '../utils/adminSafetyUtils'
 
 const AdminOrders = () => {
-  const { orders, fetchOrders, getOrderDetails, updateOrderStatus, updateFilters, resetFilters, stats, loading, lastFetch, retryShiprocketOrder } = useEnhancedOrder()
+  const { orders, fetchOrders, fetchAnalytics, getOrderDetails, updateOrderStatus, updateFilters, resetFilters, stats, loading, lastFetch, retryShiprocketOrder } = useEnhancedOrder()
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [selectedOrderId, setSelectedOrderId] = useState(null)
   const [error, setError] = useState('')
@@ -104,7 +104,10 @@ const AdminOrders = () => {
           </p>
         </div>
         <button
-          onClick={fetchOrders}
+          onClick={() => {
+            fetchOrders()
+            fetchAnalytics(true)
+          }}
           disabled={loading}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -163,6 +166,41 @@ const AdminOrders = () => {
           icon={XCircleIcon}
           iconColor="text-red-600"
           iconBg="bg-red-50"
+        />
+      </div>
+
+      {/* Stock Analytics */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+        <StatCard
+          title="Total Sold"
+          value={stats.stockAnalytics?.totalSold || 0}
+          icon={ShoppingBagIcon}
+          iconColor="text-blue-600"
+          iconBg="bg-blue-50"
+        />
+
+        <StatCard
+          title="Stock Out"
+          value={stats.stockAnalytics?.stockOut || 0}
+          icon={XCircleIcon}
+          iconColor="text-red-600"
+          iconBg="bg-red-50"
+        />
+
+        <StatCard
+          title="Low Stock"
+          value={stats.stockAnalytics?.lowStock || 0}
+          icon={ClipboardDocumentListIcon}
+          iconColor="text-yellow-600"
+          iconBg="bg-yellow-50"
+        />
+
+        <StatCard
+          title="In Stock"
+          value={stats.stockAnalytics?.inStock || 0}
+          icon={CheckCircleIcon}
+          iconColor="text-green-600"
+          iconBg="bg-green-50"
         />
       </div>
 
