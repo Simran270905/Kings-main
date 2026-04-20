@@ -348,16 +348,16 @@ export default function Payment({ deliveryAddress: propDeliveryAddress, clearCar
         },
         body: JSON.stringify({
           code: couponCode.trim().toUpperCase(),
-          totalAmount: displayTotal
+          orderAmount: displayTotal
         })
       })
 
       const data = await response.json()
 
       if (response.ok && data.success) {
-        setAppliedCoupon(data.coupon)
+        setAppliedCoupon(data.data)
         setCouponError('')
-        toast.success(`Coupon applied: ${data.coupon.discountType === 'percentage' ? data.coupon.discountValue + '%' : 'Rs' + data.coupon.discountValue} off`)
+        toast.success(`Coupon applied: ${data.data.discountType === 'percentage' ? data.data.discountValue + '%' : 'Rs' + data.data.discountValue} off`)
       } else {
         setCouponError(data.message || 'Invalid coupon code')
         setAppliedCoupon(null)

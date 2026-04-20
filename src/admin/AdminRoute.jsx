@@ -1,7 +1,7 @@
 import React from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAdminAuth } from './context/AdminAuthContext'
-import AdminLayout from './layout/AdminLayout'
+import AdminOnlyLayout from './AdminOnlyLayout'
 
 export default function AdminRoute() {
   const { isAdmin, loading } = useAdminAuth()
@@ -22,8 +22,8 @@ export default function AdminRoute() {
   }
 
   return (
-    <AdminLayout>
+    <AdminOnlyLayout>
       <Outlet />
-    </AdminLayout>
+    </AdminOnlyLayout>
   )
 }

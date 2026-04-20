@@ -9,7 +9,8 @@ import {
   ArrowRightOnRectangleIcon,
   ChartPieIcon,
   DocumentTextIcon,
-  Cog6ToothIcon
+  Cog6ToothIcon,
+  PlusCircleIcon
 } from '@heroicons/react/24/outline'
 
 export default function AdminLayout() {
