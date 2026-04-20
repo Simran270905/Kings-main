@@ -109,15 +109,10 @@ return (
         success: {
           iconTheme: {
             primary: '#10b981',
+            secondary: 'white',
           },
-          success: {
-            iconTheme: {
-              primary: '#10b981',
-              secondary: 'white',
-            },
-          },
-        }}
-      />
+        },
+      }}/>
 
       {/* Customer Routes with Customer Context */}
       <CustomerOrderProvider>
