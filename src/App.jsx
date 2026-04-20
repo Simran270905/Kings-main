@@ -153,8 +153,42 @@ return (
                   <Route path="/test-animations" element={<TestAnimations />} />
 
                   {/* ================= ADMIN ROUTES ================= */}
-                  <Route path="/admin/login" element={<AdminLogin />} />
-                  <Route path="/admin/*" element={<AdminRoute />} />
+                  <Route path="/admin/login" element={
+                    <AdminAuthProvider>
+                      <AdminLogin />
+                    </AdminAuthProvider>
+                  } />
+                  <Route path="/admin" element={
+                    <AdminAuthProvider>
+                      <AdminProductProvider>
+                        <EnhancedOrderProvider>
+                          <OrderProvider>
+                            <AdminRoute />
+                          </OrderProvider>
+                        </EnhancedOrderProvider>
+                      </AdminProductProvider>
+                    </AdminAuthProvider>
+                  }>
+                    {/* Nested admin routes */}
+                    <Route index element={<DashboardWrapper />} />
+                    <Route path="products" element={<ProductsWrapper />} />
+                    <Route path="products/edit/:id" element={<ProductEditWrapper />} />
+                    <Route path="orders" element={<OrdersWrapper />} />
+                    <Route path="orders/confirmation/:id" element={<OrderConfirmationWrapper />} />
+                    <Route path="analytics" element={<AnalyticsWrapper />} />
+                    <Route path="reports" element={<ReportsWrapper />} />
+                    <Route path="upload" element={<UploadWrapper />} />
+                    <Route path="customers" element={<CustomersWrapper />} />
+                    <Route path="settings" element={<SettingsWrapper />} />
+                    <Route path="coupons" element={<CouponWrapper />} />
+                    <Route path="pages" element={<PagesWrapper />} />
+                    <Route path="pages/home" element={<HomeCMSWrapper />} />
+                    <Route path="pages/footer" element={<FooterCMSWrapper />} />
+                    <Route path="pages/our-story" element={<StoryCMSWrapper />} />
+                    <Route path="contact-messages" element={<ContactMessagesWrapper />} />
+                    <Route path="brands" element={<BrandsWrapper />} />
+                    <Route path="categories" element={<CategoriesWrapper />} />
+                  </Route>
 
                   {/* Fallback */}
                   <Route path="*" element={<CustomerLayout><HomePage /></CustomerLayout>} />
