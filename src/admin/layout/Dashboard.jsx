@@ -135,19 +135,19 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Welcome back! Here's what's happening with your store.</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Dashboard</h1>
+          <p className="text-gray-600 text-lg">Welcome back! Here's what's happening with your store.</p>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center">
           <button
             onClick={handleRefresh}
             disabled={loading}
-            className="px-4 py-2 bg-[#ae0b0b] text-white rounded-lg hover:bg-[#8f0a0a] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-6 py-3 bg-[#ae0b0b] text-white rounded-lg hover:bg-[#8f0a0a] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md transition-all duration-200"
           >
-            <ArrowTrendingUpIcon className="h-4 w-4" />
+            <ArrowTrendingUpIcon className="h-5 w-5" />
             {loading ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>
@@ -162,7 +162,7 @@ export default function Dashboard() {
         </div>
       ) : (
         <div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
             <AdminCard title="Total Revenue" value={formatCurrencyValue(dashboardData.totalRevenue)} icon={CurrencyDollarIcon} trend={null} color="text-green-600" />
             <AdminCard title="Total Orders" value={dashboardData.totalOrders} icon={ShoppingBagIcon} trend={null} color="text-blue-600" />
             <AdminCard title="Pending Orders" value={dashboardData.pendingOrders} icon={ShoppingBagIcon} trend={null} color="text-yellow-600" />
@@ -175,25 +175,25 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="col-span-1">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Analytics</h3>
-              <div className="bg-white rounded-lg shadow p-6 space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Total Revenue:</span>
-                  <span className="font-medium text-green-600">{formatCurrencyValue(dashboardData.totalRevenue)}</span>
+              <h3 className="text-xl font-bold text-gray-900 mb-6">Quick Analytics</h3>
+              <div className="bg-white rounded-xl shadow-lg p-6 space-y-4">
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                  <span className="text-gray-600 font-medium">Total Revenue:</span>
+                  <span className="font-bold text-green-600 text-lg">{formatCurrencyValue(dashboardData.totalRevenue)}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Average Order Value:</span>
-                  <span className="font-medium">{formatCurrencyValue(dashboardData.averageOrderValue)}</span>
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                  <span className="text-gray-600 font-medium">Average Order Value:</span>
+                  <span className="font-bold text-purple-600 text-lg">{formatCurrencyValue(dashboardData.averageOrderValue)}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Conversion Rate:</span>
-                  <span className="font-medium text-blue-600">
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                  <span className="text-gray-600 font-medium">Conversion Rate:</span>
+                  <span className="font-bold text-blue-600 text-lg">
                     {dashboardData.totalOrders > 0 ? ((dashboardData.deliveredOrders / dashboardData.totalOrders) * 100).toFixed(1) : 0}%
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Low Stock Alert:</span>
-                  <span className={`font-medium ${dashboardData.lowStock > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
+                  <span className="text-gray-600 font-medium">Low Stock Alert:</span>
+                  <span className={`font-bold text-lg ${dashboardData.lowStock > 0 ? 'text-red-600' : 'text-green-600'}`}>
                     {dashboardData.lowStock > 0 ? `${dashboardData.lowStock} items need restock` : 'All items in stock'}
                   </span>
                 </div>
@@ -201,26 +201,26 @@ export default function Dashboard() {
             </div>
 
             <div className="col-span-1">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Products</h3>
-              <div className="bg-white rounded-lg shadow overflow-hidden">
+              <h3 className="text-xl font-bold text-gray-900 mb-6">Recent Products</h3>
+              <div className="bg-white rounded-xl shadow-lg overflow-hidden">
                 {dashboardData.recentProducts?.length > 0 ? (
                   <div className="divide-y divide-gray-200">
                     {dashboardData.recentProducts.map((product, index) => (
-                      <div key={product._id} className="p-4 hover:bg-gray-50 transition-colors">
+                      <div key={product._id} className="p-4 hover:bg-gray-50 transition-colors duration-200">
                         <div className="flex items-center space-x-4">
                           <img 
                             src={product.image} 
                             alt={product.name}
-                            className="h-12 w-12 rounded-lg object-cover"
+                            className="h-16 w-16 rounded-xl object-cover shadow-sm"
                             onError={(e) => {
                               e.target.src = '/placeholder-product.jpg'
                             }}
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
-                            <div className="flex items-center justify-between mt-1">
-                              <span className="text-sm text-gray-500">{formatCurrencyValue(product.price)}</span>
-                              <span className={`text-xs px-2 py-1 rounded-full ${
+                            <p className="text-base font-semibold text-gray-900 truncate mb-2">{product.name}</p>
+                            <div className="flex items-center justify-between">
+                              <span className="text-lg font-bold text-gray-700">{formatCurrencyValue(product.price)}</span>
+                              <span className={`text-sm px-3 py-2 rounded-full font-semibold ${
                                 product.stock <= 5 
                                   ? 'bg-red-100 text-red-800' 
                                   : product.stock <= 10 
@@ -236,17 +236,17 @@ export default function Dashboard() {
                     ))}
                   </div>
                 ) : (
-                  <div className="p-6 text-center text-gray-500">
-                    No recent products found
+                  <div className="p-8 text-center text-gray-500">
+                    <div className="text-gray-400 mb-2">No recent products found</div>
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <AdminButton variant="primary" icon={PlusCircleIcon} className="justify-start text-left h-14">Add New Product</AdminButton>
-              <AdminButton href="/admin/products" variant="secondary" icon={ShoppingBagIcon} className="justify-start text-left h-14">Manage Products</AdminButton>
-              <AdminButton href="/admin/orders" variant="secondary" icon={ShoppingBagIcon} className="justify-start text-left h-14">View Orders</AdminButton>
+            <div className="flex flex-col sm:flex-row gap-4 mt-8">
+              <AdminButton variant="primary" icon={PlusCircleIcon} className="flex-1 h-14 justify-center shadow-md hover:shadow-lg transition-all duration-200">Add New Product</AdminButton>
+              <AdminButton href="/admin/products" variant="secondary" icon={ShoppingBagIcon} className="flex-1 h-14 justify-center border-2 border-gray-300 hover:border-gray-400 transition-all duration-200">Manage Products</AdminButton>
+              <AdminButton href="/admin/orders" variant="secondary" icon={ShoppingBagIcon} className="flex-1 h-14 justify-center border-2 border-gray-300 hover:border-gray-400 transition-all duration-200">View Orders</AdminButton>
             </div>
           </div>
         </div>
