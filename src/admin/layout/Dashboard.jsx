@@ -162,49 +162,100 @@ export default function Dashboard() {
         </div>
       ) : (
         <div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-            <AdminCard title="Total Revenue" value={formatCurrencyValue(dashboardData.totalRevenue)} icon={CurrencyDollarIcon} trend={null} color="text-green-600" />
-            <AdminCard title="Total Orders" value={dashboardData.totalOrders} icon={ShoppingBagIcon} trend={null} color="text-blue-600" />
-            <AdminCard title="Pending Orders" value={dashboardData.pendingOrders} icon={ShoppingBagIcon} trend={null} color="text-yellow-600" />
-            <AdminCard title="Total Products" value={dashboardData.totalProducts} icon={ShoppingBagIcon} trend={null} color="text-indigo-600" />
-            <AdminCard title="Low Stock Items" value={dashboardData.lowStock} icon={ShoppingBagIcon} trend={null} color="text-red-600" />
-            <AdminCard title="Processing Orders" value={dashboardData.processingOrders} icon={ShoppingBagIcon} trend={null} color="text-blue-600" />
-            <AdminCard title="Delivered Orders" value={dashboardData.deliveredOrders} icon={ShoppingBagIcon} trend={null} color="text-green-600" />
-            <AdminCard title="Avg Order Value" value={formatCurrencyValue(dashboardData.averageOrderValue)} icon={CurrencyDollarIcon} trend={null} color="text-purple-600" />
+          {/* Stats Cards - Modern SaaS Style */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white rounded-xl shadow-sm p-5 flex flex-col justify-between">
+              <div>
+                <p className="text-sm text-gray-500 mb-2">Total Revenue</p>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrencyValue(dashboardData.totalRevenue)}</p>
+              </div>
+              <CurrencyDollarIcon className="h-6 w-6 text-green-500 opacity-50" />
+            </div>
+            <div className="bg-white rounded-xl shadow-sm p-5 flex flex-col justify-between">
+              <div>
+                <p className="text-sm text-gray-500 mb-2">Total Orders</p>
+                <p className="text-2xl font-bold text-gray-900">{dashboardData.totalOrders}</p>
+              </div>
+              <ShoppingBagIcon className="h-6 w-6 text-blue-500 opacity-50" />
+            </div>
+            <div className="bg-white rounded-xl shadow-sm p-5 flex flex-col justify-between">
+              <div>
+                <p className="text-sm text-gray-500 mb-2">Pending Orders</p>
+                <p className="text-2xl font-bold text-gray-900">{dashboardData.pendingOrders}</p>
+              </div>
+              <ShoppingBagIcon className="h-6 w-6 text-yellow-500 opacity-50" />
+            </div>
+            <div className="bg-white rounded-xl shadow-sm p-5 flex flex-col justify-between">
+              <div>
+                <p className="text-sm text-gray-500 mb-2">Total Products</p>
+                <p className="text-2xl font-bold text-gray-900">{dashboardData.totalProducts}</p>
+              </div>
+              <ShoppingBagIcon className="h-6 w-6 text-indigo-500 opacity-50" />
+            </div>
+            <div className="bg-white rounded-xl shadow-sm p-5 flex flex-col justify-between">
+              <div>
+                <p className="text-sm text-gray-500 mb-2">Low Stock Items</p>
+                <p className="text-2xl font-bold text-gray-900">{dashboardData.lowStock}</p>
+              </div>
+              <ShoppingBagIcon className="h-6 w-6 text-red-500 opacity-50" />
+            </div>
+            <div className="bg-white rounded-xl shadow-sm p-5 flex flex-col justify-between">
+              <div>
+                <p className="text-sm text-gray-500 mb-2">Processing Orders</p>
+                <p className="text-2xl font-bold text-gray-900">{dashboardData.processingOrders}</p>
+              </div>
+              <ShoppingBagIcon className="h-6 w-6 text-blue-500 opacity-50" />
+            </div>
+            <div className="bg-white rounded-xl shadow-sm p-5 flex flex-col justify-between">
+              <div>
+                <p className="text-sm text-gray-500 mb-2">Delivered Orders</p>
+                <p className="text-2xl font-bold text-gray-900">{dashboardData.deliveredOrders}</p>
+              </div>
+              <ShoppingBagIcon className="h-6 w-6 text-green-500 opacity-50" />
+            </div>
+            <div className="bg-white rounded-xl shadow-sm p-5 flex flex-col justify-between">
+              <div>
+                <p className="text-sm text-gray-500 mb-2">Avg Order Value</p>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrencyValue(dashboardData.averageOrderValue)}</p>
+              </div>
+              <CurrencyDollarIcon className="h-6 w-6 text-purple-500 opacity-50" />
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Quick Analytics */}
             <div className="col-span-1">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">Quick Analytics</h3>
-              <div className="bg-white rounded-xl shadow-lg p-6 space-y-4">
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-gray-600 font-medium">Total Revenue:</span>
-                  <span className="font-bold text-green-600 text-lg">{formatCurrencyValue(dashboardData.totalRevenue)}</span>
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Quick Analytics</h3>
+              <div className="space-y-4">
+                <div className="bg-white rounded-xl shadow-sm p-4 flex justify-between items-center">
+                  <span className="text-sm text-gray-500">Total Revenue</span>
+                  <span className="text-xl font-bold text-green-600">{formatCurrencyValue(dashboardData.totalRevenue)}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-gray-600 font-medium">Average Order Value:</span>
-                  <span className="font-bold text-purple-600 text-lg">{formatCurrencyValue(dashboardData.averageOrderValue)}</span>
+                <div className="bg-white rounded-xl shadow-sm p-4 flex justify-between items-center">
+                  <span className="text-sm text-gray-500">Average Order Value</span>
+                  <span className="text-xl font-bold text-purple-600">{formatCurrencyValue(dashboardData.averageOrderValue)}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-gray-600 font-medium">Conversion Rate:</span>
-                  <span className="font-bold text-blue-600 text-lg">
+                <div className="bg-white rounded-xl shadow-sm p-4 flex justify-between items-center">
+                  <span className="text-sm text-gray-500">Conversion Rate</span>
+                  <span className="text-xl font-bold text-blue-600">
                     {dashboardData.totalOrders > 0 ? ((dashboardData.deliveredOrders / dashboardData.totalOrders) * 100).toFixed(1) : 0}%
                   </span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
-                  <span className="text-gray-600 font-medium">Low Stock Alert:</span>
-                  <span className={`font-bold text-lg ${dashboardData.lowStock > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                <div className="bg-red-50 rounded-xl shadow-sm p-4 flex justify-between items-center">
+                  <span className="text-sm text-red-500 font-medium">Low Stock Alert</span>
+                  <span className={`text-xl font-bold ${dashboardData.lowStock > 0 ? 'text-red-600' : 'text-green-600'}`}>
                     {dashboardData.lowStock > 0 ? `${dashboardData.lowStock} items need restock` : 'All items in stock'}
                   </span>
                 </div>
               </div>
             </div>
 
+            {/* Recent Products */}
             <div className="col-span-1">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">Recent Products</h3>
-              <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Recent Products</h3>
+              <div className="bg-white rounded-xl shadow-sm overflow-hidden">
                 {dashboardData.recentProducts?.length > 0 ? (
-                  <div className="divide-y divide-gray-200">
+                  <div className="divide-y divide-gray-100">
                     {dashboardData.recentProducts.map((product, index) => (
                       <div key={product._id} className="p-4 hover:bg-gray-50 transition-colors duration-200">
                         <div className="flex items-center space-x-4">
@@ -243,10 +294,11 @@ export default function Dashboard() {
               </div>
             </div>
 
+            {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
-              <AdminButton variant="primary" icon={PlusCircleIcon} className="flex-1 h-14 justify-center shadow-md hover:shadow-lg transition-all duration-200">Add New Product</AdminButton>
-              <AdminButton href="/admin/products" variant="secondary" icon={ShoppingBagIcon} className="flex-1 h-14 justify-center border-2 border-gray-300 hover:border-gray-400 transition-all duration-200">Manage Products</AdminButton>
-              <AdminButton href="/admin/orders" variant="secondary" icon={ShoppingBagIcon} className="flex-1 h-14 justify-center border-2 border-gray-300 hover:border-gray-400 transition-all duration-200">View Orders</AdminButton>
+              <AdminButton variant="primary" icon={PlusCircleIcon} className="flex-1 h-12 justify-center shadow-md hover:shadow-lg transition-all duration-200">Add New Product</AdminButton>
+              <AdminButton href="/admin/products" variant="secondary" icon={ShoppingBagIcon} className="flex-1 h-12 justify-center border border-gray-200 hover:border-gray-300 transition-all duration-200">Manage Products</AdminButton>
+              <AdminButton href="/admin/orders" variant="secondary" icon={ShoppingBagIcon} className="flex-1 h-12 justify-center border border-gray-200 hover:border-gray-300 transition-all duration-200">View Orders</AdminButton>
             </div>
           </div>
         </div>
