@@ -254,6 +254,14 @@ export default function AdminReports() {
     ]
   }, [summary.stats])
 
+  // Pie chart data for categories
+  const categoryData = useMemo(() => {
+    return categoryStats.map(cat => ({
+      name: cat._id || 'Unknown',
+      value: cat.totalRevenue || cat.count || 0
+    }))
+  }, [categoryStats])
+
   return (
     <div className="space-y-6">
 
