@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+
+// Force new build for Vercel deployment
 import { useAdminProduct } from '../context/AdminProductContext'
 import { useCart } from '../../context/useCart'
 import { useEnhancedOrder } from '../context/EnhancedOrderContext'
