@@ -62,7 +62,8 @@ export default function AdminLayout() {
             <h1 className="text-white text-xl font-bold">KK Admin</h1>
           </div>
 
-          {/* Navigation */}
+          
+          {/* Admin Panel */}
           <nav className="flex-1 px-4 py-6 space-y-2">
             <Link
               to="/admin"
@@ -101,15 +102,63 @@ export default function AdminLayout() {
             </Link>
 
             <Link
-              to="/admin/pages"
+              to="/admin/add-product"
               className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                isActive('/admin/pages') 
+                isActive('/admin/add-product') 
+                  ? 'bg-[#ae0b0b] text-white' 
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              <PlusCircleIcon className="mr-3 h-5 w-5" />
+              Add Product
+            </Link>
+
+            <Link
+              to="/admin/categories"
+              className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                isActive('/admin/categories') 
                   ? 'bg-[#ae0b0b] text-white' 
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`}
             >
               <DocumentTextIcon className="mr-3 h-5 w-5" />
-              Pages
+              Categories
+            </Link>
+
+            <Link
+              to="/admin/brands"
+              className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                isActive('/admin/brands') 
+                  ? 'bg-[#ae0b0b] text-white' 
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              <DocumentTextIcon className="mr-3 h-5 w-5" />
+              Brands
+            </Link>
+
+            <Link
+              to="/admin/coupons"
+              className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                isActive('/admin/coupons') 
+                  ? 'bg-[#ae0b0b] text-white' 
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              <DocumentTextIcon className="mr-3 h-5 w-5" />
+              Coupons
+            </Link>
+
+            <Link
+              to="/admin/contact-messages"
+              className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                isActive('/admin/contact-messages') 
+                  ? 'bg-[#ae0b0b] text-white' 
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              <DocumentTextIcon className="mr-3 h-5 w-5" />
+              Contact Messages
             </Link>
 
             <Link
@@ -122,6 +171,18 @@ export default function AdminLayout() {
             >
               <ChartBarIcon className="mr-3 h-5 w-5" />
               Analytics
+            </Link>
+
+            <Link
+              to="/admin/reports"
+              className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                isActive('/admin/reports') 
+                  ? 'bg-[#ae0b0b] text-white' 
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              <DocumentTextIcon className="mr-3 h-5 w-5" />
+              Reports
             </Link>
 
             <Link
@@ -146,6 +207,42 @@ export default function AdminLayout() {
             >
               <Cog6ToothIcon className="mr-3 h-5 w-5" />
               Settings
+            </Link>
+
+            <Link
+              to="/admin/cms-home"
+              className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                isActive('/admin/cms-home') 
+                  ? 'bg-[#ae0b0b] text-white' 
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              <DocumentTextIcon className="mr-3 h-5 w-5" />
+              CMS: Home
+            </Link>
+
+            <Link
+              to="/admin/cms-footer"
+              className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                isActive('/admin/cms-footer') 
+                  ? 'bg-[#ae0b0b] text-white' 
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              <DocumentTextIcon className="mr-3 h-5 w-5" />
+              CMS: Footer
+            </Link>
+
+            <Link
+              to="/admin/cms-our-story"
+              className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                isActive('/admin/cms-our-story') 
+                  ? 'bg-[#ae0b0b] text-white' 
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              <DocumentTextIcon className="mr-3 h-5 w-5" />
+              CMS: Our Story
             </Link>
           </nav>
 
