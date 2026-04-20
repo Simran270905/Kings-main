@@ -1,6 +1,6 @@
 import React from 'react'
 import { Navigate } from 'react-router-dom'
-import { useAdminAuth } from '../hooks/useAdminAuth'
+import { useAdminAuth } from '../context/useAdminAuth'
 import AdminLayout from './layout/AdminLayout'
 
 export default function AdminRoute() {
