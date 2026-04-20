@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { api } from '../../config/api.js'
+import { API_BASE_URL } from '../../config/api.js'
 import {
   BarChart,
   Bar,
@@ -27,6 +27,25 @@ import {
 } from '@heroicons/react/24/outline'
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#6B7280']
+
+// Helper function for API calls
+const fetchAnalytics = async (endpoint, options = {}) => {
+  const token = localStorage.getItem('kk_admin_token')
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...options.headers
+    },
+    ...options
+  })
+  
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+  }
+  
+  return response.json()
+}
 
 const Analytics = () => {
   const [loading, setLoading] = useState(true)
@@ -87,7 +106,7 @@ const Analytics = () => {
       if (from) params.append('from', from.toISOString())
       if (to) params.append('to', to.toISOString())
 
-      const response = await api.get(`/admin/analytics/summary?${params}`)
+      const response = await fetchAnalytics(`/admin/analytics/summary?${params}`)
       setSummary(response.data.summary)
     } catch (err) {
       console.error('Error fetching summary:', err)
@@ -103,7 +122,7 @@ const Analytics = () => {
       if (from) params.append('from', from.toISOString())
       if (to) params.append('to', to.toISOString())
 
-      const response = await api.get(`/admin/analytics/revenue-chart?${params}`)
+      const response = await fetchAnalytics(`/admin/analytics/revenue-chart?${params}`)
       setRevenueChart(response.data.chartData)
     } catch (err) {
       console.error('Error fetching revenue chart:', err)
@@ -119,7 +138,7 @@ const Analytics = () => {
       if (from) params.append('from', from.toISOString())
       if (to) params.append('to', to.toISOString())
 
-      const response = await api.get(`/admin/analytics/top-products?${params}`)
+      const response = await fetchAnalytics(`/admin/analytics/top-products?${params}`)
       setTopProducts(response.data.topProducts)
     } catch (err) {
       console.error('Error fetching top products:', err)
@@ -134,7 +153,7 @@ const Analytics = () => {
       if (from) params.append('from', from.toISOString())
       if (to) params.append('to', to.toISOString())
 
-      const response = await api.get(`/admin/analytics/order-status-breakdown?${params}`)
+      const response = await fetchAnalytics(`/admin/analytics/order-status-breakdown?${params}`)
       setOrderStatusBreakdown(response.data.breakdown)
     } catch (err) {
       console.error('Error fetching order status breakdown:', err)
@@ -149,7 +168,7 @@ const Analytics = () => {
       if (from) params.append('from', from.toISOString())
       if (to) params.append('to', to.toISOString())
 
-      const response = await api.get(`/admin/analytics/shipping-performance?${params}`)
+      const response = await fetchAnalytics(`/admin/analytics/shipping-performance?${params}`)
       setShippingPerformance(response.data.shippingPerformance)
     } catch (err) {
       console.error('Error fetching shipping performance:', err)
@@ -164,7 +183,7 @@ const Analytics = () => {
       if (from) params.append('from', from.toISOString())
       if (to) params.append('to', to.toISOString())
 
-      const response = await api.get(`/admin/analytics/export?${params}`, {
+      const response = await fetchAnalytics(`/admin/analytics/export?${params}`, {
         responseType: 'blob'
       })
 

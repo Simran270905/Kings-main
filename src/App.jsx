@@ -109,93 +109,95 @@ return (
         success: {
           iconTheme: {
             primary: '#10b981',
-            secondary: 'white',
           },
-        },
-      }}
-    />
+          success: {
+            iconTheme: {
+              primary: '#10b981',
+              secondary: 'white',
+            },
+          },
+        }}
+      />
 
-    <AdminAuthProvider>
-      <OrderProvider>
-        <EnhancedOrderProvider>
-          <AdminProductProvider>
-            <CustomerOrderProvider>
-              <ProductProvider>
-                <CartProvider>
+      {/* Customer Routes with Customer Context */}
+      <CustomerOrderProvider>
+        <ProductProvider>
+          <CartProvider>
+            <Suspense fallback={<LoadingFallback />}>
 
-                <Suspense fallback={<LoadingFallback />}>
+              <Routes>
 
-                  <Routes>
+                {/* ================= CUSTOMER ROUTES ================= */}
+                <Route path="/" element={<CustomerLayout><HomePage /></CustomerLayout>} />
 
-                    {/* ================= CUSTOMER ROUTES ================= */}
-                    <Route path="/" element={<CustomerLayout><HomePage /></CustomerLayout>} />
+                  <Route path="/product/:id" element={<CustomerLayout><ProductDetails /></CustomerLayout>} />
+                  <Route path="/shop" element={<CustomerLayout><ShopPage /></CustomerLayout>} />
+                  <Route path="/shop/:category" element={<CustomerLayout><ShopPage /></CustomerLayout>} />
+                  <Route path="/our-story" element={<CustomerLayout><OurStory /></CustomerLayout>} />
+                  <Route path="/cart" element={<CustomerLayout><Cart /></CustomerLayout>} />
+                  <Route path="/checkout" element={<CustomerLayout><Checkout /></CustomerLayout>} />
+                  <Route path="/payment" element={<CustomerLayout><Payment /></CustomerLayout>} />
+                  <Route path="/payment-confirmation" element={<CustomerLayout><PaymentConfirmation /></CustomerLayout>} />
+                  <Route path="/orders" element={<CustomerLayout><Orders /></CustomerLayout>} />
+                  <Route path="/order-success" element={<CustomerLayout><OrderSuccess /></CustomerLayout>} />
+                  <Route path="/track-order" element={<CustomerLayout><TrackOrderPage /></CustomerLayout>} />
+                  <Route path="/orders/track" element={<CustomerLayout><TrackOrderPage /></CustomerLayout>} />
+                  <Route path="/orders/track/:orderId" element={<CustomerLayout><OrderTrack /></CustomerLayout>} />
 
-                      <Route path="/product/:id" element={<CustomerLayout><ProductDetails /></CustomerLayout>} />
-                      <Route path="/shop" element={<CustomerLayout><ShopPage /></CustomerLayout>} />
-                      <Route path="/shop/:category" element={<CustomerLayout><ShopPage /></CustomerLayout>} />
-                      <Route path="/our-story" element={<CustomerLayout><OurStory /></CustomerLayout>} />
-                      <Route path="/cart" element={<CustomerLayout><Cart /></CustomerLayout>} />
-                      <Route path="/checkout" element={<CustomerLayout><Checkout /></CustomerLayout>} />
-                      <Route path="/payment" element={<CustomerLayout><Payment /></CustomerLayout>} />
-                      <Route path="/payment-confirmation" element={<CustomerLayout><PaymentConfirmation /></CustomerLayout>} />
-                      <Route path="/orders" element={<CustomerLayout><Orders /></CustomerLayout>} />
-                      <Route path="/order-success" element={<CustomerLayout><OrderSuccess /></CustomerLayout>} />
-                      <Route path="/track-order" element={<CustomerLayout><TrackOrderPage /></CustomerLayout>} />
-                      <Route path="/orders/track" element={<CustomerLayout><TrackOrderPage /></CustomerLayout>} />
-                      <Route path="/orders/track/:orderId" element={<CustomerLayout><OrderTrack /></CustomerLayout>} />
+                  {/* Legal Pages */}
+                  <Route path="/privacy-policy" element={<CustomerLayout><PrivacyPolicy /></CustomerLayout>} />
+                  <Route path="/terms-and-conditions" element={<CustomerLayout><TermsAndConditions /></CustomerLayout>} />
+                  <Route path="/refund-policy" element={<CustomerLayout><RefundPolicy /></CustomerLayout>} />
+                  <Route path="/shipping-policy" element={<CustomerLayout><ShippingPolicy /></CustomerLayout>} />
 
-                      {/* Legal Pages */}
-                      <Route path="/privacy-policy" element={<CustomerLayout><PrivacyPolicy /></CustomerLayout>} />
-                      <Route path="/terms-and-conditions" element={<CustomerLayout><TermsAndConditions /></CustomerLayout>} />
-                      <Route path="/refund-policy" element={<CustomerLayout><RefundPolicy /></CustomerLayout>} />
-                      <Route path="/shipping-policy" element={<CustomerLayout><ShippingPolicy /></CustomerLayout>} />
+                  {/* Contact Page */}
+                  <Route path="/contact" element={<CustomerLayout><Contact /></CustomerLayout>} />
 
-                      {/* Contact Page */}
-                      <Route path="/contact" element={<CustomerLayout><Contact /></CustomerLayout>} />
+                  {/* ================= DEBUG ROUTES ================= */}
+                  <Route path="/debug/razorpay" element={<RazorpayTest />} />
+                  <Route path="/test-animations" element={<TestAnimations />} />
 
-                      {/* ================= DEBUG ROUTES ================= */}
-                      <Route path="/debug/razorpay" element={<RazorpayTest />} />
-                      <Route path="/test-animations" element={<TestAnimations />} />
+                  {/* ================= ADMIN ROUTES ================= */}
+                  <Route path="/admin/login" element={<AdminLogin />} />
+                  <Route path="/admin/*" element={
+                    <AdminRoute>
+                      <AdminAuthProvider>
+                        <OrderProvider>
+                          <EnhancedOrderProvider>
+                            <AdminProductProvider>
+                              <Routes>
+                                <Route path="/admin" element={<DashboardWrapper />} />
+                                <Route path="/admin/dashboard" element={<DashboardWrapper />} />
+                                <Route path="/admin/products" element={<ProductsWrapper />} />
+                                <Route path="/admin/products/new" element={<UploadWrapper />} />
+                                <Route path="/admin/products/edit/:id" element={<ProductEditWrapper />} />
+                                <Route path="/admin/orders" element={<OrdersWrapper />} />
+                                <Route path="/admin/orders/:id" element={<OrderConfirmationWrapper />} />
+                                <Route path="/admin/analytics" element={<AnalyticsWrapper />} />
+                                <Route path="/admin/reports" element={<ReportsWrapper />} />
+                                <Route path="/admin/contact-messages" element={<ContactMessagesWrapper />} />
+                                <Route path="/admin/customers" element={<CustomersWrapper />} />
+                                <Route path="/admin/settings" element={<SettingsWrapper />} />
+                                <Route path="/admin/coupons" element={<CouponWrapper />} />
+                                <Route path="/admin/brands" element={<BrandsWrapper />} />
+                                <Route path="/admin/categories" element={<CategoriesWrapper />} />
+                              </Routes>
+                            </AdminProductProvider>
+                          </EnhancedOrderProvider>
+                        </OrderProvider>
+                      </AdminAuthProvider>
+                    </AdminRoute>
+                  } />
 
-                      {/* ================= ADMIN LOGIN ================= */}
-                      <Route path="/admin-login" element={<AdminLogin />} />
+                  {/* Fallback */}
+                  <Route path="*" element={<CustomerLayout><HomePage /></CustomerLayout>} />
+                </Routes>
+              </Suspense>
 
-                      {/* ================= ADMIN ROUTES ================= */}
-                      <Route element={<AdminRoute />}>
-                        <Route path="/admin" element={<DashboardWrapper />} />
-                        <Route path="/admin/products" element={<ProductsWrapper />} />
-                        <Route path="/admin/products/edit/:id" element={<ProductEditWrapper />} />
-                        <Route path="/admin/orders" element={<OrdersWrapper />} />
-                        <Route path="/admin/orders/confirm/:orderId" element={<OrderConfirmationWrapper />} />
-                                                <Route path="/admin/analytics" element={<AnalyticsWrapper />} />
-                        <Route path="/admin/reports" element={<ReportsWrapper />} />
-                        <Route path="/admin/upload" element={<UploadWrapper />} />
-                        <Route path="/admin/cms/home" element={<HomeCMSWrapper />} />
-                        <Route path="/admin/cms/footer" element={<FooterCMSWrapper />} />
-                        <Route path="/admin/cms/our-story" element={<StoryCMSWrapper />} />
-                        <Route path="/admin/pages" element={<PagesWrapper />} />
-                        <Route path="/admin/contact-messages" element={<ContactMessagesWrapper />} />
-                        <Route path="/admin/customers" element={<CustomersWrapper />} />
-                        <Route path="/admin/settings" element={<SettingsWrapper />} />
-                        <Route path="/admin/brands" element={<BrandsWrapper />} />
-                        <Route path="/admin/categories" element={<CategoriesWrapper />} />
-                        <Route path="/admin/coupons" element={<CouponWrapper />} />
-                      </Route>
-
-                      {/* Fallback */}
-                      <Route path="*" element={<CustomerLayout><HomePage /></CustomerLayout>} />
-                    </Routes>
-                  </Suspense>
-
-                </CartProvider>
-              </ProductProvider>
-            </CustomerOrderProvider>
-          </AdminProductProvider>
-        </EnhancedOrderProvider>
-      </OrderProvider>
-      </AdminAuthProvider>
-
-    </Router>
+            </CartProvider>
+          </ProductProvider>
+        </CustomerOrderProvider>
+      </Router>
   )
 }
 
