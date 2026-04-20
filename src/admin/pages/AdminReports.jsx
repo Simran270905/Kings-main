@@ -30,7 +30,7 @@ import {
 const COLORS = ['#ae0b0b', '#b91c1c', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6']
 
 // Helper function for API calls - Same as Analytics
-const fetchReportsData = async (endpoint, options = {}) => {
+const apiCall = async (endpoint, options = {}) => {
   const token = localStorage.getItem('kk_admin_token')
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     headers: {
@@ -75,27 +75,35 @@ export default function AdminReports() {
   // Format currency
   const formatCurrency = (amount) => `Rs.${(amount || 0).toLocaleString('en-IN')}`
 
-  // Fetch comprehensive reports data using Shared Service
-  const fetchReportsData = async () => {
+  // Fetch comprehensive reports data using Analytics Service
+  const fetchReportsSummary = async () => {
     try {
       const params = new URLSearchParams()
       params.append('range', timeRange)
 
-      console.log(' Fetching reports via SHARED SERVICE...')
-      const response = await fetchReportsData(`/admin/reports/summary?${params}`)
+      console.log(' Fetching reports via ANALYTICS SERVICE...')
+      const response = await apiCall(`/admin/analytics?${params}`)
       
       if (response.success) {
         const data = response.data
-        console.log(' Reports data received from shared service:', data)
+        console.log(' Reports data received from analytics service:', data)
         
         // Update all reports data
-        setSummary(data)
+        setSummary(data.summary || {
+          stats: {
+            revenue: data.summary?.totalRevenue || 0,
+            orders: data.summary?.totalOrders || 0,
+            avgOrder: data.summary?.avgOrderValue || 0,
+            totalSold: data.summary?.totalItemsSold || 0
+          },
+          users: data.summary?.totalCustomers || 0
+        })
         setSalesTrend(data.salesTrend || [])
         setOrdersChart(data.ordersChart || [])
         setCategoryStats(data.categoryStats || [])
         setLastUpdated(data.lastUpdated)
         
-        console.log(' Reports updated successfully via shared service')
+        console.log(' Reports updated successfully via analytics service')
       } else {
         throw new Error(response.message || 'Failed to fetch reports')
       }
@@ -112,10 +120,10 @@ export default function AdminReports() {
       params.append('range', timeRange)
       params.append('metric', metric)
 
-      const response = await fetchReportsData(`/admin/reports/sales-trend?${params}`)
+      const response = await apiCall(`/admin/analytics/revenue-chart?${params}`)
       
       if (response.success) {
-        setSalesTrend(response.data.salesTrend || [])
+        setSalesTrend(response.data || [])
       }
     } catch (err) {
       console.error('Error fetching sales trend:', err)
@@ -128,10 +136,10 @@ export default function AdminReports() {
       const params = new URLSearchParams()
       params.append('range', timeRange)
 
-      const response = await fetchReportsData(`/admin/reports/categories?${params}`)
+      const response = await apiCall(`/admin/analytics/top-products?${params}`)
       
       if (response.success) {
-        setCategoryStats(response.data.categoryStats || [])
+        setCategoryStats(response.data || [])
       }
     } catch (err) {
       console.error('Error fetching category distribution:', err)
@@ -144,10 +152,10 @@ export default function AdminReports() {
       const params = new URLSearchParams()
       params.append('range', timeRange)
 
-      const response = await fetchReportsData(`/admin/reports/orders-chart?${params}`)
+      const response = await apiCall(`/admin/analytics/order-status-breakdown?${params}`)
       
       if (response.success) {
-        setOrdersChart(response.data.ordersChart || [])
+        setOrdersChart(response.data || [])
       }
     } catch (err) {
       console.error('Error fetching orders chart:', err)
@@ -161,7 +169,7 @@ export default function AdminReports() {
       params.append('range', timeRange)
       params.append('format', 'csv')
 
-      const response = await fetch(`/api/admin/reports/export?${params}`, {
+      const response = await fetch(`${API_BASE_URL}/admin/analytics/export?${params}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('kk_admin_token')}`,
           'Content-Type': 'application/json'
@@ -196,7 +204,7 @@ export default function AdminReports() {
     setError(null)
     try {
       await Promise.all([
-        fetchReportsData(),
+        fetchReportsSummary(),
         fetchSalesTrend(selectedPeriod),
         fetchCategoryDistribution(),
         fetchOrdersChart()
