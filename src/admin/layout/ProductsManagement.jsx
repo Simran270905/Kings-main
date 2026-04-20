@@ -217,8 +217,25 @@ export default function ProductsManagement() {
               <p className="text-sm font-medium text-gray-600">Total Stock</p>
               <p className="text-2xl font-bold text-gray-900">
                 {safeProducts.reduce((total, product) => {
-                  const stock = getTotalStock(product)
-                  return total + (typeof stock === 'number' ? stock : 0)
+                  return total + (product.availableStock || product.stock || 0)
+                }, 0).toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <div className="flex items-center">
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Total Sold</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {safeProducts.reduce((total, product) => {
+                  return total + (product.sold || 0)
                 }, 0).toLocaleString()}
               </p>
             </div>
@@ -235,7 +252,10 @@ export default function ProductsManagement() {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Low Stock Items</p>
               <p className="text-2xl font-bold text-gray-900">
-                {safeProducts.filter(product => getStockStatus(product) === 'low').length}
+                {safeProducts.filter(product => 
+                  (product.stockStatus === 'Out of Stock') || 
+                  ((product.availableStock || product.stock || 0) <= 10)
+                ).length}
               </p>
             </div>
           </div>
@@ -365,17 +385,22 @@ export default function ProductsManagement() {
                     <td className="px-6 py-4 text-center">
                       <div>
                         <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                          stockStatus === 'out'
+                          product.stockStatus === 'Out of Stock'
                             ? 'bg-red-50 text-red-700 border border-red-200'
-                            : stockStatus === 'low'
+                            : product.stock <= 10
                             ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
                             : 'bg-green-50 text-green-700 border border-green-200'
                         }`}>
-                          {totalStock}
+                          {product.availableStock || product.stock || 0}
                         </span>
                         <p className="text-xs text-gray-500 mt-1">
-                          {stockStatus === 'out' ? '(Out of Stock)' : stockStatus === 'low' ? '(Low Stock)' : 'In Stock'}
+                          {product.stockStatus || (stockStatus === 'out' ? 'Out of Stock' : stockStatus === 'low' ? 'Low Stock' : 'In Stock')}
                         </p>
+                        {product.sold > 0 && (
+                          <p className="text-xs text-blue-600 mt-1">
+                            Sold: {product.sold}
+                          </p>
+                        )}
                       </div>
                     </td>
 

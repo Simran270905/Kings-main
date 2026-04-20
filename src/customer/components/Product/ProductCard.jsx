@@ -66,15 +66,29 @@ const ProductCard = ({ product, onAddToCart }) => {
     console.log('Add to Cart clicked!', product);
     
     // Check if product is in stock before adding to cart
-    if (!isProductInStock(product)) {
+    const availableStock = product.availableStock || product.stock || 0;
+    if (availableStock <= 0) {
       alert('This product is out of stock and cannot be added to cart.');
       return;
     }
     
+    // Additional validation for low stock
+    if (availableStock <= 5) {
+      if (!confirm(`Only ${availableStock} units left in stock. Continue adding to cart?`)) {
+        return;
+      }
+    }
+    
     console.log('Adding to cart...');
-    // Add to cart
-    addToCart(product);
-    console.log('Product added to cart successfully');
+    // Add to cart with error handling
+    try {
+      addToCart(product);
+      console.log('Product added to cart successfully');
+    } catch (error) {
+      console.error('Failed to add to cart:', error.message);
+      alert(error.message || 'Failed to add product to cart');
+      return;
+    }
     
     console.log('Showing toast...');
     // Show toast notification
@@ -213,23 +227,36 @@ const ProductCard = ({ product, onAddToCart }) => {
         )}
 
         <p className={`text-sm font-semibold mt-2 ${isProductInStock(product) ? 'text-emerald-700' : 'text-red-600'}`}>
-          {isProductInStock(product) ? 'In Stock' : 'Out of Stock'}
+          {product.stockStatus || (isProductInStock(product) ? 'In Stock' : 'Out of Stock')}
+          {product.stock !== undefined && product.stock !== null && (
+            <span className="text-xs text-gray-500 ml-1">
+              ({product.availableStock || product.stock || 0} units)
+            </span>
+          )}
         </p>
 
+        {(() => {
+          const availableStock = product.availableStock || product.stock || 0;
+          const isInStock = availableStock > 0;
+          return (
         <button
           onClick={handleAddToCart}
-          disabled={!isProductInStock(product)}
+          disabled={!isInStock}
           className={`mt-3 w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
-            !isProductInStock(product)
+            !isInStock
               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
               : added
               ? 'bg-green-600 text-white cart-button-success'
+              : availableStock <= 5
+              ? 'bg-orange-500 hover:bg-orange-600 text-white'
               : 'bg-[#ae0b0b] hover:bg-[#8f0a0a] text-white'
           }`}
         >
           <ShoppingBagIcon className="h-4 w-4" />
-          {!isProductInStock(product) ? 'Out of Stock' : (added ? 'Added!' : 'Add to Cart')}
+          {!isInStock ? 'Out of Stock' : (added ? 'Added!' : 'Add to Cart')}
         </button>
+          );
+        })()}
       </div>
       
       {/* Fly to Cart Animation */}

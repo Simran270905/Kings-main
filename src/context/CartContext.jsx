@@ -46,6 +46,31 @@ export function CartProvider({ children }) {
       return
     }
 
+    // Stock validation
+    const availableStock = product.availableStock || product.stock || 0;
+    if (availableStock <= 0) {
+      console.warn('Product out of stock:', product.name || product.title)
+      throw new Error('This product is out of stock')
+    }
+
+    // Check current cart quantity for this product
+    const currentCartQty = cartItems.reduce((total, item) => {
+      if (String(item.id || item._id) === String(product.id || product._id) && 
+          (item.selectedSize || null) === (product.selectedSize || null)) {
+        return total + item.quantity
+      }
+      return total
+    }, 0)
+
+    if (currentCartQty + qty > availableStock) {
+      console.warn('Insufficient stock:', { 
+        product: product.name || product.title, 
+        available: availableStock, 
+        requested: currentCartQty + qty 
+      })
+      throw new Error(`Only ${availableStock} units available in stock`)
+    }
+
     setCartItems((prev) => {
       // Check if product already exists in cart (considering size)
       const found = prev.find((p) => 
