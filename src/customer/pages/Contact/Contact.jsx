@@ -16,16 +16,55 @@ const Contact = () => {
   const [error, setError] = useState('')
 
   const handleChange = (e) => {
+    console.log('Form data change:', e.target.name, e.target.value)
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     })
   }
 
+  const validateForm = () => {
+    console.log('Validating form data:', formData)
+    
+    // Check if all required fields are filled
+    if (!formData.name || !formData.email || !formData.phone || !formData.subject || !formData.message) {
+      console.log('Missing fields:', { name: !formData.name, email: !formData.email, phone: !formData.phone, subject: !formData.subject, message: !formData.message })
+      return false
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.email)) {
+      console.log('Invalid email format:', formData.email)
+      return false
+    }
+    
+    // Phone validation (10 digits)
+    const phoneRegex = /^[6-9]\d{9}$/
+    if (!phoneRegex.test(formData.phone.replace(/\s/g, ''))) {
+      console.log('Invalid phone format:', formData.phone)
+      return false
+    }
+    
+    console.log('Form validation passed')
+    return true
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
     setSubmitStatus('')
+    setError('')
+
+    console.log('Submitting form data:', formData)
+
+    // Validate form before sending
+    if (!validateForm()) {
+      setSubmitStatus('error')
+      setError('Please fill in all required fields correctly')
+      setIsSubmitting(false)
+      return
+    }
 
     try {
       const response = await fetch(`${API_BASE_URL}/contact`, {
@@ -37,6 +76,7 @@ const Contact = () => {
       })
 
       const data = await response.json()
+      console.log('API response:', data)
 
       if (response.ok && data.success) {
         setSubmitStatus('success')
@@ -264,6 +304,13 @@ const Contact = () => {
               {submitStatus === 'error' && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                   <p className="text-red-800">❌ {error || 'Failed to send message. Please try again.'}</p>
+                  <details className="mt-2 text-sm text-red-600">
+                    <summary className="cursor-pointer font-medium">Debug Info</summary>
+                    <div className="mt-2 p-2 bg-red-100 rounded">
+                      <p><strong>Form Data:</strong></p>
+                      <pre className="text-xs">{JSON.stringify(formData, null, 2)}</pre>
+                    </div>
+                  </details>
                 </div>
               )}
 
