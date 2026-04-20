@@ -1,5 +1,5 @@
 import { useContext } from 'react'
-import { AdminAuthContext } from './AdminAuthContextObject'
+import { AdminAuthContext } from './AdminAuthContext'
 
 /**
  * useAdminAuth hook
