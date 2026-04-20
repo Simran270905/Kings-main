@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import { API_BASE_URL } from '../../config/api'
 import adminApi from '../utils/adminApiService'
 
 export const AdminProductContext = createContext(null)
@@ -86,7 +87,7 @@ return 'ok'
 const getTotalSold = async () => {
 try {
   // Fetch dynamic sold counts from Orders (Single Source of Truth)
-  const response = await fetch('/api/admin/analytics/sold', {
+  const response = await fetch(`${API_BASE_URL}/admin/analytics/sold`, {
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
     }

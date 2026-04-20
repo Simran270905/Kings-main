@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 
 import { useAnalytics } from '../hooks/useRealAnalytics'
+import { API_BASE_URL } from '../../config/api'
 import {
   ShoppingBagIcon,
   CurrencyDollarIcon,
@@ -41,7 +42,7 @@ export default function Dashboard() {
         throw new Error('No admin token found')
       }
 
-      const response = await fetch('/api/admin/dashboard?v=' + Date.now(), {
+      const response = await fetch(`${API_BASE_URL}/admin/dashboard?v=${Date.now()}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
