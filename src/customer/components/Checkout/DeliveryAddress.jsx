@@ -44,6 +44,16 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
         const newErrors = {};
         if (!formData.firstName?.trim()) newErrors.firstName = 'First name is required';
         if (!formData.lastName?.trim()) newErrors.lastName = 'Last name is required';
+        
+        // Name validation - only allow characters/strings (letters, spaces, hyphens, apostrophes)
+        const nameRegex = /^[a-zA-Z\s'-]+$/;
+        if (formData.firstName && !nameRegex.test(formData.firstName.trim())) {
+            newErrors.firstName = 'First name can only contain letters, spaces, hyphens, and apostrophes';
+        }
+        if (formData.lastName && !nameRegex.test(formData.lastName.trim())) {
+            newErrors.lastName = 'Last name can only contain letters, spaces, hyphens, and apostrophes';
+        }
+        
         if (!formData.email?.trim()) newErrors.email = 'Email is required';
         if (formData.email && !/\S+@\S+\./.test(formData.email)) newErrors.email = 'Please enter a valid email';
         if (!formData.streetAddress?.trim()) newErrors.streetAddress = 'Address is required';
@@ -91,6 +101,10 @@ const DeliveryAddressForm = ({ address = {}, onAddressChange }) => {
                         error={!!errors.firstName}
                         helperText={errors.firstName}
                         required
+                        inputProps={{ 
+                            pattern: "[a-zA-Z\\s'-]+",
+                            title: "Only letters, spaces, hyphens, and apostrophes allowed"
+                        }}
                     />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>

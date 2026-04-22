@@ -15,6 +15,7 @@ import {
   PencilSquareIcon,
   TicketIcon,
     EnvelopeIcon,
+    StarIcon,
 } from '@heroicons/react/24/outline'
 
 const AdminOnlyLayout = ({ children }) => {
@@ -31,6 +32,7 @@ const AdminOnlyLayout = ({ children }) => {
     { name: 'Categories', href: '/admin/categories', icon: DocumentTextIcon },
     { name: 'Brands', href: '/admin/brands', icon: TicketIcon },
     { name: 'Coupons', href: '/admin/coupons', icon: TicketIcon },
+    { name: 'Reviews', href: '/admin/reviews', icon: StarIcon },
     { name: 'Contact Messages', href: '/admin/contact-messages', icon: EnvelopeIcon },
     { name: 'Analytics', href: '/admin/analytics', icon: ChartBarIcon },
     { name: 'Reports', href: '/admin/reports', icon: ChartBarIcon },

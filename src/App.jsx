@@ -30,6 +30,7 @@ const OrderSuccess = lazy(() => import('./customer/pages/OrderSuccess/OrderSucce
 const Orders = lazy(() => import('./customer/pages/Orders/Orders'))
 const OrderTrack = lazy(() => import('./customer/pages/OrderTrack/OrderTrack'))
 const TrackOrderPage = lazy(() => import('./customer/pages/TrackOrder/TrackOrderPage'))
+const ReviewRedirect = lazy(() => import('./customer/components/ReviewRedirect'))
 
 // Legal Pages - lazy loaded
 const PrivacyPolicy = lazy(() => import('./customer/pages/Legal/PrivacyPolicy'))
@@ -72,6 +73,7 @@ const ProductEdit = lazy(() => import('./admin/ProductEdit.jsx'))
 const AdminOrders = lazy(() => import('./admin/pages/AdminOrders.jsx'))
 const OrderConfirmation = lazy(() => import('./admin/pages/OrderConfirmation.jsx'))
 const AdminCustomers = lazy(() => import('./admin/pages/AdminCustomers.jsx'))
+const AdminReviews = lazy(() => import('./admin/pages/AdminReviews.jsx'))
 const AdminSettings = lazy(() => import('./admin/pages/AdminSettings.jsx'))
 const CouponManagement = lazy(() => import('./admin/pages/CouponManagement.jsx'))
 const HomePageEditor = lazy(() => import('./admin/layout/HomePageEditor.jsx'))
@@ -138,6 +140,7 @@ return (
                   <Route path="/track-order" element={<CustomerLayout><TrackOrderPage /></CustomerLayout>} />
                   <Route path="/orders/track" element={<CustomerLayout><TrackOrderPage /></CustomerLayout>} />
                   <Route path="/orders/track/:orderId" element={<CustomerLayout><OrderTrack /></CustomerLayout>} />
+                  <Route path="/review" element={<CustomerLayout><ReviewRedirect /></CustomerLayout>} />
 
                   {/* Legal Pages */}
                   <Route path="/privacy-policy" element={<CustomerLayout><PrivacyPolicy /></CustomerLayout>} />
@@ -179,6 +182,7 @@ return (
                     <Route path="reports" element={<ReportsWrapper />} />
                     <Route path="upload" element={<UploadWrapper />} />
                     <Route path="customers" element={<CustomersWrapper />} />
+                    <Route path="reviews" element={<ReviewsWrapper />} />
                     <Route path="settings" element={<SettingsWrapper />} />
                     <Route path="coupons" element={<CouponWrapper />} />
                     <Route path="pages" element={<PagesWrapper />} />
@@ -310,6 +314,12 @@ const BrandsWrapper = () => (
 const CategoriesWrapper = () => (
   <Suspense fallback={<LoadingFallback />}>
       <CategoriesManagement />
+  </Suspense>
+)
+
+const ReviewsWrapper = () => (
+  <Suspense fallback={<LoadingFallback />}>
+      <AdminReviews />
   </Suspense>
 )
 

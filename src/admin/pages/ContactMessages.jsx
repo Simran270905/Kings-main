@@ -33,22 +33,28 @@ const ContactMessages = () => {
       
       const token = localStorage.getItem('kk_admin_token')
       console.log('Debug - Token exists:', !!token)
+      console.log('Debug - Token value:', token ? `${token.substring(0, 20)}...` : 'null')
       console.log('Debug - API URL:', `${API_BASE_URL}/contact?${params}`)
       
-      if (!token) {
-        throw new Error('No admin token found. Please log in first.')
+      if (!token || token === 'null' || token === 'undefined') {
+        setError('Authentication required. Please log in to access admin panel.')
+        setLoading(false)
+        return
       }
       
       const response = await fetch(`${API_BASE_URL}/contact?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         }
       })
       
       console.log('Debug - Response status:', response.status)
+      console.log('Debug - Response headers:', response.headers.get('content-type'))
       
       if (!response.ok) {
         const errorData = await response.json()
+        console.error('API Error Response:', errorData)
         throw new Error(errorData.message || `HTTP ${response.status}: Failed to fetch messages`)
       }
       
@@ -60,6 +66,11 @@ const ContactMessages = () => {
       setStats(data.data?.stats || { new: 0, read: 0, replied: 0 })
     } catch (err) {
       console.error('Debug - Fetch error:', err)
+      console.error('Error details:', {
+        name: err.name,
+        message: err.message,
+        stack: err.stack
+      })
       setError(err.message)
     } finally {
       setLoading(false)

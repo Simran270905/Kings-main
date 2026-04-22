@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { StarIcon } from '@heroicons/react/20/solid'
 import toast from 'react-hot-toast'
 
@@ -11,6 +11,8 @@ import { API_BASE_URL } from '@config/api.js'
 import { optimizeCloudinaryUrl } from '../../../utils/cloudinary'
 import FlyToCartAnimation from '../../../components/FlyToCartAnimation'
 import { showAddToCartToast } from '../../../components/AddToCartToast'
+import ProductReviews from '../ProductReviews.jsx'
+import ReviewForm from '../ReviewForm.jsx'
 // ✅ IMPORT SHARED HELPERS
 import {
   getProductImage,
@@ -115,6 +117,7 @@ function normalize(raw) {
 export default function ProductDetails() {
   const { id } = useParams()
   const { addToCart } = useCart()
+  const [params] = useSearchParams()
 
   const [currentProduct, setCurrentProduct] = useState(null)
   const [selectedImage, setSelectedImage] = useState(null)
@@ -126,10 +129,21 @@ export default function ProductDetails() {
   const [loading, setLoading] = useState(true)
   const [similarLoading, setSimilarLoading] = useState(false)
   const [similarError, setSimilarError] = useState(false)
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [reviewOrderId, setReviewOrderId] = useState(null)
 
   const handleFlyAnimationComplete = () => {
     setFlyAnimation(false);
   };
+
+  // Auto-open review modal if review=true parameter is present
+  useEffect(() => {
+    if (params.get("review") === "true") {
+      const orderId = params.get("orderId");
+      setReviewOrderId(orderId);
+      setShowReviewModal(true);
+    }
+  }, [params]);
 
   // 🔥 FETCH SINGLE PRODUCT
   useEffect(() => {
@@ -461,6 +475,13 @@ export default function ProductDetails() {
             )}
           </div>
         </section>
+
+        {/* Reviews Section */}
+        {currentProduct && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <ProductReviews productId={currentProduct.id} />
+          </section>
+        )}
       </div>
 
       {/* Fullscreen - Optimized */}
@@ -486,6 +507,35 @@ export default function ProductDetails() {
         isActive={flyAnimation}
         onComplete={handleFlyAnimationComplete}
       />
+
+      {/* Review Modal */}
+      {showReviewModal && currentProduct && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Write a Review</h2>
+                <button
+                  onClick={() => setShowReviewModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <ReviewForm 
+                productId={currentProduct.id}
+                orderId={reviewOrderId}
+                productName={currentProduct.name}
+                productImage={currentProduct.images?.[0]}
+                onSubmit={() => setShowReviewModal(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

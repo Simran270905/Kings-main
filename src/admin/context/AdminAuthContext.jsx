@@ -114,8 +114,30 @@ export const AdminAuthProvider = ({ children }) => {
     checkAdmin();
   }, []); // empty - run ONCE only
 
+  // Logout function
+  const logoutAdmin = () => {
+    try {
+      // Clear all possible admin tokens
+      localStorage.removeItem('kk_admin_token');
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('token');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('jwt');
+      localStorage.removeItem('admin_token');
+      sessionStorage.removeItem('kk_admin_token');
+      sessionStorage.removeItem('adminToken');
+      sessionStorage.removeItem('token');
+      
+      setIsAdmin(false);
+      return { success: true, message: 'Logged out successfully' };
+    } catch (error) {
+      console.error('Logout error:', error);
+      return { success: false, message: 'Logout failed' };
+    }
+  };
+
   return (
-    <AdminAuthContext.Provider value={{ isAdmin, loading, setIsAdmin, setLoading }}>
+    <AdminAuthContext.Provider value={{ isAdmin, loading, setIsAdmin, setLoading, logoutAdmin }}>
       {children}
     </AdminAuthContext.Provider>
   );

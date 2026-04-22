@@ -3,6 +3,7 @@ import { useEnhancedOrder } from '../context/EnhancedOrderContext'
 import AdminCard from '../layout/AdminCard'
 import StatusBadge from '../components/StatusBadge'
 import StatCard from '../components/StatCard'
+import api from '../../services/api'
 import {
 formatOrderDate,
 formatOrderTime,
@@ -34,6 +35,7 @@ const AdminOrders = () => {
   const [selectedOrderId, setSelectedOrderId] = useState(null)
   const [error, setError] = useState('')
   const [retryLoading, setRetryLoading] = useState(false)
+  const [reviewEmailLoading, setReviewEmailLoading] = useState(false)
   const [previewImage, setPreviewImage] = useState(null)
   
   // Safe data handling
@@ -76,10 +78,54 @@ const AdminOrders = () => {
         setTimeout(() => setError(''), 5000)
       }
     } catch (error) {
+      console.error('Shiprocket retry error:', error)
       setError('Failed to retry Shiprocket order')
       setTimeout(() => setError(''), 5000)
     } finally {
       setRetryLoading(false)
+    }
+  }
+
+  // Handle manual review email sending
+  const handleSendReviewEmail = async (order) => {
+    if (!order) {
+      setError('No order selected')
+      return
+    }
+
+    // Check if order has customer email
+    const customerEmail = order.guestInfo?.email || order.customer?.email
+    if (!customerEmail) {
+      setError('Order has no customer email address')
+      return
+    }
+
+    try {
+      setReviewEmailLoading(true)
+      setError('')
+      
+      // Call API to send review email
+      const response = await api.post('/admin/send-review-email', {
+        orderId: order._id,
+        customerEmail: customerEmail,
+        customerName: order.guestInfo?.firstName || order.customer?.name || 'Valued Customer'
+      })
+      
+      if (response.success) {
+        console.log('✅ Review email sent successfully for order:', order._id)
+        setError('')
+        // Show success message
+        setTimeout(() => {
+          alert(`Review email sent successfully to ${customerEmail}`)
+        }, 500)
+      } else {
+        setError(response.error || 'Failed to send review email')
+      }
+    } catch (error) {
+      console.error('Failed to send review email:', error)
+      setError('Failed to send review email')
+    } finally {
+      setReviewEmailLoading(false)
     }
   }
 
@@ -685,6 +731,32 @@ const AdminOrders = () => {
             </div>
           </div>
 
+          {/* Manual Review Email */}
+          <div className="mb-6">
+            <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Review Email Actions</h4>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <p className="text-sm font-medium text-blue-800">📧 Send review request email to customer</p>
+                  <p className="text-xs text-blue-600">Manually trigger review email for this order</p>
+                </div>
+                {selectedOrder.status === 'delivered' && (
+                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Already Delivered</span>
+                )}
+              </div>
+              <button
+                onClick={() => handleSendReviewEmail(selectedOrder)}
+                disabled={reviewEmailLoading}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors w-full"
+              >
+                <svg className={`w-4 h-4 ${reviewEmailLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22.32L16 8m0 0l2.89-5.26a2 2 0 00-2.22-.32L3 8zM3 18h18" />
+                </svg>
+                {reviewEmailLoading ? 'Sending Review Email...' : 'Send Review Email'}
+              </button>
+            </div>
+          </div>
+
           {/* Manual Shiprocket Request */}
           <div className="mb-6">
             <h4 className="text-sm font-semibold text-gray-600 uppercase mb-2">Manual Shiprocket Request</h4>
@@ -692,7 +764,7 @@ const AdminOrders = () => {
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <p className="text-sm font-medium text-yellow-800">⚠️ Use this section only if automatic Shiprocket creation fails</p>
-                  <p className="text-xs text-yellow-600">Copy the details below to create manual shipment request</p>
+                  <p className="text-xs text-yellow-600">Copy details below to create manual shipment request</p>
                 </div>
                 {selectedOrder.shippingStatus === 'failed' && (
                   <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">Auto-Creation Failed</span>

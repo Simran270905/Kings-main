@@ -6,8 +6,8 @@ const buildUrl = (endpoint) => {
 };
 
 const request = async (endpoint, options = {}) => {
-  // Get token from sessionStorage or memory instead of localStorage
-  const token = sessionStorage.getItem('token') || sessionStorage.getItem('kk_admin_token')
+  // Get token from localStorage for persistent authentication
+  const token = localStorage.getItem('token') || localStorage.getItem('kk_admin_token') || sessionStorage.getItem('kk_admin_token')
 
   const defaultHeaders = {
     'Content-Type': 'application/json',
@@ -35,6 +35,21 @@ const request = async (endpoint, options = {}) => {
   const data = await res.json()
 
   if (!res.ok) {
+    // Handle token expiration
+    if (res.status === 401 && (data.message === 'Token expired' || data.message?.includes('expired'))) {
+      // Clear expired tokens
+      localStorage.removeItem('kk_admin_token')
+      localStorage.removeItem('token')
+      sessionStorage.removeItem('kk_admin_token')
+      
+      // Redirect to login if not already there
+      if (!window.location.pathname.includes('/admin-login')) {
+        window.location.href = '/admin-login'
+      }
+      
+      throw new Error('Session expired. Please login again.')
+    }
+    
     throw new Error(data.message || `Request failed with status ${res.status}`)
   }
 
