@@ -180,8 +180,9 @@ const ReviewPage = () => {
 
       console.log('FormData created, contents:')
       for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value)
+        console.log(`${key}:`, value, typeof value)
       }
+      console.log('FormData length:', formData.getAll('images').length, 'images')
       console.log('Making API call...')
       const apiUrl = `${import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'}/reviews/submit`
       console.log('API URL:', apiUrl)
