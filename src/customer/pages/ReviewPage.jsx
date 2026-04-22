@@ -75,6 +75,10 @@ const ReviewPage = () => {
     try {
       setLoading(true)
       setError(null)
+      
+      // Force cache busting
+      console.log('=== CACHE BUSTING VERSION 2.0 ===')
+      console.log('Timestamp:', new Date().toISOString())
 
       // Decode the token to handle URL encoding issues
       const decodedToken = decodeURIComponent(token)
