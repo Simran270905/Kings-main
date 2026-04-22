@@ -105,7 +105,7 @@ export default function EnhancedOrders() {
     try {
       setLoading(true)
       const token = localStorage.getItem('kk_admin_token') || localStorage.getItem('token')
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'
 
       const response = await fetch(`${apiUrl}/admin/orders/enhanced`, {
         headers: {
@@ -202,7 +202,7 @@ export default function EnhancedOrders() {
   const handleCreateShipment = async (orderId) => {
     try {
       const token = localStorage.getItem('kk_admin_token') || localStorage.getItem('token')
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'
       const response = await fetch(`${apiUrl}/admin/orders/enhanced/${orderId}/create-shipment`, {
         method: 'POST',
         headers: {
@@ -233,7 +233,7 @@ export default function EnhancedOrders() {
   const handleSyncAndTrack = async (order) => {
     try {
       const token = localStorage.getItem('kk_admin_token') || localStorage.getItem('token')
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'
       
       console.log('Syncing shipment status for order:', order._id)
       console.log('Order shipment ID:', order.shipmentId)

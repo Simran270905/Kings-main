@@ -32,7 +32,7 @@ const OTPLogin = () => {
         throw new Error("Invalid email format");
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/customers/send-otp`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'}/customers/send-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -101,7 +101,7 @@ const OTPLogin = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/customers/resend-otp`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'}/customers/resend-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

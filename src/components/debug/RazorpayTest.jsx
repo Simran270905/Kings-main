@@ -4,7 +4,7 @@ export default function RazorpayTest() {
   const handleTestPayment = async () => {
     try {
       // Step 1: Create order
-      const res = await fetch("http://localhost:5000/api/payments/create-order", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'}/payments/create-order`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -55,7 +55,7 @@ export default function RazorpayTest() {
           console.log("Payment Success Response:", response)
 
           // Step 4: Verify
-          const verifyRes = await fetch("http://localhost:5000/api/payments/verify", {
+          const verifyRes = await fetch(`${import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'}/payments/verify`, {
             method: "POST",
             headers: { 
               "Content-Type": "application/json",
