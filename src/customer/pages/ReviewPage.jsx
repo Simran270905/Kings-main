@@ -169,14 +169,18 @@ const ReviewPage = () => {
         formData.append(`images`, image)
       })
 
-      const response = await api.post('/reviews/submit', formData, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'}/reviews/submit`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        body: formData
       })
 
-      if (response.data.success) {
-        toast.success(response.data.message || 'Review submitted successfully!')
+      const responseData = await response.json()
+      
+      if (responseData.success) {
+        toast.success(responseData.message || 'Review submitted successfully!')
         
         // Show success state
         setAlreadyReviewed(true)
@@ -186,7 +190,7 @@ const ReviewPage = () => {
       }
     } catch (error) {
       console.error('Review submission failed:', error)
-      const errorMessage = error.response?.data?.error || 'Failed to submit review'
+      const errorMessage = error.message || 'Failed to submit review'
       toast.error(errorMessage)
     } finally {
       setSubmitting(false)
