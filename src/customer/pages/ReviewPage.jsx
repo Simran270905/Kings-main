@@ -78,47 +78,46 @@ const ReviewPage = () => {
 
       // Decode the token to handle URL encoding issues
       const decodedToken = decodeURIComponent(token)
+      console.log('=== DIRECT FETCH TEST ===')
       console.log('Original token:', token)
       console.log('Decoded token:', decodedToken)
       console.log('Order ID:', orderId)
       
-      // Log the exact URL being called
+      // Use only direct fetch to bypass all caching issues
       const apiUrl = `/reviews/verify-token?orderId=${orderId}&token=${decodedToken}`
-      console.log('API URL:', apiUrl)
-      console.log('Full API URL:', import.meta.env.VITE_API_URL + apiUrl)
-
-      // Try direct fetch to bypass API service issues
-      let response
-      try {
-        console.log('Trying direct fetch...')
-        const fetchResponse = await fetch(`${import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'}${apiUrl}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        })
-        
-        if (!fetchResponse.ok) {
-          throw new Error(`Direct fetch failed: ${fetchResponse.status}`)
+      const fullUrl = `${import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'}${apiUrl}`
+      console.log('Full URL:', fullUrl)
+      
+      console.log('Making direct fetch call...')
+      const fetchResponse = await fetch(fullUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
         }
-        
-        response = await fetchResponse.json()
-        console.log('Direct fetch successful:', response)
-      } catch (directError) {
-        console.log('Direct fetch failed, trying API service:', directError)
-        response = await api.get(apiUrl)
+      })
+      
+      console.log('Fetch response status:', fetchResponse.status)
+      console.log('Fetch response ok:', fetchResponse.ok)
+      
+      if (!fetchResponse.ok) {
+        const errorText = await fetchResponse.text()
+        console.log('Error response text:', errorText)
+        throw new Error(`Direct fetch failed: ${fetchResponse.status} - ${errorText}`)
       }
+      
+      const response = await fetchResponse.json()
+      console.log('Direct fetch successful:', response)
 
-      if (response.data.valid) {
-        setOrderData(response.data)
-        setAlreadyReviewed(response.data.alreadyReviewed)
+      if (response.valid) {
+        setOrderData(response)
+        setAlreadyReviewed(response.alreadyReviewed)
         
         // Auto-select first product if only one available
-        if (response.data.products.length === 1) {
-          setSelectedProduct(response.data.products[0])
+        if (response.products.length === 1) {
+          setSelectedProduct(response.products[0])
         }
       } else {
-        setError(response.data.error || 'Invalid token')
+        setError(response.error || 'Invalid token')
       }
     } catch (error) {
       console.error('Token verification failed:', error)
