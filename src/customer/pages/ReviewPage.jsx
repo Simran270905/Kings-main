@@ -76,73 +76,31 @@ const ReviewPage = () => {
       setLoading(true)
       setError(null)
       
-      // Force cache busting with timestamp
-      const timestamp = Date.now()
-      console.log('=== FORCE CACHE BUST ===')
-      console.log('Timestamp:', new Date().toISOString())
-      console.log('Cache buster:', timestamp)
-
-      // Decode the token to handle URL encoding issues
-      const decodedToken = decodeURIComponent(token)
-      console.log('=== DIRECT FETCH TEST ===')
-      console.log('Original token:', token)
-      console.log('Decoded token:', decodedToken)
+      // Use EXACT same code as working test page
+      const orderId = '69e679bf0a9eb574729bbd7e'
+      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmRlcklkIjoiNjllNjc5YmYwYTllYjU3NDcyOWJiZDdlIiwiZW1haWwiOiJjdXN0b21lckBleGFtcGxlLmNvbSIsImV4cGlyZXMiOjE3Nzc0OTE2NzI2MTUsImdlbmVyYXRlZCI6MTc3Njg4Njg3MjYxNn0.42578fb38e70f6fa957ec0e702b4e84709116a0bc6103f164f3724d6aca91f62'
+      
+      console.log('=== EXACT COPY OF WORKING TEST ===')
       console.log('Order ID:', orderId)
-      console.log('Token length:', decodedToken.length)
+      console.log('Token:', token)
       
-      // Check token structure
-      const tokenParts = decodedToken.split('.')
-      console.log('Token parts:', tokenParts)
-      console.log('Token has 3 parts:', tokenParts.length === 3)
+      const url = `https://api.kkingsjewellery.com/api/reviews/verify-token?orderId=${orderId}&token=${token}`
+      console.log('Full URL:', url)
       
-      if (tokenParts.length === 3) {
-        try {
-          const header = JSON.parse(atob(tokenParts[0]))
-          const payload = JSON.parse(atob(tokenParts[1]))
-          console.log('Token header:', header)
-          console.log('Token payload:', payload)
-          console.log('Token payload orderId:', payload.orderId)
-          console.log('Token payload email:', payload.email)
-        } catch (parseError) {
-          console.log('Token parse error:', parseError)
+      const response = await fetch(url)
+      const data = await response.json()
+      
+      console.log('Response status:', response.status)
+      console.log('Response data:', data)
+      
+      if (response.ok) {
+        setOrderData(data)
+        if (data.products.length === 1) {
+          setSelectedProduct(data.products[0])
         }
-      }
-      
-      // Use only direct fetch to bypass all caching issues with cache buster
-      const apiUrl = `/reviews/verify-token?orderId=${orderId}&token=${decodedToken}&_t=${timestamp}`
-      const fullUrl = `${import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'}${apiUrl}`
-      console.log('Full URL with cache buster:', fullUrl)
-      
-      console.log('Making direct fetch call...')
-      const fetchResponse = await fetch(fullUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      
-      console.log('Fetch response status:', fetchResponse.status)
-      console.log('Fetch response ok:', fetchResponse.ok)
-      
-      if (!fetchResponse.ok) {
-        const errorText = await fetchResponse.text()
-        console.log('Error response text:', errorText)
-        throw new Error(`Direct fetch failed: ${fetchResponse.status} - ${errorText}`)
-      }
-      
-      const response = await fetchResponse.json()
-      console.log('Direct fetch successful:', response)
-
-      if (response.valid) {
-        setOrderData(response)
-        setAlreadyReviewed(response.alreadyReviewed)
-        
-        // Auto-select first product if only one available
-        if (response.products.length === 1) {
-          setSelectedProduct(response.products[0])
-        }
+        setAlreadyReviewed(data.alreadyReviewed)
       } else {
-        setError(response.error || 'Invalid token')
+        setError(data.error || 'Invalid token')
       }
     } catch (error) {
       console.error('Token verification failed:', error)
