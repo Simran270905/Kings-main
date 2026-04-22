@@ -132,6 +132,11 @@ const ReviewPage = () => {
 
   const handleSubmitReview = async (e) => {
     e.preventDefault()
+    console.log('=== SUBMIT REVIEW CLICKED ===')
+    console.log('Selected product:', selectedProduct)
+    console.log('Rating:', rating)
+    console.log('Comment length:', comment.length)
+    console.log('Submitting:', submitting)
 
     if (!selectedProduct) {
       toast.error('Please select a product to review')
