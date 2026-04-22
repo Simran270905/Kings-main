@@ -76,9 +76,11 @@ const ReviewPage = () => {
       setLoading(true)
       setError(null)
       
-      // Force cache busting
-      console.log('=== CACHE BUSTING VERSION 2.0 ===')
+      // Force cache busting with timestamp
+      const timestamp = Date.now()
+      console.log('=== FORCE CACHE BUST ===')
       console.log('Timestamp:', new Date().toISOString())
+      console.log('Cache buster:', timestamp)
 
       // Decode the token to handle URL encoding issues
       const decodedToken = decodeURIComponent(token)
@@ -106,10 +108,10 @@ const ReviewPage = () => {
         }
       }
       
-      // Use only direct fetch to bypass all caching issues
-      const apiUrl = `/reviews/verify-token?orderId=${orderId}&token=${decodedToken}`
+      // Use only direct fetch to bypass all caching issues with cache buster
+      const apiUrl = `/reviews/verify-token?orderId=${orderId}&token=${decodedToken}&_t=${timestamp}`
       const fullUrl = `${import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'}${apiUrl}`
-      console.log('Full URL:', fullUrl)
+      console.log('Full URL with cache buster:', fullUrl)
       
       console.log('Making direct fetch call...')
       const fetchResponse = await fetch(fullUrl, {
