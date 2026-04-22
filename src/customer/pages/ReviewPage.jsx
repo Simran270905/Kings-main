@@ -82,6 +82,25 @@ const ReviewPage = () => {
       console.log('Original token:', token)
       console.log('Decoded token:', decodedToken)
       console.log('Order ID:', orderId)
+      console.log('Token length:', decodedToken.length)
+      
+      // Check token structure
+      const tokenParts = decodedToken.split('.')
+      console.log('Token parts:', tokenParts)
+      console.log('Token has 3 parts:', tokenParts.length === 3)
+      
+      if (tokenParts.length === 3) {
+        try {
+          const header = JSON.parse(atob(tokenParts[0]))
+          const payload = JSON.parse(atob(tokenParts[1]))
+          console.log('Token header:', header)
+          console.log('Token payload:', payload)
+          console.log('Token payload orderId:', payload.orderId)
+          console.log('Token payload email:', payload.email)
+        } catch (parseError) {
+          console.log('Token parse error:', parseError)
+        }
+      }
       
       // Use only direct fetch to bypass all caching issues
       const apiUrl = `/reviews/verify-token?orderId=${orderId}&token=${decodedToken}`
