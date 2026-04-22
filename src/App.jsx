@@ -31,6 +31,7 @@ const Orders = lazy(() => import('./customer/pages/Orders/Orders'))
 const OrderTrack = lazy(() => import('./customer/pages/OrderTrack/OrderTrack'))
 const TrackOrderPage = lazy(() => import('./customer/pages/TrackOrder/TrackOrderPage'))
 const ReviewRedirect = lazy(() => import('./customer/components/ReviewRedirect'))
+const ReviewPage = lazy(() => import('./customer/pages/ReviewPage'))
 
 // Legal Pages - lazy loaded
 const PrivacyPolicy = lazy(() => import('./customer/pages/Legal/PrivacyPolicy'))
@@ -140,7 +141,7 @@ return (
                   <Route path="/track-order" element={<CustomerLayout><TrackOrderPage /></CustomerLayout>} />
                   <Route path="/orders/track" element={<CustomerLayout><TrackOrderPage /></CustomerLayout>} />
                   <Route path="/orders/track/:orderId" element={<CustomerLayout><OrderTrack /></CustomerLayout>} />
-                  <Route path="/review" element={<CustomerLayout><ReviewRedirect /></CustomerLayout>} />
+                  <Route path="/review" element={<CustomerLayout><ReviewPage /></CustomerLayout>} />
 
                   {/* Legal Pages */}
                   <Route path="/privacy-policy" element={<CustomerLayout><PrivacyPolicy /></CustomerLayout>} />
