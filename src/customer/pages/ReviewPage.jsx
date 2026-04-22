@@ -80,8 +80,14 @@ const ReviewPage = () => {
       const decodedToken = decodeURIComponent(token)
       console.log('Original token:', token)
       console.log('Decoded token:', decodedToken)
+      console.log('Order ID:', orderId)
+      
+      // Log the exact URL being called
+      const apiUrl = `/reviews/verify-token?orderId=${orderId}&token=${decodedToken}`
+      console.log('API URL:', apiUrl)
+      console.log('Full API URL:', import.meta.env.VITE_API_URL + apiUrl)
 
-      const response = await api.get(`/reviews/verify-token?orderId=${orderId}&token=${decodedToken}`)
+      const response = await api.get(apiUrl)
 
       if (response.data.valid) {
         setOrderData(response.data)
@@ -96,6 +102,9 @@ const ReviewPage = () => {
       }
     } catch (error) {
       console.error('Token verification failed:', error)
+      console.error('Error response:', error.response?.data)
+      console.error('Error status:', error.response?.status)
+      console.error('Error headers:', error.response?.headers)
       setError(error.response?.data?.error || 'Failed to verify token')
     } finally {
       setLoading(false)
