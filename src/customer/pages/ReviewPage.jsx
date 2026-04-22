@@ -87,7 +87,27 @@ const ReviewPage = () => {
       console.log('API URL:', apiUrl)
       console.log('Full API URL:', import.meta.env.VITE_API_URL + apiUrl)
 
-      const response = await api.get(apiUrl)
+      // Try direct fetch to bypass API service issues
+      let response
+      try {
+        console.log('Trying direct fetch...')
+        const fetchResponse = await fetch(`${import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'}${apiUrl}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        
+        if (!fetchResponse.ok) {
+          throw new Error(`Direct fetch failed: ${fetchResponse.status}`)
+        }
+        
+        response = await fetchResponse.json()
+        console.log('Direct fetch successful:', response)
+      } catch (directError) {
+        console.log('Direct fetch failed, trying API service:', directError)
+        response = await api.get(apiUrl)
+      }
 
       if (response.data.valid) {
         setOrderData(response.data)
@@ -102,10 +122,27 @@ const ReviewPage = () => {
       }
     } catch (error) {
       console.error('Token verification failed:', error)
-      console.error('Error response:', error.response?.data)
+      console.error('Error type:', error.constructor.name)
+      console.error('Error message:', error.message)
+      console.error('Error code:', error.code)
+      console.error('Error response:', error.response)
       console.error('Error status:', error.response?.status)
       console.error('Error headers:', error.response?.headers)
-      setError(error.response?.data?.error || 'Failed to verify token')
+      
+      // Handle different types of errors
+      let errorMessage = 'Failed to verify token'
+      if (error.response) {
+        // Server responded with error
+        errorMessage = error.response?.data?.error || `Server error: ${error.response.status}`
+      } else if (error.request) {
+        // Request was made but no response received
+        errorMessage = 'Network error - no response from server'
+      } else {
+        // Something else happened
+        errorMessage = error.message || 'Request setup error'
+      }
+      
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
