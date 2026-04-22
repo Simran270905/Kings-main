@@ -98,7 +98,7 @@ const ReviewPage = () => {
         if (data.products.length === 1) {
           setSelectedProduct(data.products[0])
         }
-        setAlreadyReviewed(data.alreadyReviewed)
+        setAlreadyReviewed(data.alreadyReviewed || false)
       } else {
         setError(data.error || 'Invalid token')
       }
@@ -270,7 +270,7 @@ const ReviewPage = () => {
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Write a Review</h1>
             <p className="text-gray-600">
-              Order #{orderId} from {new Date(orderData.order.date).toLocaleDateString()}
+              Order #{orderId} from {new Date().toLocaleDateString()}
             </p>
             {alreadyReviewed && (
               <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
