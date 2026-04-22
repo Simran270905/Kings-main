@@ -158,10 +158,14 @@ const ReviewPage = () => {
       return
     }
 
+    console.log('=== VALIDATION PASSED, STARTING SUBMISSION ===')
+    
     try {
+      console.log('Setting submitting to true...')
       setSubmitting(true)
 
       // SUBMIT: Use FormData for image upload
+      console.log('Creating FormData...')
       const formData = new FormData()
       formData.append('orderId', '69e679bf0a9eb574729bbd7e')
       formData.append('productId', selectedProduct.productId)
@@ -174,13 +178,19 @@ const ReviewPage = () => {
         formData.append(`images`, image)
       })
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'}/reviews/submit`, {
+      console.log('FormData created, making API call...')
+      const apiUrl = `${import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'}/reviews/submit`
+      console.log('API URL:', apiUrl)
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'multipart/form-data',
         },
         body: formData
       })
+      
+      console.log('API call completed, response status:', response.status)
 
       const responseData = await response.json()
       
