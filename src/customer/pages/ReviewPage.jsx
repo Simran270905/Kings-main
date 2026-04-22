@@ -191,8 +191,16 @@ const ReviewPage = () => {
       })
       
       console.log('API call completed, response status:', response.status)
+      console.log('Response ok:', response.ok)
 
       const responseData = await response.json()
+      console.log('Response data:', responseData)
+      
+      if (!response.ok) {
+        console.log('API call failed with status:', response.status)
+        console.log('Error response:', responseData)
+        throw new Error(`API call failed: ${response.status} - ${responseData.error || 'Unknown error'}`)
+      }
       
       if (responseData.success) {
         toast.success(responseData.message || 'Review submitted successfully!')
