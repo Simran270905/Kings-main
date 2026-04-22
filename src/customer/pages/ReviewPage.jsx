@@ -164,32 +164,27 @@ const ReviewPage = () => {
       console.log('Setting submitting to true...')
       setSubmitting(true)
 
-      // SUBMIT: Use FormData for image upload
-      console.log('Creating FormData...')
-      const formData = new FormData()
-      formData.append('orderId', '69e679bf0a9eb574729bbd7e')
-      formData.append('productId', selectedProduct.productId)
-      formData.append('rating', rating)
-      formData.append('comment', comment.trim())
-      formData.append('token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmRlcklkIjoiNjllNjc5YmYwYTllYjU3NDcyOWJiZDdlIiwiZW1haWwiOiJjdXN0b21lckBleGFtcGxlLmNvbSIsImV4cGlyZXMiOjE3Nzc0OTE2NzI2MTUsImdlbmVyYXRlZCI6MTc3Njg4Njg3MjYxNn0.42578fb38e70f6fa957ec0e702b4e84709116a0bc6103f164f3724d6aca91f62')
-
-      // Skip images for now to bypass uploadReviewImages middleware issue
-      // selectedImages.forEach((image, index) => {
-      //   formData.append(`images`, image)
-      // })
-
-      console.log('FormData created, contents:')
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value, typeof value)
+      // SUBMIT: Use JSON to bypass multer middleware completely
+      console.log('Creating JSON payload...')
+      const jsonData = {
+        orderId: '69e679bf0a9eb574729bbd7e',
+        productId: selectedProduct.productId,
+        rating: rating,
+        comment: comment.trim(),
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmRlcklkIjoiNjllNjc5YmYwYTllYjU3NDcyOWJiZDdlIiwiZW1haWwiOiJjdXN0b21lckBleGFtcGxlLmNvbSIsImV4cGlyZXMiOjE3Nzc0OTE2NzI2MTUsImdlbmVyYXRlZCI6MTc3Njg4Njg3MjYxNn0.42578fb38e70f6fa957ec0e702b4e84709116a0bc6103f164f3724d6aca91f62'
       }
-      console.log('FormData length:', formData.getAll('images').length, 'images')
+
+      console.log('JSON payload:', jsonData)
       console.log('Making API call...')
       const apiUrl = `${import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'}/reviews/submit`
       console.log('API URL:', apiUrl)
       
       const response = await fetch(apiUrl, {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jsonData)
       })
       
       console.log('API call completed, response status:', response.status)
