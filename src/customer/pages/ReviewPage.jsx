@@ -76,7 +76,12 @@ const ReviewPage = () => {
       setLoading(true)
       setError(null)
 
-      const response = await api.get(`/reviews/verify-token?orderId=${orderId}&token=${token}`)
+      // Decode the token to handle URL encoding issues
+      const decodedToken = decodeURIComponent(token)
+      console.log('Original token:', token)
+      console.log('Decoded token:', decodedToken)
+
+      const response = await api.get(`/reviews/verify-token?orderId=${orderId}&token=${decodedToken}`)
 
       if (response.data.valid) {
         setOrderData(response.data)
@@ -129,7 +134,7 @@ const ReviewPage = () => {
       formData.append('productId', selectedProduct.productId)
       formData.append('rating', rating)
       formData.append('comment', comment.trim())
-      formData.append('token', token)
+      formData.append('token', decodeURIComponent(token))
 
       // Add images to FormData
       selectedImages.forEach((image, index) => {
