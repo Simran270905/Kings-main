@@ -196,7 +196,8 @@ const ReviewPage = () => {
       if (!response.ok) {
         console.log('API call failed with status:', response.status)
         console.log('Error response:', responseData)
-        throw new Error(`API call failed: ${response.status} - ${responseData.error || 'Unknown error'}`)
+        console.log('Full error details:', JSON.stringify(responseData, null, 2))
+        throw new Error(`API call failed: ${response.status} - ${responseData.error || responseData.message || 'Unknown error'}`)
       }
       
       if (responseData.success) {
