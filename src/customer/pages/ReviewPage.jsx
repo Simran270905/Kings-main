@@ -187,6 +187,8 @@ const ReviewPage = () => {
         setSelectedProduct(null)
         setRating(0)
         setComment('')
+        setSelectedImages([])
+        setImagePreviews([])
       }
     } catch (error) {
       console.error('Review submission failed:', error)
@@ -276,7 +278,18 @@ const ReviewPage = () => {
             <p className="text-gray-600">
               Order #{orderId} from {new Date().toLocaleDateString()}
             </p>
-            {alreadyReviewed && (
+            {alreadyReviewed && !selectedProduct && (
+              <div className="mt-4 p-6 bg-green-50 border border-green-200 rounded-md">
+                <div className="text-center">
+                  <div className="text-green-600 text-4xl mb-2">Thank you! Your review has been submitted</div>
+                  <p className="text-green-800 text-sm">
+                    We appreciate your feedback. Your review will be visible after admin approval.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {alreadyReviewed && selectedProduct && (
               <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                 <p className="text-yellow-800 text-sm">
                   You have already reviewed some products from this order. You can review the remaining products below.
