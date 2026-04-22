@@ -84,6 +84,7 @@ const Pages = lazy(() => import('./admin/layout/Pages.jsx'))
 const ContactMessages = lazy(() => import('./admin/pages/ContactMessages.jsx'))
 const BrandsManagement = lazy(() => import('./admin/layout/BrandsManagement.jsx'))
 const CategoriesManagement = lazy(() => import('./admin/layout/CategoriesManagement.jsx'))
+const TestReviewPage = lazy(() => import('./customer/pages/TestReviewPage'))
 
 // Customer Layout
 const CustomerLayout = ({ children }) => (
@@ -155,6 +156,7 @@ return (
                   {/* ================= DEBUG ROUTES ================= */}
                   <Route path="/debug/razorpay" element={<RazorpayTest />} />
                   <Route path="/test-animations" element={<TestAnimations />} />
+                  <Route path="/test-review" element={<CustomerLayout><TestReviewPage /></CustomerLayout>} />
 
                   {/* ================= ADMIN ROUTES ================= */}
                   <Route path="/admin/login" element={
