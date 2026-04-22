@@ -178,15 +178,16 @@ const ReviewPage = () => {
         formData.append(`images`, image)
       })
 
-      console.log('FormData created, making API call...')
+      console.log('FormData created, contents:')
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value)
+      }
+      console.log('Making API call...')
       const apiUrl = `${import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'}/reviews/submit`
       console.log('API URL:', apiUrl)
       
       const response = await fetch(apiUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
         body: formData
       })
       
