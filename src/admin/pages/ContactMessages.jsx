@@ -44,7 +44,7 @@ const ContactMessages = () => {
       
       const response = await fetch(`${API_BASE_URL}/contact?${params}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       })
