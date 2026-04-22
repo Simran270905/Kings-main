@@ -42,7 +42,6 @@ const fallbackProduct = {
   highlights: [],
 }
 
-const reviewsSummary = { average: 4.6, totalCount: 196 }
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
@@ -378,23 +377,7 @@ export default function ProductDetails() {
               </p>
             </div>
 
-            <div className="mt-4 flex items-center">
-              {[0,1,2,3,4].map(i => (
-                <StarIcon
-                  key={i}
-                  className={classNames(
-                    reviewsSummary.average > i
-                      ? 'text-[#ae0b0b]'
-                      : 'text-gray-200',
-                    'h-5 w-5'
-                  )}
-                />
-              ))}
-              <span className="ml-3 text-sm text-[#ae0b0b]">
-                {reviewsSummary.average} · {reviewsSummary.totalCount} reviews
-              </span>
-            </div>
-
+            
             <p className="mt-6 text-gray-600">
               {currentProduct.description}
             </p>
