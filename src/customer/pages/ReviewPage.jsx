@@ -407,13 +407,6 @@ const ReviewPage = () => {
                   Rating <span className="text-red-500">*</span>
                 </label>
                 {renderStars(true)}
-                <p className="text-sm text-gray-500 mt-1">
-                  {rating === 1 && 'Poor'}
-                  {rating === 2 && 'Fair'}
-                  {rating === 3 && 'Good'}
-                  {rating === 4 && 'Very Good'}
-                  {rating === 5 && 'Excellent'}
-                </p>
               </div>
 
               {/* Comment */}
