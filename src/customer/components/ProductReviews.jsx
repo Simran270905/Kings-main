@@ -61,12 +61,13 @@ const ProductReviews = ({ productId }) => {
   const renderRatingDistribution = () => {
     if (!stats || stats.totalReviews === 0) return null
 
+    const ratingCounts = stats.ratingCounts || {}
     const ratingBars = [
-      { stars: 5, count: stats.ratingCounts['5'] || 0 },
-      { stars: 4, count: stats.ratingCounts['4'] || 0 },
-      { stars: 3, count: stats.ratingCounts['3'] || 0 },
-      { stars: 2, count: stats.ratingCounts['2'] || 0 },
-      { stars: 1, count: stats.ratingCounts['1'] || 0 }
+      { stars: 5, count: ratingCounts['5'] || 0 },
+      { stars: 4, count: ratingCounts['4'] || 0 },
+      { stars: 3, count: ratingCounts['3'] || 0 },
+      { stars: 2, count: ratingCounts['2'] || 0 },
+      { stars: 1, count: ratingCounts['1'] || 0 }
     ]
 
     return (
@@ -195,11 +196,11 @@ const ProductReviews = ({ productId }) => {
         {/* Average Rating */}
         <div className="text-center">
           <div className="text-5xl font-bold text-gray-900 mb-2">
-            {stats.averageRating.toFixed(1)}
+            {stats.averageRating ? stats.averageRating.toFixed(1) : '0.0'}
           </div>
-          {renderStars(Math.round(stats.averageRating), 'text-2xl')}
+          {renderStars(Math.round(stats.averageRating || 0), 'text-2xl')}
           <p className="text-gray-600 mt-2">
-            {stats.totalReviews} {stats.totalReviews === 1 ? 'Review' : 'Reviews'}
+            {stats.totalReviews || 0} {(stats.totalReviews || 0) === 1 ? 'Review' : 'Reviews'}
           </p>
         </div>
 
@@ -231,7 +232,7 @@ const ProductReviews = ({ productId }) => {
       {/* Reviews Count */}
       <div className="mt-8 pt-6 border-t border-gray-200">
         <p className="text-sm text-gray-500 text-center">
-          Showing {reviews.length} of {stats.totalReviews} reviews
+          Showing {reviews.length} of {stats.totalReviews || 0} reviews
         </p>
       </div>
     </div>
