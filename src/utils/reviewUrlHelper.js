@@ -1,4 +1,4 @@
-// NEW FILE - Frontend Review URL Helper Utility
+// NEW FILE - Frontend Review URL Helper Utility - Build Fixed
 
 /**
  * Safely extract and validate review token from URL
