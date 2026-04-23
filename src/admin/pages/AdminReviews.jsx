@@ -73,18 +73,38 @@ const AdminReviews = () => {
   const handleApprove = async (reviewId, note = '') => {
     try {
       setActionLoading(true)
-      const response = await api.patch(`/reviews/${reviewId}/approve`, {
+      
+      // Log the exact URL being called
+      const approveUrl = `/reviews/${reviewId}/approve`
+      console.log(' Approving review at URL:', approveUrl)
+      console.log(' Review ID:', reviewId)
+      console.log(' Moderation note:', note)
+      
+      const response = await api.patch(approveUrl, {
         moderationNote: note
       })
 
-      if (response.data.success) {
+      console.log(' Approve response:', response)
+
+      if (response.success) {
         toast.success('Review approved successfully')
         setReviews(prev => prev.filter(r => r._id !== reviewId))
         fetchStats()
       }
     } catch (error) {
-      console.error('Failed to approve review:', error)
-      toast.error(error.response?.data?.error || 'Failed to approve review')
+      console.error(' Failed to approve review:', error)
+      
+      // Enhanced error handling
+      if (error.response) {
+        console.error(' Server error:', error.response.status, error.response.data)
+        toast.error(error.response.data?.error || `Server error: ${error.response.status}`)
+      } else if (error.request) {
+        console.error(' No response received — CORS or network issue:', error.request)
+        toast.error('Network error - request failed to reach server')
+      } else {
+        console.error(' Request setup error:', error.message)
+        toast.error(error.message || 'Failed to approve review')
+      }
     } finally {
       setActionLoading(false)
       setShowModerationModal(false)
@@ -96,18 +116,38 @@ const AdminReviews = () => {
   const handleReject = async (reviewId, note = '') => {
     try {
       setActionLoading(true)
-      const response = await api.patch(`/reviews/${reviewId}/reject`, {
+      
+      // Log the exact URL being called
+      const rejectUrl = `/reviews/${reviewId}/reject`
+      console.log('🔍 Rejecting review at URL:', rejectUrl)
+      console.log('🔍 Review ID:', reviewId)
+      console.log('🔍 Moderation note:', note)
+      
+      const response = await api.patch(rejectUrl, {
         moderationNote: note
       })
 
-      if (response.data.success) {
+      console.log('✅ Reject response:', response)
+
+      if (response.success) {
         toast.success('Review rejected successfully')
         setReviews(prev => prev.filter(r => r._id !== reviewId))
         fetchStats()
       }
     } catch (error) {
-      console.error('Failed to reject review:', error)
-      toast.error(error.response?.data?.error || 'Failed to reject review')
+      console.error('❌ Failed to reject review:', error)
+      
+      // Enhanced error handling
+      if (error.response) {
+        console.error('❌ Server error:', error.response.status, error.response.data)
+        toast.error(error.response.data?.error || `Server error: ${error.response.status}`)
+      } else if (error.request) {
+        console.error('❌ No response received — CORS or network issue:', error.request)
+        toast.error('Network error - request failed to reach server')
+      } else {
+        console.error('❌ Request setup error:', error.message)
+        toast.error(error.message || 'Failed to reject review')
+      }
     } finally {
       setActionLoading(false)
       setShowModerationModal(false)
