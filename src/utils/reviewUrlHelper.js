@@ -1,5 +1,4 @@
 // NEW FILE - Frontend Review URL Helper Utility
-import { validateUrlParameters } from '../../utils/emailReviewLinks.js'
 
 /**
  * Safely extract and validate review token from URL
@@ -30,14 +29,21 @@ export function extractReviewTokenFromUrl(urlParams, routeParams = {}) {
       }
     }
     
-    // Validate parameters
-    const validation = validateUrlParameters(orderId, encodedToken)
+    // Basic validation
+    if (typeof orderId !== 'string' || typeof encodedToken !== 'string') {
+      return {
+        orderId: null,
+        token: null,
+        valid: false,
+        error: 'Invalid parameter types'
+      }
+    }
     
     return {
-      orderId: validation.orderId,
-      token: validation.token,
-      valid: validation.valid,
-      error: validation.error
+      orderId: orderId.trim(),
+      token: encodedToken.trim(),
+      valid: true,
+      error: null
     }
   } catch (error) {
     console.error('Error extracting review token from URL:', error.message)
