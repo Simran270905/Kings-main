@@ -74,6 +74,40 @@ export function createVerificationUrl(orderId, token, apiBaseUrl = 'https://api.
 }
 
 /**
+ * Decode token from URL parameters safely (Step 5 - Safe decoding)
+ * @param {string} encodedToken - URL-encoded JWT token
+ * @returns {string} - Decoded token
+ */
+export function decodeTokenFromUrl(encodedToken) {
+  try {
+    if (!encodedToken) {
+      throw new Error('No token provided')
+    }
+    
+    console.log('FRONTEND TOKEN DECODING DEBUG:')
+    console.log('- Encoded token length:', encodedToken.length)
+    console.log('- Encoded token preview:', encodedToken.substring(0, 30) + '...')
+    
+    // Decode URL-encoded token
+    const decodedToken = decodeURIComponent(encodedToken)
+    
+    console.log('- Decoded token length:', decodedToken.length)
+    console.log('- Decoded token preview:', decodedToken.substring(0, 30) + '...')
+    console.log('- Token changed during decode:', encodedToken !== decodedToken)
+    
+    // Validate JWT format
+    if (!decodedToken.startsWith('eyJ')) {
+      throw new Error('Invalid token format - does not start with eyJ')
+    }
+    
+    return decodedToken
+  } catch (error) {
+    console.error('Error decoding token from URL:', error.message)
+    throw new Error('Failed to decode token from URL')
+  }
+}
+
+/**
  * Create review submission URL
  * @param {string} apiBaseUrl - API base URL
  * @returns {string} - Complete submission URL

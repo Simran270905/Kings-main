@@ -77,22 +77,22 @@ const ReviewPage = () => {
       setLoading(true)
       setError(null)
       
-      // Extract token from URL using utility function
-      const urlParams = new URLSearchParams(window.location.search)
-      const routeParams = { orderId, token }
-      const tokenData = extractReviewTokenFromUrl(urlParams, routeParams)
+      // Step 5 - Fix token reading on frontend
+      const token = decodeURIComponent(new URLSearchParams(window.location.search).get('token') || '')
+      const urlOrderId = new URLSearchParams(window.location.search).get('orderId') || orderId
       
-      if (!tokenData.valid) {
-        throw new Error(tokenData.error || 'Invalid URL parameters')
+      console.log('=== VERIFYING TOKEN FROM URL (STEP 5) ===')
+      console.log('Order ID:', urlOrderId)
+      console.log('Token length:', token.length)
+      console.log('Token preview:', token ? token.substring(0, 20) + '...' : 'missing')
+      console.log('Token format valid:', isValidJwtFormat(token))
+      
+      if (!token || !urlOrderId) {
+        throw new Error('Missing token or orderId in URL')
       }
       
-      console.log('=== VERIFYING TOKEN FROM URL ===')
-      console.log('Order ID:', tokenData.orderId)
-      console.log('Token format valid:', isValidJwtFormat(tokenData.token))
-      console.log('Token preview:', tokenData.token ? tokenData.token.substring(0, 20) + '...' : 'missing')
-      
-      // Create verification URL using utility function
-      const verificationUrl = createVerificationUrl(tokenData.orderId, tokenData.token)
+      // Create verification URL
+      const verificationUrl = createVerificationUrl(urlOrderId, token)
       console.log('Verification URL:', verificationUrl)
       
       const response = await fetch(verificationUrl)
@@ -172,22 +172,26 @@ const ReviewPage = () => {
       console.log('Setting submitting to true...')
       setSubmitting(true)
 
-      // Get current token from URL using utility function
-      const urlParams = new URLSearchParams(window.location.search)
-      const routeParams = { orderId, token }
-      const tokenData = extractReviewTokenFromUrl(urlParams, routeParams)
+      // Step 5 - Get current token from URL directly
+      const token = decodeURIComponent(new URLSearchParams(window.location.search).get('token') || '')
+      const urlOrderId = new URLSearchParams(window.location.search).get('orderId') || orderId
       
-      if (!tokenData.valid) {
-        throw new Error(tokenData.error || 'Invalid token for submission')
+      if (!token || !urlOrderId) {
+        throw new Error('Missing token or orderId in URL for submission')
       }
+      
+      console.log('=== SUBMITTING REVIEW (STEP 5) ===')
+      console.log('Order ID:', urlOrderId)
+      console.log('Token length:', token.length)
+      console.log('Token preview:', token.substring(0, 20) + '...')
       
       console.log('Creating JSON payload...')
       const jsonData = {
-        orderId: tokenData.orderId,
+        orderId: urlOrderId,
         productId: selectedProduct.productId,
         rating: rating,
         comment: comment.trim(),
-        token: tokenData.token
+        token: token
       }
 
       console.log('JSON payload:', jsonData)
