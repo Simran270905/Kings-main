@@ -33,14 +33,24 @@ export const useAnalytics = () => {
 
       // First try to get comprehensive admin analytics
       try {
+        console.log('🔄 Fetching admin analytics with params:', { 
+          range: '30', 
+          period: 'daily',
+          validate: 'false',
+          strictPopulate: 'false'
+        });
+        
         analyticsData = await adminApi.getAnalytics({ 
           range: '30', 
           period: 'daily',
           validate: 'false',
           strictPopulate: 'false'
         })
+        
+        console.log('✅ Admin analytics response:', analyticsData);
       } catch (adminAnalyticsError) {
-        console.warn('⚠️ Admin analytics failed, falling back to public stats:', adminAnalyticsError.message)
+        console.error('❌ Admin analytics failed:', adminAnalyticsError.message)
+        console.error('Full error:', adminAnalyticsError)
         
         // Fallback to public stats endpoint
         try {
@@ -176,13 +186,16 @@ export const useAnalytics = () => {
           
           // Transform for charts
           const chartData = Object.entries(dateData)
-            .map(([date, data]) => ({
-              date,
-              orders: data.orders || 0,
-              revenue: data.revenue || 0,
-              customers: data.customers || 0,
-              avgOrderValue: data.avgOrderValue || 0
-            }))
+            .map(([date, data]) => {
+              console.log(`📊 Chart data for ${date}:`, data);
+              return {
+                date,
+                orders: data.orders || 0,
+                revenue: data.revenue || 0,
+                customers: data.customers || 0,
+                avgOrderValue: data.avgOrderValue || 0
+              };
+            })
             .sort((a, b) => new Date(a.date) - new Date(b.date))
             .reverse() // Most recent first
 
@@ -192,24 +205,9 @@ export const useAnalytics = () => {
         console.warn('⚠️ Admin chart data failed, using fallback:', adminError.message)
       }
 
-      // Fallback: generate mock chart data based on current stats
-      const currentStats = data
-      const mockData = []
-      
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date()
-        date.setDate(date.getDate() - i)
-        
-        mockData.push({
-          date: date.toISOString().split('T')[0],
-          orders: Math.floor(Math.random() * 3) + (currentStats.totalOrders / days || 0),
-          revenue: (currentStats.revenue / days || 0) * (0.5 + Math.random()),
-          customers: Math.floor(Math.random() * 2) + 1,
-          avgOrderValue: currentStats.avgOrderValue
-        })
-      }
-      
-      return mockData
+      // Fallback: return empty array instead of mock data
+      console.warn('⚠️ Admin chart data failed and no fallback available')
+      return []
     } catch (error) {
       console.error('❌ Chart data fetch error:', error.message)
       return []

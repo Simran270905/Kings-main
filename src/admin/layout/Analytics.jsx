@@ -44,10 +44,13 @@ export default function Analytics() {
   useEffect(() => {
     const fetchChartData = async () => {
       try {
+        console.log('🔄 Analytics Layout: Fetching chart data...')
         const data = await analytics.getChartData('daily', 30)
+        console.log('📊 Analytics Layout: Chart data received:', data)
+        console.log('📊 Analytics Layout: Chart data length:', data.length)
         setChartData(data)
       } catch (error) {
-        console.error('Failed to fetch chart data:', error)
+        console.error('❌ Analytics Layout: Failed to fetch chart data:', error)
       }
     }
 
