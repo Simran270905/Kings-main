@@ -8,6 +8,7 @@ import TrackOrderInput from '../../components/TrackOrder/TrackOrderInput'
 import { useProduct } from '../../../context/ProductContext'
 import { API_BASE_URL } from '@config/api.js'
 import { HomePageSkeleton, CategorySkeleton } from '../../../components/LoadingSkeletons.jsx'
+import CollectionSkeleton from '../../../components/CollectionSkeleton.jsx'
 import { dataSyncEvents, EVENT_TYPES } from '../../../utils/eventSystem.js'
 
 
@@ -67,6 +68,21 @@ function HomePage() {
       try {
         setLoading(true)
         
+        // Check sessionStorage cache first
+        const cacheKey = 'homepage_collections_cache'
+        const cachedData = sessionStorage.getItem(cacheKey)
+        const cacheTimestamp = sessionStorage.getItem(`${cacheKey}_timestamp`)
+        const now = Date.now()
+        const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+        
+        if (cachedData && cacheTimestamp && (now - parseInt(cacheTimestamp)) < CACHE_DURATION) {
+          const { categories, productsByCategory } = JSON.parse(cachedData)
+          setCategories(categories)
+          setProductsByCategory(productsByCategory)
+          setLoading(false)
+          return
+        }
+        
         // Fetch all categories
         const catResponse = await fetch(`${API_BASE_URL}/categories`)
         const catData = await catResponse.json()
@@ -107,7 +123,7 @@ function HomePage() {
                              || []
                    
                   const categoryProducts = Array.isArray(prods) ? prods : []
-                  
+                   
                   if (categoryProducts.length > 0) {
                     productsMap[cat._id] = categoryProducts
                   }
@@ -119,6 +135,14 @@ function HomePage() {
           }
           
           setProductsByCategory(productsMap)
+          
+          // Cache the results
+          const cacheData = {
+            categories: cats,
+            productsByCategory: productsMap
+          }
+          sessionStorage.setItem(cacheKey, JSON.stringify(cacheData))
+          sessionStorage.setItem(`${cacheKey}_timestamp`, now.toString())
         } catch (err) {
           console.error('Failed to fetch products:', err)
         } finally {
@@ -135,11 +159,16 @@ function HomePage() {
     refreshProducts()
   }, [])
 
-  // Show loading state
+  // Show loading state with skeleton placeholders
   if (loading) {
     return (
-      <div className="text-center py-8 sm:py-10 md:py-12 text-gray-500">
-        Loading collections...
+      <div className="bg-gray-50 py-8 sm:py-10 md:py-12 px-2 sm:px-4 md:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
+          {/* Show 3 skeleton collections to match typical layout */}
+          {[1, 2, 3].map((item) => (
+            <CollectionSkeleton key={item} />
+          ))}
+        </div>
       </div>
     )
   }
@@ -157,9 +186,9 @@ function HomePage() {
       </div>
 
       {/* ================= DYNAMIC CATEGORY SECTIONS ================= */}
-      <div className="bg-gray-50 py-8 sm:py-10 md:py-12 px-2 sm:px-4 md:px-6 lg:px-8">
+      <div className="bg-gray-50 py-8 sm:py-10 md:py-12 px-2 sm:px-4 md:px-6 lg:px-8 min-h-[400px]">
         <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
-          {categories.map(cat => {
+          {categories.map((cat, catIndex) => {
             const catProducts = productsByCategory[cat._id];
             
             if (!catProducts || catProducts.length === 0) return null;
@@ -199,9 +228,12 @@ function HomePage() {
                     ref={el => scrollRefs.current[cat._id] = el}
                     className="flex overflow-x-auto gap-4 scroll-smooth snap-x snap-mandatory scrollbar-hide pb-2"
                   >
-                    {catProducts.map(product => (
+                    {catProducts.map((product, productIndex) => (
                       <div key={product._id || product.id} className="flex-shrink-0 w-[50%] sm:w-[50%] md:w-[33.33%] lg:w-[25%] snap-start">
-                        <HomeSectionCard product={product} />
+                        <HomeSectionCard 
+                          product={product} 
+                          loading={catIndex === 0 && productIndex >= 2 ? "eager" : "lazy"}
+                        />
                       </div>
                     ))}
                   </div>

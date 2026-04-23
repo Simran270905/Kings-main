@@ -16,7 +16,7 @@ import {
   getProductBrand,
 } from '../../../utils/productHelpers.js'
 
-const HomeSectionCard = ({ product }) => {
+const HomeSectionCard = ({ product, loading = "lazy" }) => {
   // FIXED: Use shared helpers for consistent field mapping
   const productImage = optimizeCloudinaryUrl(getProductImage(product));
   const productName = getProductName(product);
@@ -110,7 +110,7 @@ const HomeSectionCard = ({ product }) => {
           <img
             src={productImage}
             alt={productName}
-            loading="lazy"
+            loading={loading}
             data-product-img={product._id || product.id}
             className="
               w-full h-auto object-cover
