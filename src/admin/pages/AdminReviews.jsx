@@ -1,4 +1,4 @@
-// NEW FILE
+// NEW FILE - Admin Reviews Management
 import React, { useState, useEffect } from 'react'
 import { toast } from 'react-hot-toast'
 import api from '../../services/api'
