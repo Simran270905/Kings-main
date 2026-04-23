@@ -76,9 +76,9 @@ const ReviewPage = () => {
       setLoading(true)
       setError(null)
       
-      // Use EXACT same code as working test page
+      // Use valid JWT token generated with current JWT_SECRET
       const orderId = '69e679bf0a9eb574729bbd7e'
-      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmRlcklkIjoiNjllNjc5YmYwYTllYjU3NDcyOWJiZDdlIiwiZW1haWwiOiJzaW1yYW5rYWRhbWtiMTJAZ21haWwuY29tIiwiZXhwaXJlcyI6MTc3NzE0MjUzNjI5OSwiZ2VuZXJhdGVkIjoxNzc2OTM3NjM2OTl9.Yjk3YzY3ZTE5ZmJmMzY4ZTc5M2RlNDk0M2I5MmY3ZmU3YjZlM2M5YmZkZTU4ZmM0Zjlk'
+      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmRlcklkIjoiNjllNjc5YmYwYTllYjU3NDcyOWJiZDdlIiwiZW1haWwiOiJzaW1yYW5rYWRhbWtiMTJAZ21haWwuY29tIiwiZXhwaXJlcyI6MTc3NzU1NzE1NjY5MCwiZ2VuZXJhdGVkIjoxNzc2OTUyMzU2NjkwLCJpYXQiOjE3NzY5NTIzNTZ9.jm-ocNo4b7-GGQ8bUC5-s88KAYOQd4MoGxNTe3Ado-8'
       
       console.log('=== EXACT COPY OF WORKING TEST ===')
       console.log('Order ID:', orderId)
@@ -171,7 +171,7 @@ const ReviewPage = () => {
         productId: selectedProduct.productId,
         rating: rating,
         comment: comment.trim(),
-        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmRlcklkIjoiNjllNjc5YmYwYTllYjU3NDcyOWJiZDdlIiwiZW1haWwiOiJzaW1yYW5rYWRhbWtiMTJAZ21haWwuY29tIiwiZXhwaXJlcyI6MTc3NzE0MjUzNjI5OSwiZ2VuZXJhdGVkIjoxNzc2OTM3NjM2OTl9.Yjk3YzY3ZTE5ZmJmMzY4ZTc5M2RlNDk0M2I5MmY3ZmU3YjZlM2M5YmZkZTU4ZmM0Zjlk'
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmRlcklkIjoiNjllNjc5YmYwYTllYjU3NDcyOWJiZDdlIiwiZW1haWwiOiJzaW1yYW5rYWRhbWtiMTJAZ21haWwuY29tIiwiZXhwaXJlcyI6MTc3NzU1NzE1NjY5MCwiZ2VuZXJhdGVkIjoxNzc2OTUyMzU2NjkwLCJpYXQiOjE3NzY5NTIzNTZ9.jm-ocNo4b7-GGQ8bUC5-s88KAYOQd4MoGxNTe3Ado-8'
       }
 
       console.log('JSON payload:', jsonData)
