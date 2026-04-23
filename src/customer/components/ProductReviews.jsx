@@ -28,16 +28,26 @@ const ProductReviews = ({ productId }) => {
       const response = await api.get(`/reviews/product/${productId}?page=${page}&limit=10`)
       
       console.log('📊 API Response:', response)
-      console.log('📝 Reviews received:', response.data?.reviews || [])
-      console.log('📈 Stats received:', response.data || {})
+      console.log('📝 Reviews received:', response.reviews || response.data?.reviews || [])
+      console.log('📈 Stats received:', response.stats || response.data?.stats || {})
+      
+      // Handle different response structures
+      const reviewsData = response.reviews || response.data?.reviews || []
+      const statsData = response.stats || response.data?.stats || {}
+      
+      console.log('🎯 Final reviews data:', reviewsData)
+      console.log('🎯 Final stats data:', statsData)
       
       if (page === 1) {
-        setReviews(response.data?.reviews || [])
+        setReviews(reviewsData)
+        console.log('✅ Reviews state set:', reviewsData)
       } else {
-        setReviews(prev => [...prev, ...(response.data?.reviews || [])])
+        setReviews(prev => [...prev, ...reviewsData])
+        console.log('✅ Reviews state updated:', reviewsData)
       }
       
-      setStats(response.data || {})
+      setStats(statsData)
+      console.log('✅ Stats state set:', statsData)
       setHasMore(response.pagination?.hasMore || false)
     } catch (error) {
       console.error('Failed to fetch reviews:', error)

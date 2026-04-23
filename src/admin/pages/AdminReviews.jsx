@@ -33,16 +33,39 @@ const AdminReviews = () => {
   const fetchReviews = async () => {
     try {
       setLoading(true)
-      const endpoint = filter === 'pending' 
-        ? `/reviews/admin/pending?page=${page}&limit=20`
-        : `/reviews/admin/pending?page=${page}&limit=20` // For now, only pending reviews
       
+      let endpoint
+      switch (filter) {
+        case 'pending':
+          endpoint = `/reviews/admin/pending?page=${page}&limit=20`
+          break
+        case 'approved':
+          endpoint = `/reviews/admin/approved?page=${page}&limit=20`
+          break
+        case 'rejected':
+          endpoint = `/reviews/admin/rejected?page=${page}&limit=20`
+          break
+        case 'all':
+          endpoint = `/reviews/admin/all?page=${page}&limit=20`
+          break
+        default:
+          endpoint = `/reviews/admin/pending?page=${page}&limit=20`
+      }
+      
+      console.log('🔍 Admin fetching reviews from:', endpoint)
       const response = await api.get(endpoint)
       
+      console.log('📊 Admin reviews API response:', response)
+      console.log('📝 Admin reviews received:', response.reviews || [])
+      console.log('🔍 Review statuses:', (response.reviews || []).map(r => r.status))
+      
+      // Handle different response structures
+      const reviewsData = response.reviews || response.data?.reviews || response.data || []
+      
       if (page === 1) {
-        setReviews(response.reviews || [])
+        setReviews(reviewsData)
       } else {
-        setReviews(prev => [...prev, ...(response.reviews || [])])
+        setReviews(prev => [...prev, ...reviewsData])
       }
       
       setHasMore(response.pagination?.hasMore || false)
@@ -399,7 +422,10 @@ const AdminReviews = () => {
 
       {/* Reviews List */}
       <div className="space-y-4">
-        {reviews.length === 0 ? (
+        {console.log('🎨 Admin rendering reviews:', reviews.length, 'reviews for filter:', filter)}
+        {console.log('🔍 Filtered reviews:', reviews.filter(r => r.status === filter))}
+        
+        {Array.isArray(reviews) && reviews.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-12 text-center">
             <div className="text-gray-400 text-4xl mb-4">!</div>
             <p className="text-gray-500">No {filter} reviews found</p>
