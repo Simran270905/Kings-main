@@ -61,19 +61,27 @@ export default function OurStory() {
 
   useEffect(() => {
     try {
-      const storyContent = getContent('OUR_STORY')
-      if (storyContent && storyContent.hero) {
-        setContent(storyContent)
-      }
+      // Clear any existing localStorage content to force fresh load
+      localStorage.removeItem('cms_our_story')
+      
+      // Use our component defaults directly (which have Cloudinary URLs)
+      setContent(DEFAULT_OUR_STORY)
+      
+      console.log('=== OUR STORY CONTENT DEBUG ===')
+      console.log('Using component defaults with video:')
+      console.log('Video URL:', DEFAULT_OUR_STORY.hero.video)
+      console.log('Image URL:', DEFAULT_OUR_STORY.hero.image)
+      console.log('================================')
     } catch (error) {
-      console.warn('Failed to load OurStory content, using defaults')
+      console.warn('Failed to load OurStory content, using component defaults')
+      setContent(DEFAULT_OUR_STORY)
     }
   }, [])
 
   return (
     <div className="bg-white text-gray-900">
       {/* HERO */}
-      <section className="relative h-[75vh] flex items-center justify-center">
+      <section className="relative h-screen flex items-center justify-center">
         {content.hero.video ? (
           <video
             src={content.hero.video}
@@ -83,6 +91,19 @@ export default function OurStory() {
             playsInline
             poster={content.hero.image}
             className="absolute inset-0 w-full h-full object-cover"
+            onError={(e) => {
+              console.error('Video failed to load:', e);
+              // Fallback to image if video fails
+              e.target.style.display = 'none';
+              const fallbackImg = document.createElement('img');
+              fallbackImg.src = content.hero.image;
+              fallbackImg.alt = 'KKings Story';
+              fallbackImg.className = 'absolute inset-0 w-full h-full object-cover';
+              e.target.parentNode.appendChild(fallbackImg);
+            }}
+            onLoadedData={() => {
+              console.log('Video loaded successfully');
+            }}
           />
         ) : (
           <img
