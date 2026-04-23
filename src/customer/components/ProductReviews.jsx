@@ -14,6 +14,10 @@ const ProductReviews = ({ productId }) => {
     fetchReviews()
   }, [productId, page])
 
+  const refreshReviews = () => {
+    setPage(1) // Reset to first page and trigger fetch
+  }
+
   const fetchReviews = async () => {
     try {
       setLoading(true)
@@ -189,7 +193,16 @@ const ProductReviews = ({ productId }) => {
 
   return (
     <div className="py-8">
-      <h3 className="text-2xl font-bold text-gray-900 mb-6">Customer Reviews</h3>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-2xl font-bold text-gray-900">Customer Reviews</h3>
+        <button
+          onClick={refreshReviews}
+          disabled={loading}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {loading ? 'Refreshing...' : 'Refresh Reviews'}
+        </button>
+      </div>
       
       {/* Review Summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
