@@ -34,25 +34,11 @@ const AdminReviews = () => {
     try {
       setLoading(true)
       
-      let endpoint
-      switch (filter) {
-        case 'pending':
-          endpoint = `/reviews/admin/pending?page=${page}&limit=20`
-          break
-        case 'approved':
-          endpoint = `/reviews/admin/approved?page=${page}&limit=20`
-          break
-        case 'rejected':
-          endpoint = `/reviews/admin/rejected?page=${page}&limit=20`
-          break
-        case 'all':
-          endpoint = `/reviews/admin/all?page=${page}&limit=20`
-          break
-        default:
-          endpoint = `/reviews/admin/pending?page=${page}&limit=20`
-      }
+      // Fetch all reviews and filter client-side
+      const endpoint = `/reviews/admin/all?page=${page}&limit=50`
+      console.log('🔍 Admin fetching ALL reviews from:', endpoint)
+      console.log('🔍 Current filter:', filter)
       
-      console.log('🔍 Admin fetching reviews from:', endpoint)
       const response = await api.get(endpoint)
       
       console.log('📊 Admin reviews API response:', response)
@@ -64,8 +50,10 @@ const AdminReviews = () => {
       
       if (page === 1) {
         setReviews(reviewsData)
+        console.log('✅ All reviews set:', reviewsData.length)
       } else {
         setReviews(prev => [...prev, ...reviewsData])
+        console.log('✅ Reviews updated:', reviewsData.length)
       }
       
       setHasMore(response.pagination?.hasMore || false)
@@ -78,6 +66,22 @@ const AdminReviews = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Filter reviews based on current filter
+  const getFilteredReviews = () => {
+    if (!reviews || !Array.isArray(reviews)) return []
+    
+    console.log('🔍 Filtering reviews by status:', filter)
+    console.log('🔍 Available statuses:', [...new Set(reviews.map(r => r.status))])
+    
+    if (filter === 'all') {
+      return reviews
+    }
+    
+    const filtered = reviews.filter(r => r.status === filter)
+    console.log('🔍 Filtered reviews count:', filtered.length)
+    return filtered
   }
 
   const fetchStats = async () => {
@@ -422,17 +426,20 @@ const AdminReviews = () => {
 
       {/* Reviews List */}
       <div className="space-y-4">
-        {console.log('🎨 Admin rendering reviews:', reviews.length, 'reviews for filter:', filter)}
-        {console.log('🔍 Filtered reviews:', reviews.filter(r => r.status === filter))}
-        
-        {Array.isArray(reviews) && reviews.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-12 text-center">
-            <div className="text-gray-400 text-4xl mb-4">!</div>
-            <p className="text-gray-500">No {filter} reviews found</p>
-          </div>
-        ) : (
-          reviews.map(renderReviewCard)
-        )}
+        {(() => {
+          const filteredReviews = getFilteredReviews()
+          console.log('🎨 Admin rendering reviews:', filteredReviews.length, 'reviews for filter:', filter)
+          console.log('🔍 Filtered reviews:', filteredReviews)
+          
+          return Array.isArray(filteredReviews) && filteredReviews.length === 0 ? (
+            <div className="bg-white rounded-lg shadow p-12 text-center">
+              <div className="text-gray-400 text-4xl mb-4">!</div>
+              <p className="text-gray-500">No {filter} reviews found</p>
+            </div>
+          ) : (
+            filteredReviews.map(renderReviewCard)
+          )
+        })()}
       </div>
 
       {/* Load More */}

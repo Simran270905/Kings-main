@@ -462,7 +462,14 @@ export default function ProductDetails() {
         {/* Reviews Section */}
         {currentProduct && (
           <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <ProductReviews productId={currentProduct.id} />
+            {(() => {
+              console.log('🔍 ProductDetails - currentProduct._id:', currentProduct._id)
+              console.log('🔍 ProductDetails - currentProduct.id:', currentProduct.id)
+              console.log('🔍 ProductDetails - currentProduct:', currentProduct)
+              const productId = currentProduct._id || currentProduct.id
+              console.log('🔍 ProductDetails - Using productId for reviews:', productId)
+              return <ProductReviews productId={productId} />
+            })()}
           </section>
         )}
       </div>
