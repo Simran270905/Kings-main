@@ -78,7 +78,7 @@ const ReviewPage = () => {
       
       // Use EXACT same code as working test page
       const orderId = '69e679bf0a9eb574729bbd7e'
-      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmRlcklkIjoiNjllNjc5YmYwYTllYjU3NDcyOWJiZDdlIiwiZW1haWwiOiJjdXN0b21lckBleGFtcGxlLmNvbSIsImV4cGlyZXMiOjE3Nzc1NDEzNDU0MzksImdlbmVyYXRlZCI6MTc3NjkzNjU0NTQzOX0.b1df6023f95aa8945ee25d597e1a32989811d7a1124cea184ca52b465c60d6ca'
+      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmRlcklkIjoiNjllNjc5YmYwYTllYjU3NDcyOWJiZDdlIiwiZW1haWwiOiJjdXN0b21lckBleGFtcGxlLmNvbSIsImV4cGlyZXMiOjE3Nzc1NDE5MTMwNDgsImdlbmVyYXRlZCI6MTc3NjkzNzExMzA0OH0.4f647da6179db5e01cd3d6ac28c1ab9549896eadb75b1a0299eefcf405ef9165'
       
       console.log('=== EXACT COPY OF WORKING TEST ===')
       console.log('Order ID:', orderId)
@@ -171,7 +171,7 @@ const ReviewPage = () => {
         productId: selectedProduct.productId,
         rating: rating,
         comment: comment.trim(),
-        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmRlcklkIjoiNjllNjc5YmYwYTllYjU3NDcyOWJiZDdlIiwiZW1haWwiOiJjdXN0b21lckBleGFtcGxlLmNvbSIsImV4cGlyZXMiOjE3Nzc1NDEzNDU0MzksImdlbmVyYXRlZCI6MTc3NjkzNjU0NTQzOX0.b1df6023f95aa8945ee25d597e1a32989811d7a1124cea184ca52b465c60d6ca'
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmRlcklkIjoiNjllNjc5YmYwYTllYjU3NDcyOWJiZDdlIiwiZW1haWwiOiJjdXN0b21lckBleGFtcGxlLmNvbSIsImV4cGlyZXMiOjE3Nzc1NDE5MTMwNDgsImdlbmVyYXRlZCI6MTc3NjkzNzExMzA0OH0.4f647da6179db5e01cd3d6ac28c1ab9549896eadb75b1a0299eefcf405ef9165'
       }
 
       console.log('JSON payload:', jsonData)
