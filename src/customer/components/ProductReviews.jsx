@@ -15,6 +15,7 @@ const ProductReviews = ({ productId }) => {
   }, [productId, page])
 
   const refreshReviews = () => {
+    console.log('🔄 Refreshing reviews for productId:', productId)
     setPage(1) // Reset to first page and trigger fetch
   }
 
@@ -23,7 +24,12 @@ const ProductReviews = ({ productId }) => {
       setLoading(true)
       setError(null)
 
+      console.log('🔍 Fetching reviews for productId:', productId)
       const response = await api.get(`/reviews/product/${productId}?page=${page}&limit=10`)
+      
+      console.log('📊 API Response:', response)
+      console.log('📝 Reviews received:', response.data?.reviews || [])
+      console.log('📈 Stats received:', response.data || {})
       
       if (page === 1) {
         setReviews(response.data?.reviews || [])
@@ -226,6 +232,7 @@ const ProductReviews = ({ productId }) => {
 
       {/* Reviews List */}
       <div className="space-y-4">
+        {console.log('🎨 Rendering reviews list:', reviews.length, 'reviews')}
         {reviews.map(renderReviewItem)}
       </div>
 
