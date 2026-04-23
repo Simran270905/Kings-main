@@ -144,7 +144,7 @@ export default function EnhancedOrders() {
     paymentStatus: '',
     paymentMethod: '',
     page: 1,
-    limit: 10,
+    limit: 200,
     sortBy: 'createdAt',
     sortOrder: 'desc'
   })

@@ -33,7 +33,7 @@ export const EnhancedOrderProvider = ({ children }) => {
     paymentStatus: '',
     paymentMethod: '',
     page: 1,
-    limit: 10,
+    limit: 200,
     sortBy: 'createdAt',
     sortOrder: 'desc'
   })
@@ -228,7 +228,7 @@ export const EnhancedOrderProvider = ({ children }) => {
       paymentStatus: '',
       paymentMethod: '',
       page: 1,
-      limit: 10,
+      limit: 200,
       sortBy: 'createdAt',
       sortOrder: 'desc'
     })
