@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
 import api from '../../services/api'
+import { extractReviewTokenFromUrl, createVerificationUrl, createSubmissionUrl, isValidJwtFormat } from '../../utils/reviewUrlHelper.js'
 
 const ReviewPage = () => {
   const { orderId, token } = useParams()
@@ -76,18 +77,25 @@ const ReviewPage = () => {
       setLoading(true)
       setError(null)
       
-      // Use valid JWT token generated with current JWT_SECRET
-      const orderId = '69e679bf0a9eb574729bbd7e'
-      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmRlcklkIjoiNjllNjc5YmYwYTllYjU3NDcyOWJiZDdlIiwiZW1haWwiOiJzaW1yYW5rYWRhbWtiMTJAZ21haWwuY29tIiwiZXhwaXJlcyI6MTc3NzU1NzE1NjY5MCwiZ2VuZXJhdGVkIjoxNzc2OTUyMzU2NjkwLCJpYXQiOjE3NzY5NTIzNTZ9.jm-ocNo4b7-GGQ8bUC5-s88KAYOQd4MoGxNTe3Ado-8'
+      // Extract token from URL using utility function
+      const urlParams = new URLSearchParams(window.location.search)
+      const routeParams = { orderId, token }
+      const tokenData = extractReviewTokenFromUrl(urlParams, routeParams)
       
-      console.log('=== EXACT COPY OF WORKING TEST ===')
-      console.log('Order ID:', orderId)
-      console.log('Token:', token)
+      if (!tokenData.valid) {
+        throw new Error(tokenData.error || 'Invalid URL parameters')
+      }
       
-      const url = `https://api.kkingsjewellery.com/api/reviews/verify-token?orderId=${orderId}&token=${token}`
-      console.log('Full URL:', url)
+      console.log('=== VERIFYING TOKEN FROM URL ===')
+      console.log('Order ID:', tokenData.orderId)
+      console.log('Token format valid:', isValidJwtFormat(tokenData.token))
+      console.log('Token preview:', tokenData.token ? tokenData.token.substring(0, 20) + '...' : 'missing')
       
-      const response = await fetch(url)
+      // Create verification URL using utility function
+      const verificationUrl = createVerificationUrl(tokenData.orderId, tokenData.token)
+      console.log('Verification URL:', verificationUrl)
+      
+      const response = await fetch(verificationUrl)
       const data = await response.json()
       
       console.log('Response status:', response.status)
@@ -164,22 +172,32 @@ const ReviewPage = () => {
       console.log('Setting submitting to true...')
       setSubmitting(true)
 
-      // SUBMIT: Use JSON to bypass multer middleware completely
+      // Get current token from URL using utility function
+      const urlParams = new URLSearchParams(window.location.search)
+      const routeParams = { orderId, token }
+      const tokenData = extractReviewTokenFromUrl(urlParams, routeParams)
+      
+      if (!tokenData.valid) {
+        throw new Error(tokenData.error || 'Invalid token for submission')
+      }
+      
       console.log('Creating JSON payload...')
       const jsonData = {
-        orderId: '69e679bf0a9eb574729bbd7e',
+        orderId: tokenData.orderId,
         productId: selectedProduct.productId,
         rating: rating,
         comment: comment.trim(),
-        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmRlcklkIjoiNjllNjc5YmYwYTllYjU3NDcyOWJiZDdlIiwiZW1haWwiOiJzaW1yYW5rYWRhbWtiMTJAZ21haWwuY29tIiwiZXhwaXJlcyI6MTc3NzU1NzE1NjY5MCwiZ2VuZXJhdGVkIjoxNzc2OTUyMzU2NjkwLCJpYXQiOjE3NzY5NTIzNTZ9.jm-ocNo4b7-GGQ8bUC5-s88KAYOQd4MoGxNTe3Ado-8'
+        token: tokenData.token
       }
 
       console.log('JSON payload:', jsonData)
       console.log('Making API call...')
-      const apiUrl = `${import.meta.env.VITE_API_URL || 'https://api.kkingsjewellery.com/api'}/reviews/submit`
-      console.log('API URL:', apiUrl)
       
-      const response = await fetch(apiUrl, {
+      // Create submission URL using utility function
+      const submissionUrl = createSubmissionUrl()
+      console.log('Submission URL:', submissionUrl)
+      
+      const response = await fetch(submissionUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
