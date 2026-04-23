@@ -7,14 +7,15 @@ const DEFAULT_OUR_STORY = {
   hero: {
     title: 'OUR STORY',
     subtitle: 'Jewellery crafted for strength, identity, and legacy.',
-    image: '/images/story-hero.jpg',
+    video: 'https://res.cloudinary.com/dkbxrhe1v/video/upload/v1776971275/IMG_2682_ipj9lb.mov',
+    image: 'https://res.cloudinary.com/dkbxrhe1v/image/upload/v1776971321/WhatsApp_Image_2026-03-28_at_10.19.25_PM_fb1qz9.jpg',
   },
   sections: [
     {
       id: 'section1',
       type: 'text_image',
       title: 'Born From Power',
-      image: '/images/story-1.jpg',
+      image: 'https://res.cloudinary.com/dkbxrhe1v/image/upload/v1776971470/WhatsApp_Image_2026-03-28_at_10.19.24_PM_kd1tfl.jpg',
       content:
         'KKings Jewellery was built for men who carry confidence in everything they wear. Our designs are bold, heavy, and timeless — created to express presence, not decoration.',
       imagePosition: 'right',
@@ -30,7 +31,7 @@ const DEFAULT_OUR_STORY = {
       id: 'section2',
       type: 'text_image',
       title: 'Crafted With Precision',
-      image: '/images/story-2.jpg',
+      image: 'https://res.cloudinary.com/dkbxrhe1v/image/upload/v1776971470/WhatsApp_Image_2026-03-28_at_10.19.24_PM_kd1tfl.jpg',
       content:
         'Each piece is shaped by skilled artisans combining tradition with modern engineering. Weight, polish, and durability are tested rigorously. We create jewellery that outlasts trends.',
       imagePosition: 'left',
@@ -73,11 +74,23 @@ export default function OurStory() {
     <div className="bg-white text-gray-900">
       {/* HERO */}
       <section className="relative h-[75vh] flex items-center justify-center">
-        <img
-          src={content.hero.image}
-          alt="KKings Story"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+        {content.hero.video ? (
+          <video
+            src={content.hero.video}
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster={content.hero.image}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <img
+            src={content.hero.image}
+            alt="KKings Story"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
         <div className="absolute inset-0 bg-black/60" />
 
         <div className="relative text-center max-w-3xl px-6 text-white">

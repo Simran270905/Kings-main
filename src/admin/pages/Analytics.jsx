@@ -101,19 +101,57 @@ const Analytics = () => {
         const data = response.data
         console.log(' Analytics data received:', data)
         
-        // Update all analytics data
-        setSummary(data.summary)
-        setDailySales(data.dailySales || [])
-        setRevenueTrend(data.revenueTrend || [])
-        setTopProducts(data.topProducts || [])
-        setStatusStats(data.statusStats || [])
-        setStockStats(data.stockStats || {
-          inStock: 0,
-          outOfStock: 0,
-          lowStock: 0,
-          totalProducts: 0
+        // Update all analytics data with correct field mappings
+        setSummary({
+          totalRevenue: data.summary.totalRevenue || 0,
+          totalOrders: data.summary.totalOrders || 0,
+          avgOrderValue: data.summary.avgOrderValue || 0,
+          totalSold: data.summary.totalProductsSold || 0, // Map totalProductsSold to totalSold
+          uniqueCustomers: data.summary.totalCustomers || 0, // Map totalCustomers to uniqueCustomers
+          daysRange: data.summary.daysRange || 30
         })
-        setPaymentMethods(data.paymentMethods || [])
+        
+        // Convert dateData object to array for charts
+        const dailySalesArray = Object.entries(data.dateData || {}).map(([date, values]) => ({
+          _id: date,
+          ...values
+        }))
+        setDailySales(dailySalesArray)
+        
+        setRevenueTrend(dailySalesArray) // Use same data for revenue trend
+        
+        // Map topSellingProducts to expected format
+        const mappedTopProducts = (data.topSellingProducts || []).map(product => ({
+          productId: product.productId,
+          name: product.name,
+          unitsSold: product.totalQuantity, // Map totalQuantity to unitsSold
+          revenue: product.totalRevenue,
+          currentStock: 0 // This would need to be fetched from products if needed
+        }))
+        setTopProducts(mappedTopProducts)
+        
+        // Convert statusBreakdown object to array for pie chart
+        const statusStatsArray = Object.entries(data.statusBreakdown || {}).map(([status, count]) => ({
+          _id: status,
+          count: count
+        }))
+        setStatusStats(statusStatsArray)
+        
+        // Map stock data correctly
+        setStockStats({
+          inStock: data.stock?.inStock || 0,
+          outOfStock: data.stock?.outOfStock || 0,
+          lowStock: data.stock?.lowStock || 0,
+          totalProducts: data.stock?.totalProducts || 0
+        })
+        
+        // Convert paymentMethods object to array format
+        const paymentMethodsArray = Object.entries(data.paymentMethods || {}).map(([method, count]) => ({
+          _id: method,
+          count: count,
+          revenue: data.revenueByPaymentStatus?.[method] || 0
+        }))
+        setPaymentMethods(paymentMethodsArray)
         setLastUpdated(data.lastUpdated)
         
         console.log(' Analytics updated successfully')
@@ -318,9 +356,9 @@ const Analytics = () => {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={dailySales.map(item => ({
                 date: item._id,
-                revenue: item.revenue,
-                orders: item.orders,
-                itemsSold: item.itemsSold
+                revenue: item.revenue || 0,
+                orders: item.orders || 0,
+                itemsSold: item.customers || 0 // Use customers as itemsSold proxy
               }))}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
@@ -374,25 +412,17 @@ const Analytics = () => {
                 {topProducts.map((product, index) => (
                   <div key={product.productId} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                     <span className="font-semibold text-gray-500">#{index + 1}</span>
-                    {product.image ? (
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-10 h-10 object-cover rounded"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
-                        <ShoppingBagIcon className="h-5 w-5 text-gray-400" />
-                      </div>
-                    )}
+                    <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
+                      <ShoppingBagIcon className="h-5 w-5 text-gray-400" />
+                    </div>
                     <div className="flex-1">
                       <p className="font-medium text-gray-900 truncate">{product.name}</p>
-                      <p className="text-sm text-gray-500">{product.unitsSold} units sold</p>
+                      <p className="text-sm text-gray-500">{product.unitsSold || 0} units sold</p>
                       <p className="text-xs text-green-600">Stock: {product.currentStock || 0}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-gray-900">{formatPrice(product.revenue)}</p>
-                      <p className="text-xs text-blue-600">{formatPrice(product.revenue / product.unitsSold)}/unit</p>
+                      <p className="font-medium text-gray-900">{formatPrice(product.revenue || 0)}</p>
+                      <p className="text-xs text-blue-600">{product.unitsSold > 0 ? formatPrice((product.revenue || 0) / product.unitsSold) : formatPrice(0)}/unit</p>
                     </div>
                   </div>
                 ))}
