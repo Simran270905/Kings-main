@@ -313,7 +313,19 @@ export default function Analytics() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {chartData.slice(-10).reverse().map((day, index) => (
+              {chartData.slice(-10).reverse().map((day, index) => {
+                // Debug log for first few rows
+                if (index < 3) {
+                  console.log(`🔍 Daily Sales Row ${index}:`, {
+                    date: day.date,
+                    orders: day.orders,
+                    revenue: day.revenue,
+                    customers: day.customers,
+                    rawDay: day
+                  });
+                }
+                
+                return (
                 <tr key={index}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {new Date(day.date).toLocaleDateString()}
@@ -328,7 +340,8 @@ export default function Analytics() {
                     {formatNumber(day.customers)}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

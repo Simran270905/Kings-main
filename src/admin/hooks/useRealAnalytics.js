@@ -172,6 +172,8 @@ export const useAnalytics = () => {
   // Get chart data
   const getChartData = useCallback(async (period = 'daily', days = 30) => {
     try {
+      console.log('🔄 getChartData called with:', { period, days });
+      
       // Try admin analytics first for chart data
       try {
         const analyticsData = await adminApi.getAnalytics({ 
@@ -181,8 +183,13 @@ export const useAnalytics = () => {
           strictPopulate: 'false'
         })
         
+        console.log('📊 Raw analytics response:', analyticsData);
+        
         if (analyticsData.success) {
           const dateData = analyticsData.data?.dateData || {}
+          console.log('📊 DateData from response:', dateData);
+          console.log('📊 DateData keys:', Object.keys(dateData));
+          console.log('📊 DateData sample:', Object.entries(dateData)[0]);
           
           // Transform for charts
           const chartData = Object.entries(dateData)
@@ -199,6 +206,7 @@ export const useAnalytics = () => {
             .sort((a, b) => new Date(a.date) - new Date(b.date))
             .reverse() // Most recent first
 
+          console.log('📊 Final chartData array:', chartData);
           return chartData
         }
       } catch (adminError) {
