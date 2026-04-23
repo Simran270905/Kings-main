@@ -78,7 +78,7 @@ const ReviewPage = () => {
       
       // Use EXACT same code as working test page
       const orderId = '69e679bf0a9eb574729bbd7e'
-      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmRlcklkIjoiNjllNjc5YmYwYTllYjU3NDcyOWJiZDdlIiwiZW1haWwiOiJjdXN0b21lckBleGFtcGxlLmNvbSIsImV4cGlyZXMiOjE3Nzc1NDI1MjM5OTIsImdlbmVyYXRlZCI6MTc3NjkzNzcyMzk5Mn0.9cd909d54799861c4bf88b7eaf864b5a9fe926c03c3c6acb9a78dbd4865fcab8'
+      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmRlcklkIjoiNjllNjc5YmYwYTllYjU3NDcyOWJiZDdlIiwiZW1haWwiOiJzaW1yYW5rYWRhbWtiMTJAZ21haWwuY29tIiwiZXhwaXJlcyI6MTc3NzE0MjUzNjI5OSwiZ2VuZXJhdGVkIjoxNzc2OTM3NjM2OTl9.Yjk3YzY3ZTE5ZmJmMzY4ZTc5M2RlNDk0M2I5MmY3ZmU3YjZlM2M5YmZkZTU4ZmM0Zjlk'
       
       console.log('=== EXACT COPY OF WORKING TEST ===')
       console.log('Order ID:', orderId)
@@ -171,7 +171,7 @@ const ReviewPage = () => {
         productId: selectedProduct.productId,
         rating: rating,
         comment: comment.trim(),
-        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmRlcklkIjoiNjllNjc5YmYwYTllYjU3NDcyOWJiZDdlIiwiZW1haWwiOiJjdXN0b21lckBleGFtcGxlLmNvbSIsImV4cGlyZXMiOjE3Nzc1NDI1MjM5OTIsImdlbmVyYXRlZCI6MTc3NjkzNzcyMzk5Mn0.9cd909d54799861c4bf88b7eaf864b5a9fe926c03c3c6acb9a78dbd4865fcab8'
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmRlcklkIjoiNjllNjc5YmYwYTllYjU3NDcyOWJiZDdlIiwiZW1haWwiOiJzaW1yYW5rYWRhbWtiMTJAZ21haWwuY29tIiwiZXhwaXJlcyI6MTc3NzE0MjUzNjI5OSwiZ2VuZXJhdGVkIjoxNzc2OTM3NjM2OTl9.Yjk3YzY3ZTE5ZmJmMzY4ZTc5M2RlNDk0M2I5MmY3ZmU3YjZlM2M5YmZkZTU4ZmM0Zjlk'
       }
 
       console.log('JSON payload:', jsonData)
