@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Browser Cache</title>
+</head>
+<body>
+    <h1>Clear Browser Cache</h1>
+    <p>This page will clear the browser cache and reload the application.</p>
+    
+    <script>
+    // Clear all localStorage
+    localStorage.clear();
+    
+    // Clear all sessionStorage
+    sessionStorage.clear();
+    
+    // Clear service workers
+    if ('caches' in window) {
+        caches.keys().then(function(names) {
+            names.forEach(function(name) {
+                caches.delete(name);
+            });
+        });
+    }
+    
+    // Unregister service workers
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            registrations.forEach(function(registration) {
+                registration.unregister();
+            });
+        });
+    }
+    
+    alert('Cache cleared! The page will now reload.');
+    
+    // Force reload with cache busting
+    window.location.href = window.location.origin + '/admin/contact-messages?cache_bust=' + Date.now();
+    </script>
+</body>
+</html>

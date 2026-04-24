@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Contact Auth Test</title>
+</head>
+<body>
+    <h1>Contact Messages API Authentication Test</h1>
+    <div id="results"></div>
+    
+    <script>
+    async function testContactAuth() {
+        try {
+            // Step 1: Check if admin token exists
+            const token = localStorage.getItem('kk_admin_token') || localStorage.getItem('token');
+            console.log('Token exists:', !!token);
+            console.log('Token length:', token ? token.length : 0);
+            console.log('Token preview:', token ? token.substring(0, 50) + '...' : 'null');
+            
+            if (!token) {
+                document.getElementById('results').innerHTML = `
+                    <h2>❌ No Token Found</h2>
+                    <p>Please log in as admin first.</p>
+                `;
+                return;
+            }
+            
+            // Step 2: Test admin verification endpoint
+            console.log('Testing admin verification...');
+            const verifyResponse = await fetch('/api/admin/verify', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            console.log('Verify response status:', verifyResponse.status);
+            const verifyData = await verifyResponse.json();
+            console.log('Verify response:', verifyData);
+            
+            // Step 3: Test contact messages endpoint
+            console.log('Testing contact messages...');
+            const contactResponse = await fetch('/api/admin/contact?page=1&limit=5', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            console.log('Contact response status:', contactResponse.status);
+            console.log('Contact response headers:', contactResponse.headers.get('content-type'));
+            
+            const contactData = await contactResponse.json();
+            console.log('Contact response:', contactData);
+            
+            // Step 4: Display results
+            const resultsDiv = document.getElementById('results');
+            
+            if (contactResponse.ok && contactData.success) {
+                resultsDiv.innerHTML = `
+                    <h2>✅ Contact Messages API Working!</h2>
+                    <h3>Admin Verification:</h3>
+                    <ul>
+                        <li>Status: ${verifyResponse.status}</li>
+                        <li>Success: ${verifyData.success}</li>
+                        <li>Message: ${verifyData.message}</li>
+                    </ul>
+                    
+                    <h3>Contact Messages:</h3>
+                    <ul>
+                        <li>Status: ${contactResponse.status}</li>
+                        <li>Success: ${contactData.success}</li>
+                        <li>Messages: ${contactData.data?.messages?.length || 0}</li>
+                        <li>Total: ${contactData.data?.pagination?.totalMessages || 0}</li>
+                    </ul>
+                    
+                    <h3>Sample Messages:</h3>
+                    ${contactData.data?.messages?.slice(0, 3).map(msg => `
+                        <div style="border: 1px solid #ccc; padding: 10px; margin: 10px 0;">
+                            <strong>${msg.fullName}</strong> (${msg.email})<br>
+                            Subject: ${msg.subject}<br>
+                            Status: ${msg.status}<br>
+                            Date: ${new Date(msg.createdAt).toLocaleString()}
+                        </div>
+                    `).join('') || '<p>No messages found</p>'}
+                `;
+            } else {
+                resultsDiv.innerHTML = `
+                    <h2>❌ Contact Messages API Failed</h2>
+                    <h3>Admin Verification:</h3>
+                    <ul>
+                        <li>Status: ${verifyResponse.status}</li>
+                        <li>Success: ${verifyData.success}</li>
+                        <li>Message: ${verifyData.message}</li>
+                    </ul>
+                    
+                    <h3>Contact Messages Error:</h3>
+                    <ul>
+                        <li>Status: ${contactResponse.status}</li>
+                        <li>Success: ${contactData.success}</li>
+                        <li>Message: ${contactData.message}</li>
+                        <li>Error: ${contactData.error || 'N/A'}</li>
+                    </ul>
+                    
+                    <h3>Debug Info:</h3>
+                    <ul>
+                        <li>Token Format: Bearer ${token.substring(0, 20)}...</li>
+                        <li>Request Headers: Authorization: Bearer ${token.substring(0, 20)}...</li>
+                        <li>API URL: /api/admin/contact</li>
+                    </ul>
+                `;
+            }
+            
+        } catch (error) {
+            console.error('Test failed:', error);
+            document.getElementById('results').innerHTML = `
+                <h2>❌ Test Failed</h2>
+                <p>Error: ${error.message}</p>
+                <p>Stack: ${error.stack}</p>
+            `;
+        }
+    }
+    
+    // Run test
+    testContactAuth();
+    </script>
+</body>
+</html>
