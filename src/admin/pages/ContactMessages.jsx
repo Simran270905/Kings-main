@@ -9,7 +9,7 @@ import {
   ArrowUturnLeftIcon,
   TrashIcon
 } from '@heroicons/react/24/outline'
-import { API_BASE_URL } from '@config/api.js'
+import adminApi from '../utils/adminApiService.js'
 
 const ContactMessages = () => {
   const [messages, setMessages] = useState([])
@@ -25,45 +25,29 @@ const ContactMessages = () => {
   const fetchMessages = useCallback(async (page = 1, filters = {}) => {
     try {
       setLoading(true)
-      const params = new URLSearchParams({
-        page,
-        limit: 10,
+      
+      console.log('Debug - Fetching messages with adminApiService...')
+      
+      // Build query string for GET request
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        limit: '10',
         ...filters
       })
       
-      const token = localStorage.getItem('kk_admin_token')
-      console.log('Debug - Token exists:', !!token)
-      console.log('Debug - Token value:', token ? `${token.substring(0, 20)}...` : 'null')
-      console.log('Debug - API URL:', `${API_BASE_URL}/contact?${params}`)
-      
-      if (!token || token === 'null' || token === 'undefined') {
-        setError('Authentication required. Please log in to access admin panel.')
-        setLoading(false)
-        return
-      }
-      
-      const response = await fetch(`${API_BASE_URL}/contact?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      const response = await adminApi.request(`/admin/contact?${queryParams}`, {
+        method: 'GET'
       })
       
-      console.log('Debug - Response status:', response.status)
-      console.log('Debug - Response headers:', response.headers.get('content-type'))
+      console.log('Debug - Admin API response:', response)
       
-      if (!response.ok) {
-        const errorData = await response.json()
-        console.error('API Error Response:', errorData)
-        throw new Error(errorData.message || `HTTP ${response.status}: Failed to fetch messages`)
+      if (response.success) {
+        setMessages(response.data?.messages || [])
+        setTotalPages(response.data?.pagination?.totalPages || 1)
+        setStats(response.data?.stats || { new: 0, read: 0, replied: 0 })
+      } else {
+        throw new Error(response.message || 'Failed to fetch messages')
       }
-      
-      const data = await response.json()
-      console.log('Debug - Response data:', data)
-      
-      setMessages(data.data?.messages || [])
-      setTotalPages(data.data?.pagination?.totalPages || 1)
-      setStats(data.data?.stats || { new: 0, read: 0, replied: 0 })
     } catch (err) {
       console.error('Debug - Fetch error:', err)
       console.error('Error details:', {
@@ -83,30 +67,25 @@ const ContactMessages = () => {
 
   const handleMessageStatusUpdate = async (messageId, newStatus, adminNotes = '') => {
     try {
-      const token = localStorage.getItem('kk_admin_token')
-      const response = await fetch(`${API_BASE_URL}/contact/${messageId}/status`, {
+      const response = await adminApi.request(`/admin/contact/${messageId}/status`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify({ status: newStatus, adminNotes })
       })
       
-      if (!response.ok) {
-        throw new Error('Failed to update status')
-      }
-      
-      // Refresh messages
-      fetchMessages(currentPage, { search, status: statusFilter })
-      
-      // Update selected message if open
-      if (selectedMessage && selectedMessage._id === messageId) {
-        setSelectedMessage({
-          ...selectedMessage,
-          status: newStatus,
-          adminNotes
-        })
+      if (response.success) {
+        // Refresh messages
+        fetchMessages(currentPage, { search, status: statusFilter })
+        
+        // Update selected message if open
+        if (selectedMessage && selectedMessage._id === messageId) {
+          setSelectedMessage({
+            ...selectedMessage,
+            status: newStatus,
+            adminNotes
+          })
+        }
+      } else {
+        throw new Error(response.message || 'Failed to update status')
       }
     } catch (err) {
       setError(err.message)
@@ -119,24 +98,20 @@ const ContactMessages = () => {
     }
     
     try {
-      const token = localStorage.getItem('kk_admin_token')
-      const response = await fetch(`${API_BASE_URL}/contact/${messageId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await adminApi.request(`/admin/contact/${messageId}`, {
+        method: 'DELETE'
       })
       
-      if (!response.ok) {
-        throw new Error('Failed to delete message')
-      }
-      
-      // Refresh messages
-      fetchMessages(currentPage, { search, status: statusFilter })
-      
-      // Close detail view if deleted message was selected
-      if (selectedMessage && selectedMessage._id === messageId) {
-        setSelectedMessage(null)
+      if (response.success) {
+        // Refresh messages
+        fetchMessages(currentPage, { search, status: statusFilter })
+        
+        // Close detail view if deleted message was selected
+        if (selectedMessage && selectedMessage._id === messageId) {
+          setSelectedMessage(null)
+        }
+      } else {
+        throw new Error(response.message || 'Failed to delete message')
       }
     } catch (err) {
       setError(err.message)
