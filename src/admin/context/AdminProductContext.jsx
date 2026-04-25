@@ -86,16 +86,11 @@ return 'ok'
 
 const getTotalSold = async () => {
 try {
-  // Fetch dynamic sold counts from Orders (Single Source of Truth)
-  const response = await fetch(`${API_BASE_URL}/admin/analytics/sold`, {
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-    }
-  })
+  // Use the analytics API that already exists and returns totalProductsSold
+  const data = await adminApi.getAnalytics()
   
-  if (response.ok) {
-    const data = await response.json()
-    return data.data?.totalSold || 0
+  if (data.success && data.data?.summary?.totalProductsSold) {
+    return data.data.summary.totalProductsSold
   }
   
   // Fallback to product sold counts if API fails

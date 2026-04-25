@@ -47,7 +47,14 @@ export const EnhancedOrderProvider = ({ children }) => {
       stockOut: 0,
       lowStock: 0,
       inStock: 0
-    }
+    },
+    // Add individual order status counts for summary cards
+    total: 0,
+    pending: 0,
+    processing: 0,
+    shipped: 0,
+    delivered: 0,
+    cancelled: 0
   })
 
   // Fetch analytics data including stock analytics
@@ -56,6 +63,9 @@ export const EnhancedOrderProvider = ({ children }) => {
       if (!silent) setLoading(true)
       
       const data = await adminApi.getAnalytics()
+      
+      console.log('🔍 Analytics API Response:', JSON.stringify(data, null, 2))
+      console.log('🔍 Stock data from API:', JSON.stringify(data.data?.stock, null, 2))
       
       if (data.success) {
         setStats(prev => ({
@@ -67,10 +77,12 @@ export const EnhancedOrderProvider = ({ children }) => {
             inStock: 0
           }
         }))
-        console.log('Analytics updated with stock data')
+        console.log('✅ Analytics updated with stock data:', JSON.stringify(data.data?.stock, null, 2))
+      } else {
+        console.log('❌ Analytics API returned success=false')
       }
     } catch (error) {
-      console.error('Analytics fetch error:', error.message)
+      console.error('❌ Analytics fetch error:', error.message)
     } finally {
       if (!silent) setLoading(false)
     }
@@ -100,7 +112,8 @@ export const EnhancedOrderProvider = ({ children }) => {
         
         if (hasChanged) {
           setOrders(newOrders)
-          setStats({
+          setStats(prev => ({
+            ...prev, // Preserve existing stats including stockAnalytics
             totalOrders: data.data?.pagination?.totalOrders || newOrders.length,
             totalRevenue: data.data?.stats?.totalRevenue || newOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0),
             paymentStatusBreakdown: data.data?.stats?.paymentStatusBreakdown || {
@@ -109,8 +122,15 @@ export const EnhancedOrderProvider = ({ children }) => {
               failed: newOrders.filter(o => o.paymentStatus === 'failed').length,
               refunded: newOrders.filter(o => o.paymentStatus === 'refunded').length
             },
-            paymentMethodBreakdown: data.data?.stats?.paymentMethodBreakdown || {}
-          })
+            paymentMethodBreakdown: data.data?.stats?.paymentMethodBreakdown || {},
+            // Add individual order status counts for summary cards
+            total: newOrders.length,
+            pending: newOrders.filter(o => o.status === 'pending').length,
+            processing: newOrders.filter(o => o.status === 'processing').length,
+            shipped: newOrders.filter(o => o.status === 'shipped').length,
+            delivered: newOrders.filter(o => o.status === 'delivered').length,
+            cancelled: newOrders.filter(o => o.status === 'cancelled').length
+          }))
           setLastFetch(new Date())
           console.log(`Enhanced Orders updated: ${newOrders.length} orders (using real API)`)
         }
