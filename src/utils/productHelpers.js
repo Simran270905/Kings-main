@@ -121,10 +121,10 @@ product.productName ||
 export const getProductBrand = (product) => {
 if (!product) return '';
 
-return product.brand?.name ||
-product.brand ||
-product.category?.name ||
-'';
+// Prioritize category name over brand name for display
+return product.category?.name ||
+product.brand?.name ||
+'KKings Jewellery';
 };
 
 export const getProductMaterial = (product) => {

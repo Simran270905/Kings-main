@@ -58,23 +58,8 @@ function normalize(raw) {
   const sellingPrice = raw.sellingPrice || raw.price || raw.selling_price  // Use sellingPrice, fallback to price, fallback to selling_price
   const originalPrice = raw.originalPrice  // Use originalPrice directly
   
-  // Add debug validation
-  console.log("=== PRODUCT DETAILS DEBUG ===")
-  console.log("Product ID:", raw._id || raw.id)
-  console.log("Name:", name)
-  console.log("Available Fields:", Object.keys(raw))
-  console.log("Price Fields:", {
-    sellingPrice: raw.sellingPrice,
-    originalPrice: raw.originalPrice,
-    price: raw.price,
-    selling_price: raw.selling_price,
-    original_price: raw.original_price
-  })
-  console.log("Mapped Prices:", {
-    mainPrice: sellingPrice,      // sellingPrice || price || selling_price - MAIN PRICE
-    strikethroughPrice: originalPrice  // originalPrice - STRIKETHROUGH
-  })
-  console.log("===================")
+  // Debug validation removed for production
+  // Product ID and details are only visible in admin panel
 
   const images =
     raw.images && Array.isArray(raw.images) && raw.images.length > 0
@@ -464,14 +449,7 @@ export default function ProductDetails() {
         {/* Reviews Section */}
         {currentProduct && (
           <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {(() => {
-              console.log('🔍 ProductDetails - currentProduct._id:', currentProduct._id)
-              console.log('🔍 ProductDetails - currentProduct.id:', currentProduct.id)
-              console.log('🔍 ProductDetails - currentProduct:', currentProduct)
-              const productId = currentProduct._id || currentProduct.id
-              console.log('🔍 ProductDetails - Using productId for reviews:', productId)
-              return <ProductReviews productId={productId} />
-            })()}
+            <ProductReviews productId={currentProduct._id || currentProduct.id} />
           </section>
         )}
       </div>

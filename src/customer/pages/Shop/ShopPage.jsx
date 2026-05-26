@@ -55,8 +55,6 @@ export default function ShopPage() {
       }
       return null
     }).filter(Boolean))]
-    console.log('Categories extracted:', uniqueCats)
-    console.log('Sample products:', allProductsList.slice(0, 3).map(p => ({ id: p.id || p._id, category: p.category, name: p.name })))
     return uniqueCats
   }, [allProductsList])
 
@@ -66,18 +64,17 @@ export default function ShopPage() {
     
     // Filter by category
     if (selectedCategory !== 'all') {
-      console.log('Filtering by category:', selectedCategory)
-      const beforeFilter = arr.length
       arr = arr.filter(item => {
         if (typeof item.category === 'string') {
           return item.category.toLowerCase() === selectedCategory.toLowerCase()
         } else if (item.category && typeof item.category === 'object' && item.category.name) {
-          return item.category.name.toLowerCase() === selectedCategory.toLowerCase()
+          // Check both category name and slug
+          const categoryName = item.category.name.toLowerCase()
+          const categorySlug = item.category.slug?.toLowerCase() || categoryName.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+          return categoryName === selectedCategory.toLowerCase() || categorySlug === selectedCategory.toLowerCase()
         }
         return false
       })
-      console.log('After filter:', arr.length, 'products (from', beforeFilter, ')')
-      console.log('Filtered products:', arr.slice(0, 3).map(p => ({ id: p.id || p._id, category: p.category, name: p.name })))
     }
     
     // Apply sorting
@@ -140,10 +137,7 @@ export default function ShopPage() {
             {categories.map((category) => (
               <button
                 key={category}
-                onClick={() => {
-      console.log('Category clicked:', category)
-      setSelectedCategory(category)
-    }}
+                onClick={() => setSelectedCategory(category)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                   selectedCategory === category
                     ? 'bg-[#ae0b0b] text-white shadow-md'

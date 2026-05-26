@@ -43,13 +43,7 @@ const ProductCard = ({ product, onAddToCart }) => {
 
   // ✅ PRICE VALIDATION: Check for invalid pricing
   if (sellingPrice > originalPrice) {
-    console.warn('⚠️ INVALID PRICING: Selling price is greater than MRP', {
-      productId: product._id,
-      title,
-      sellingPrice,
-      originalPrice,
-      difference: sellingPrice - originalPrice
-    });
+    // Price validation warning - only visible in admin panel
   }
   
   const isBestSeller = product.isBestSeller || false;
@@ -267,12 +261,8 @@ const ProductCard = ({ product, onAddToCart }) => {
         onComplete={handleFlyAnimationComplete}
       />
       
-      {/* Debug Info */}
-      {process.env.NODE_ENV === 'development' && (
-        <div style={{ fontSize: '10px', color: '#666', marginTop: '5px' }}>
-          Debug: productId={product._id || product.id}, flyAnimation={flyAnimation ? 'true' : 'false'}
-        </div>
-      )}
+      {/* Debug Info - Removed for production */}
+      {/* Debug info is now only available in admin panel */}
     </div>
   );
 };
